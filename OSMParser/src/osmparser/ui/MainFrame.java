@@ -23,7 +23,7 @@ public class MainFrame extends javax.swing.JFrame {
     public MainFrame() {
         initComponents();
 
-        OSMParser parser = new OSMParser("C:\\Shared\\maastricht_bastion.osm");
+        OSMParser parser = new OSMParser("..\\Maps\\maastricht_bp.osm");
 
         RoadNetwork rn = parser.getRoadNetwork();
 

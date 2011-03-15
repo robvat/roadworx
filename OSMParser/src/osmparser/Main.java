@@ -29,7 +29,7 @@ public class Main {
         double h_dist = Util.calculateHorizontalDistance(lat1, lon1, lon2);
         double dist = Math.sqrt(Math.pow(v_dist, 2.0f) + Math.pow(h_dist,2.0f));
 
-        OSMParser parser = new OSMParser("C:\\Shared\\maastricht_bastion.osm");
+        OSMParser parser = new OSMParser("..\\maastricht_bp.osm");
 
         RoadNetwork map = parser.getRoadNetwork();
 
