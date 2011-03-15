@@ -14,6 +14,13 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.event.HierarchyBoundsListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import javax.swing.JComponent;
 import osmparser.Node;
@@ -24,7 +31,7 @@ import osmparser.RoadNetwork;
  *
  * @author Gerrit
  */
-public class MapComponent extends JComponent {
+public class MapComponent extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener, HierarchyBoundsListener {
 
     //edit this to change the look of the grid
     private final Stroke roadFillStroke = new BasicStroke(2, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND);
@@ -49,12 +56,15 @@ public class MapComponent extends JComponent {
     Projection p;
 
     public MapComponent() {
-        //draw_queue = new ArrayList<Node>();
-
         p = new MercatorProjection();
         Ellipsoid unarySphere = new Ellipsoid(null, 1, 0, null);
         p.setEllipsoid(unarySphere);
         p.initialize();
+
+        addMouseListener(this);
+        addMouseMotionListener(this);
+        addMouseWheelListener(this);
+        addHierarchyBoundsListener(this);
     }
 
     public void loadRoadNetwork(RoadNetwork rn) {
@@ -104,9 +114,6 @@ public class MapComponent extends JComponent {
     }
 
     private void drawRoad(Graphics2D gr, Road r) {
-        Node f = r.getFirstNode();
-        Node l = r.getLastNode();
-
         Node current;
 
         int[] xPoints = new int[r.getNodes().size()];
@@ -127,19 +134,10 @@ public class MapComponent extends JComponent {
         gr.setPaint(roadOutlinePaint);
         gr.setStroke(roadOutlineStroke);
         gr.drawPolyline(xPoints, yPoints, r.getNodes().size());
-        /*gr.drawLine((int)(_offset.x + (prev_p.x * _scale)),
-        (int)(_offset.y + (prev_p.y * _scale)),
-        (int)(_offset.x + (current_p.x * _scale)),
-        (int)(_offset.y + (current_p.y * _scale)));*/
 
         gr.setPaint(roadFillPaint);
         gr.setStroke(roadFillStroke);
         gr.drawPolyline(xPoints, yPoints, r.getNodes().size());
-        /*gr.drawLine((int)(_offset.x + (prev_p.x * _scale)),
-        (int)(_offset.y + (prev_p.y * _scale)),
-        (int)(_offset.x + (current_p.x * _scale)),
-        (int)(_offset.y + (current_p.y * _scale)));*/
-
     }
 
     private void calculateInitialScale() {
@@ -179,6 +177,38 @@ public class MapComponent extends JComponent {
         _coordinateoffset = new Point2D.Double(
                 _offset.x - (topleft.x * _scale),
                 _offset.y - (topleft.y * _scale));
+
+    }
+
+    public void mouseClicked(MouseEvent e) {
+    }
+
+    public void mousePressed(MouseEvent e) {
+    }
+
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    public void mouseExited(MouseEvent e) {
+    }
+
+    public void mouseDragged(MouseEvent e) {
+    }
+
+    public void mouseMoved(MouseEvent e) {
+    }
+
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        double rotation = (double)e.getWheelRotation() * (double)e.getScrollAmount();
+    }
+
+    public void ancestorMoved(HierarchyEvent e) {
+    }
+
+    public void ancestorResized(HierarchyEvent e) {
 
     }
 }

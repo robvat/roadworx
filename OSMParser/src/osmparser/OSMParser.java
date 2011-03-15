@@ -5,12 +5,14 @@
 
 package osmparser;
 
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.*;
@@ -48,6 +50,10 @@ public class OSMParser {
     public RoadNetwork getRoadNetwork() {
         return _rn;
     }
+    private static final Set<String> ALLOWED_ROADS = new HashSet<String>(Arrays.asList(
+        new String[] {"unclassified","motorway","motorway_link","trunk","trunk_link","primary","primary_link","secondary",
+        "secondary_link","tertiary","residential","unclassified","living_street","mini_roundabout","roundabout","motorway_junction"}
+    ));
 
     private void getRoads() {
         int i,j;
@@ -62,16 +68,23 @@ public class OSMParser {
 
                 String name = "";
 
+                boolean road = false;
+
                 for (j = 0; j < tags.getLength(); j++) {
                     Element node = (Element) tags.item(j);
-                    if (node.getAttribute("k").equals("name")) {
+                    
+                    if (node.getAttribute("k").equals("name"))
                         name = node.getAttribute("v");
-                        break;
-                    }
+                    
+                    if (node.getAttribute("k").equals("highway") && ALLOWED_ROADS.contains(node.getAttribute("v")))
+                        road = true;
+
+
                 }
 
-                if (name.equals(""))
+                if (!road)//if (name.equals("") || !road)
                     continue;
+                
 
                 //construct a new road object
                 Road r = new Road(name);
