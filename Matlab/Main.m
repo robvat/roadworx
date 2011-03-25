@@ -2,17 +2,22 @@
 clc
 clear
 
+%global variables
+global car_types
+
 % lets make up some car types
 % [0] car-type id
 % [1] length of vehicle in m
 % [2] top speed of vehicle in m/s
+% [3] max acceleration-rate in m/s^2 <-- needs a reality check  (car type 3
+% = bugatti veyron
 car_types = [
-    1       18.0    22.2; % 18 metres long, top speed 80
-    2       4.0     33.3; % 4 metres long, top speed 120
-    3       4.0     44.4 % 4 metres long, top speed 160
+    1       18.0    22.2     3; % 18 metres long, top speed 80
+    2       4.0     33.3     4; % 4 metres long, top speed 120
+    3       4.0     44.4     12;  % 4 metres long, top speed 160
     ]
 
-% Here we set global vars so we can easily config the simulation.
+% Here we set global vars so we can easily config the simulations
 car_count = 1000;
 
 %create the cars
