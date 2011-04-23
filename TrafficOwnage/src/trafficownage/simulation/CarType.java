@@ -47,7 +47,7 @@ public enum CarType {
     /**
      * @return the max_acc
      */
-    public float getMaxAcc() {
+    public float getMaximumAcceleration() {
         return max_acc;
     }
 
