@@ -9,7 +9,7 @@ package trafficownage.simulation;
  *
  * @author Gerrit Drost
  */
-public enum DriverModel implements Updatable {
+public enum DriverType implements Updatable {
 
     NORMAL(2.78f, 2.5f, 44.0f, 1.0f, 2.0f),
     AGRESSIVE(4.0f, 3.5f, 65.0f, 0.2f, 0.5f),
@@ -21,7 +21,7 @@ public enum DriverModel implements Updatable {
             minimum_distance_to_leader,
             desired_time_headway;
 
-    DriverModel(
+    DriverType(
             float max_acceleration,
             float max_comfortable_deceleration,
             float max_velocity,
