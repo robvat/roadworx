@@ -12,12 +12,12 @@ import java.util.List;
  */
 public class Roundabout extends Node
 {
-
+    public static final double speed = 9.72222222; //TODO: turn into a function
     private double size; // circumference in meters
     private boolean suc;
     private List<Road> roadsConnected; // list of all the roads connected
     private List<Car> cars;
-    private List<Integer> times; // a list of times, the cars have to spend on the roundabout
+    private List<Double> times; // a list of times, the cars have to spend on the roundabout
 
     public Roundabout(double radius,Road[] roads)
     {
@@ -33,7 +33,7 @@ public class Roundabout extends Node
     {
         /* atm a normal amount of cars you have
          to stop for but quite random */
-        // TODO: maybe find a more realistic way to descide this
+        // TODO: find a more realistic way to descide this
         if(cars.size() > 2)
             return false;
         else
@@ -43,17 +43,28 @@ public class Roundabout extends Node
 
     public void acceptCar(Car incoming)
     {
+        doubel double time;
         double chance = acceptChance();
         //First try to get on the road
-
-        //Got through?
+        if(Math.random() <= chance)
+        {
+            //Got through?
         //That means he's part of the node and gets a waiting time assigned
+            cars.add(incoming);
+            time = size / speed;
+            times.add(new Double(time));
+           /* TODO: Cars need to be able to be on nodes (and NOT on roads)
+            * before this can be implemented fully
+            */
+        }
 
     }
 
     public void update()
     {
         throw new UnsupportedOperationException("Not supported yet.");
+        //TODO
+        // needs delta Time (timestep)
     }
 
     /* private method using a "homebrew" formula for calculating the chance
@@ -82,13 +93,14 @@ public class Roundabout extends Node
                 }
                 else
                 {
-                    slots--;    // Warning
+                    slots--;    // Warning do not use these ints afterwards
                     carAm--;
-
+                    rational[0] = (slots - 2);
+                    rational[1] = slots;
                 }
                 dFinal = dFinal * (rational[0]/rational[1]);
             }
-            return 123;
+            return dFinal;
         }
     }
 
