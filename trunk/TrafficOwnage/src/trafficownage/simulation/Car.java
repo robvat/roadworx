@@ -15,6 +15,8 @@ public class Car {
 
     private DriverModel driverModel;
 
+    private Lane lane;
+
     private double max_velocity;
 
     private double velocity;
@@ -35,7 +37,8 @@ public class Car {
 
         private double desired_distance;
         public double update(double velocity_leader, double distance_to_leader) {
-            desired_distance = s0 + (velocity * T) + ((velocity * velocity_leader) / (2 * Math.sqrt(a*b)));
+            desired_distance = s0 + (velocity * T) + ((velocity * Math.abs(velocity_leader - velocity)) / (2 * Math.sqrt(a*b)));
+            
             return a * (1 - Math.pow((velocity/v0),4.0) - (desired_distance / distance_to_leader));
 
         }
@@ -47,25 +50,35 @@ public class Car {
     }
 
     /**
-     * Initializes the car. For this we need to know the driver and the car
+     * Initializes the car. Since we will use object pools, this just initializes the object
      * @param carType
      * @param driverType
      */
-    public Car(CarType carType, DriverType driverType) {
-        this.carType = carType;
-        this.driverType = driverType;
-
+    public Car() {
         driverModel = new IDM();
     }
 
 
     /**
-     * Initializes the car. The car needs to know some stuff like the maximum
-     * allowed velocity to start driving properly.
+     * Real initialization. Sets the driver and car type, and the lane the car
+     * will start driving on.
      * @param max_velocity
      */
-    public void init(double max_velocity) {
-        this.max_velocity = max_velocity;
+    public void init(CarType carType, DriverType driverType) {
+        this.carType = carType;
+        this.driverType = driverType;
+        driverModel.init(driverType, carType, max_velocity);
+    }
+
+    public void switchLane(Lane lane) {
+        this.lane = lane;
+    }
+
+    public void setLane(Lane lane) {
+        this.lane = lane;
+        this.max_velocity = lane.getMaximumVelocity();
+        this.position = 0.0;
+        driverModel.setMaxVelocity(max_velocity);
     }
 
 
@@ -107,9 +120,8 @@ public class Car {
      * @param distance_to_leader
      */
     public void update(double timestep, double velocity_leader, double distance_to_leader) {
-        position += velocity * timestep;
-        velocity += acceleration * timestep;
         acceleration = driverModel.update(velocity_leader, distance_to_leader);
-
+        velocity += acceleration * timestep;
+        position += velocity * timestep;
     }
 }
