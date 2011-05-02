@@ -80,7 +80,7 @@ public class Lane {
 
         for (int i = cars.size() - 1; i >= 0; i--) {
             car = cars.get(i);
-            int p = (int)Math.round((car.getPosition() / length) * (double)resolution);\
+            int p = (int)Math.round((car.getPosition() / length) * (double)resolution);
                     
             if (c == p)
                 continue;
