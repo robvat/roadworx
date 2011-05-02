@@ -75,6 +75,8 @@ public class Car {
      */
     public void setMaxVelocity(double max_velocity) {
         this.max_velocity = max_velocity;
+
+        driverModel.setMaxVelocity(max_velocity);
     }
 
     /**
