@@ -5,32 +5,33 @@
 
 package trafficownage.simulation;
 
-import java.util.LinkedList;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
  * @author Gerrit
  */
 public class Lane {
-    private LinkedList<Car> cars;
+    private List<Car> cars;
     private double length;
     private double max_velocity;
 
     public Lane(double length, double max_velocity) {
         this.length = length;
-        this.cars = new LinkedList<Car>();
+        this.cars = new ArrayList<Car>();
         this.max_velocity = max_velocity;
     }
 
     public void addCar(Car car) {
-        cars.addLast(car);
+        cars.add(cars.size(),car);
         car.setLane(this);
     }
 
     public void insertCar(Car car) {
 
         if (car.getPosition() == 0.0) {
-            cars.addLast(car);
+            cars.add(cars.size(),car);
             return;
         }
 
@@ -61,7 +62,7 @@ public class Lane {
                 previous = car;
                 leader = false;
             } else {
-                car.update(timestep, previous.getVelocity(), previous.getPosition() - car.getPosition());
+                car.update(timestep, previous.getVelocity(), previous.getPosition() - previous.getLength() - car.getPosition());
             }
 
         }
@@ -70,9 +71,31 @@ public class Lane {
     @Override
     public String toString() {
         String out = "";
-        for (Car car : cars) {
-            out += "[p=" + Double.toString(car.getPosition()) + ",v="+ Double.toString(car.getVelocity()) + "]";
+
+        int resolution = 100;
+
+        int c = 0;
+
+        Car car;
+
+        for (int i = cars.size() - 1; i >= 0; i--) {
+            car = cars.get(i);
+            int p = (int)Math.round((car.getPosition() / length) * (double)resolution);\
+                    
+            if (c == p)
+                continue;
+
+            for (int j = c; j < p; j++)
+                out += "=";
+
+            out += "*";
+
+            c = p;
         }
+
+        for (int i = c; i < resolution; i++)
+                out += "=";
+
         return out;
     }
 

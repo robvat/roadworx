@@ -113,6 +113,10 @@ public class Car {
         return position;
     }
 
+    public double getLength() {
+        return carType.getLength();
+    }
+
     /**
      * Updates the car position and velocity
      * @param dT
