@@ -5,6 +5,7 @@
 
 package trafficownage.simulation;
 
+import java.awt.geom.Point2D;
 import java.util.List;
 /**
  *
@@ -19,8 +20,10 @@ public class Roundabout extends Node
     private List<Car> cars;
     private List<Double> times; // a list of times, the cars have to spend on the roundabout
 
-    public Roundabout(double radius,Road[] roads)
+    public Roundabout(Point2D.Double location, double radius, Road[] roads)
     {
+        super(location);
+        
         this.size = (radius * 2) * Math.PI;
         for(int i = 0; i < (roads.length - 1);i++)
         {
@@ -43,7 +46,7 @@ public class Roundabout extends Node
 
     public void acceptCar(Car incoming)
     {
-        doubel double time;
+        double time;
         double chance = acceptChance();
         //First try to get on the road
         if(Math.random() <= chance)
@@ -60,7 +63,7 @@ public class Roundabout extends Node
 
     }
 
-    public void update()
+    public void update(double timestep)
     {
         throw new UnsupportedOperationException("Not supported yet.");
         //TODO
