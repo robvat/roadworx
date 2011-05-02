@@ -10,9 +10,7 @@ package trafficownage.simulation;
  * @author Gerrit
  */
 public class MainLoop implements Runnable {
-
     public void run() {
-        //TODO: ACTUAL CODE MOTHERFUCKERS!
+        
     }
-
 }
