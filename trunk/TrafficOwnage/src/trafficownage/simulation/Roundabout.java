@@ -16,10 +16,16 @@ public class Roundabout extends Node
     public static final double speed = 9.72222222; //TODO: turn into a function
     private double size; // circumference in meters
     private boolean suc;
-    private List<Road> roadsConnected; // list of all the roads connected
+    private List<Road> roadsConnected; // list of all the roads connected: NOT NEEDED SEE NODE
     private List<Car> cars;
     private List<Double> times; // a list of times, the cars have to spend on the roundabout
 
+    /*
+     * Constructs a roundabout
+     * @param roads all the roads that are connected
+     * The constructor assumes the roads are given in a
+     * clockwise fashion
+     */
     public Roundabout(Point2D.Double location, double radius, Road[] roads)
     {
         super(location);
@@ -37,7 +43,7 @@ public class Roundabout extends Node
         /* atm a normal amount of cars you have
          to stop for but quite random */
         // TODO: find a more realistic way to descide this
-        if(cars.size() > 2)
+        if(cars.size() > 1)
             return false;
         else
             return true;
@@ -46,14 +52,26 @@ public class Roundabout extends Node
 
     public void acceptCar(Car incoming)
     {
-        double time;
+        double time, factor;
         double chance = acceptChance();
         //First try to get on the road
         if(Math.random() <= chance)
         {
-            //Got through?
-        //That means he's part of the node and gets a waiting time assigned
+            try
+            {
+                    factor = directionPercentage(incoming); // not all around!
+            } catch (wrongFromException e) {
+                // TODO needs to print a not that bad error to the logger
+            } catch (wrongToException f)
+            {
+               /*
+                * TODO: big error, needs to be logged and send back
+                * to his original road
+                */
+            }
+            // he's part of the node and gets a waiting time assigned
             cars.add(incoming);
+            
             time = size / speed;
             times.add(new Double(time));
            /* TODO: Cars need to be able to be on nodes (and NOT on roads)
@@ -65,9 +83,20 @@ public class Roundabout extends Node
 
     public void update(double timestep)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
-        //TODO
-        // needs delta Time (timestep)
+        double newTime;
+        for(int i = 0; i < cars.size(); i++)
+        {
+             newTime = times.get(i) - timestep;
+             if(newTime < 0)
+             {
+                 //Time to put him at his new Lane
+                 getRidOfHim(i);
+             }
+             else
+             {
+                 times.set(i, newTime);
+             }
+        }
     }
 
     /* private method using a "homebrew" formula for calculating the chance
@@ -107,4 +136,100 @@ public class Roundabout extends Node
         }
     }
 
+
+    /*
+     * Car at spot i in the lists, will be put on his way
+     * with a little knapsack and everything!
+     */
+    private void getRidOfHim(int i)
+    {
+        //TODO: change Car (retrieve lane from road) and change lane
+        cars.remove(i);
+        times.remove(i);
+    }
+
+    /*
+     * Calculates the percentage of roundabout the car wants to travel
+     */
+    private double directionPercentage(Car c) throws wrongFromException,
+            wrongToException
+    {
+        Node direction = null;
+        Road togo,from = null;
+        int[] pos = new int[2];
+        pos[0] = 666;
+        pos[1] = 666;
+        int size, v;
+        double outcome;
+        size = roadsConnected.size();
+
+        // TODO: direction = c.blabla
+        //from = c.currentRoad // and get rid of the = null's
+        togo = super.getRoad(direction);
+        for(int i = 0; i < roadsConnected.size(); i++)
+        {
+            /*
+             * TODO: equals might be slow, use id's in the future
+             */
+           if(togo.equals(roadsConnected.get(i)))
+               pos[0] = i + 1;
+           else if(from.equals(roadsConnected.get(i)))
+               pos[1] = i + 1;
+        }
+        if(pos[0] == 666)
+            throw new wrongToException();
+        if(pos[1] == 666)
+            throw new wrongFromException();
+        if(pos[0] < pos[1])
+        {
+            v = size - pos[1];
+            v = v + pos[0];
+            outcome = (v / size);
+        }
+        else if (pos[0] == pos[1])
+        {
+            outcome = 0;
+        }
+        else
+        {
+            v = pos[0] - pos[1];
+            outcome = (v / size);
+        }
+
+        return outcome;
+    }
+    
+    
+    /*
+     * remember pos 0 = to go
+     * pos 1 = where you're from
+     */
+
+    private class wrongFromException extends Exception
+    {
+        public wrongFromException()
+        {
+            super();
+        }
+    }
+
+    private class wrongToException extends Exception
+    {
+        public wrongToException()
+        {
+            super();
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Roads Connected " + roadsConnected.size() +
+                " Cars on driverway" + cars.size();
+    }
+
+    public void logTimePrint()
+    {
+        // TODO in the log, have a overview of all the cars and their times
+    }
 }
