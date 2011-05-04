@@ -5,6 +5,8 @@
 
 package trafficownage.simulation;
 
+import java.util.List;
+
 /**
  *
  * @author Gerrit
@@ -23,6 +25,7 @@ public class Car {
     private double acceleration;
 
     private double position;
+    private List<Node> route;
 
     private class IDM implements DriverModel {
         private double a,b,v0,s0,T;
@@ -117,6 +120,20 @@ public class Car {
         return carType.getLength();
     }
 
+    public List<Node> getRoute(){
+        return route;
+    }
+
+    public Lane getLane(){
+        return lane;
+    }
+
+    public Node getNextNode(){
+        return route.get(1);
+        //assumed that the first item of the route is the next node you will reach, so the second one is the next one,
+        //or should this be the 0th item?
+        //It depends when the route is updated, but in any case, I assumed that nodes that you already visited are out of the route.
+    }
     /**
      * Updates the car position and velocity
      * @param dT

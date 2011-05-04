@@ -16,11 +16,17 @@ public class Lane {
     private List<Car> cars;
     private double length;
     private double max_velocity;
+    private int turnDirections;                 //indicates if you can turn from this road left, right, both or neither.
+    public static final int BOTH_NOT = 0;
+    public static final int RIGHT = 1;
+    public static final int LEFT = 2;
+    public static final int BOTH = 3;
 
-    public Lane(double length, double max_velocity) {
+    public Lane(double length, double max_velocity, int turnDirections) {
         this.length = length;
         this.cars = new ArrayList<Car>();
         this.max_velocity = max_velocity;
+        this.turnDirections = turnDirections;
     }
 
     public void addCar(Car car) {
@@ -53,6 +59,10 @@ public class Lane {
 
     public double getLength() {
         return length;
+    }
+
+    public int getTurnDirections(){
+        return turnDirections;
     }
 
     public void update(double timestep) {

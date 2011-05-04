@@ -42,14 +42,14 @@ public class MainLoop implements Runnable {
         nodes.addAll(Arrays.asList(n));
 
         Road[] r = {
-            new Road(n[0],n[1],100.0,13.9,1,false),
-            new Road(n[0],n[2],100.0,13.9,1,false),
-            new Road(n[0],n[3],100.0,13.9,1,false),
-            new Road(n[0],n[4],100.0,13.9,1,false),
-            new Road(n[0],n[5],142.0,13.9,1,false),
-            new Road(n[0],n[6],142.0,13.9,1,false),
-            new Road(n[0],n[7],142.0,13.9,1,false),
-            new Road(n[0],n[8],142.0,13.9,1,false),
+            new Road(n[0],n[1],100.0,13.9,1,false,false),
+            new Road(n[0],n[2],100.0,13.9,1,false,false),
+            new Road(n[0],n[3],100.0,13.9,1,false,false),
+            new Road(n[0],n[4],100.0,13.9,1,false,false),
+            new Road(n[0],n[5],142.0,13.9,1,false,false),
+            new Road(n[0],n[6],142.0,13.9,1,false,false),
+            new Road(n[0],n[7],142.0,13.9,1,false,false),
+            new Road(n[0],n[8],142.0,13.9,1,false,false),
         };
 
         roads = new ArrayList<Road>();
