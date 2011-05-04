@@ -36,6 +36,12 @@ public abstract class Node
         return location;
     }
 
+    public Road[] sortRoads(){
+        Road[] sortedRoads = new Road[4];
+        //TODO: sort them so that the second is right of the first etc, null if there is no road in that direction
+        return sortedRoads;
+    }
+
     /* incoming cars need to know wether to brake or continue driving */
     abstract boolean drivethrough(Car incoming);
     /* TODO: crossroads without lights need drivers to check so drivers

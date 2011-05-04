@@ -18,10 +18,12 @@ public class Road {
 
     public Node node1, node2;
     public List<Lane> lanes,lanes1,lanes2;
+    private boolean priority;
 
-    public Road(Node node1, Node node2, double length, double speed_limit, int lanes_per_side, boolean oneway) {
+    public Road(Node node1, Node node2, double length, double speed_limit, int lanes_per_side, boolean oneway, boolean priority) {
         this.node1 = node1;
         this.node2 = node2;
+        this.priority = priority;
 
         laneMap = new HashMap<Node,List<Lane>>();
 
@@ -30,9 +32,26 @@ public class Road {
         if (oneway) {
             lanes = new ArrayList<Lane>();
             lanes1 = new ArrayList<Lane>();
+            
+            if(lanes_per_side == 1){
+                lane = new Lane(length,speed_limit, Lane.BOTH);
+                lanes1.add(lane);
+                lanes.add(lane);
+            }
+            else{
+                //first the most left lane
+                lane = new Lane(length,speed_limit, Lane.LEFT);
+                lanes1.add(lane);
+                lanes.add(lane);
 
-            for (int i = 0; i < lanes_per_side; i++) {
-                lane = new Lane(length,speed_limit);
+                for (int i = 0; i < lanes_per_side -2; i++) {
+                    lane = new Lane(length,speed_limit, Lane.BOTH_NOT);
+                    lanes1.add(lane);
+                    lanes.add(lane);
+                }
+
+                //last the most right lane
+                lane = new Lane(length,speed_limit, Lane.RIGHT);
                 lanes1.add(lane);
                 lanes.add(lane);
             }
@@ -42,18 +61,48 @@ public class Road {
             lanes = new ArrayList<Lane>();
             lanes1 = new ArrayList<Lane>();
             lanes2 = new ArrayList<Lane>();
-            for (int i = 0; i < lanes_per_side; i++) {
 
-                lane = new Lane(length,speed_limit);
+                
+
+
+            if(lanes_per_side == 1){
+                lane = new Lane(length,speed_limit, Lane.BOTH);
                 lanes1.add(lane);
                 lanes.add(lane);
 
-                lane = new Lane(length,speed_limit);
+                lane = new Lane(length,speed_limit, Lane.BOTH);
+                lanes2.add(lane);
+                lanes.add(lane);
+            }
+            else{
+                //first the most left lane
+                lane = new Lane(length,speed_limit, Lane.LEFT);
+                lanes1.add(lane);
+                lanes.add(lane);
+
+                lane = new Lane(length,speed_limit, Lane.LEFT);
                 lanes2.add(lane);
                 lanes.add(lane);
 
-            }
+                for (int i = 0; i < lanes_per_side -2; i++) {
+                    lane = new Lane(length,speed_limit, Lane.BOTH_NOT);
+                    lanes1.add(lane);
+                    lanes.add(lane);
 
+                    lane = new Lane(length,speed_limit, Lane.BOTH_NOT);
+                    lanes2.add(lane);
+                    lanes.add(lane);
+                }
+
+                //last the most right lane
+                lane = new Lane(length,speed_limit, Lane.RIGHT);
+                lanes1.add(lane);
+                lanes.add(lane);
+
+                lane = new Lane(length,speed_limit, Lane.RIGHT);
+                lanes2.add(lane);
+                lanes.add(lane);
+            }
 
             laneMap.put(node1, lanes1);
             laneMap.put(node2, lanes2);
@@ -66,6 +115,10 @@ public class Road {
 
     public List<Lane> getAllLanes() {
         return lanes;
+    }
+
+    public boolean hasPriority(){
+        return priority;
     }
 
     public Lane getLeftNeighbour(Lane l) {
