@@ -24,6 +24,13 @@ public abstract class Node
         destination_roads = new HashMap<Node,Road>();
     }
 
+    public double distanceTo(Node destination) {
+        return Math.sqrt(
+                Math.pow(location.x - destination.location.x, 2) +
+                Math.pow(location.y - destination.location.y, 2)
+                );
+    }
+
     public void addDestination(Node n, Road r) {
         destination_roads.put(n,r);
     }
