@@ -10,23 +10,19 @@ import java.util.ArrayList;
 
 /**
  *
- * @author Gerrit
+ * @author Gerrit Drost <gerritdrost@gmail.com>
  */
 public class Lane {
     private List<Car> cars;
     private double length;
     private double max_velocity;
-    private int turnDirections;                 //indicates if you can turn from this road left, right, both or neither.
-    public static final int BOTH_NOT = 0;
-    public static final int RIGHT = 1;
-    public static final int LEFT = 2;
-    public static final int BOTH = 3;
+    private double position_coefficient;
 
-    public Lane(double length, double max_velocity, int turnDirections) {
+    public Lane(double length, double max_velocity, double position_coefficient) {
         this.length = length;
         this.cars = new ArrayList<Car>();
         this.max_velocity = max_velocity;
-        this.turnDirections = turnDirections;
+        this.position_coefficient = position_coefficient;
     }
 
     public void addCar(Car car) {
@@ -53,16 +49,16 @@ public class Lane {
         return cars;
     }
 
+    public double getPositionCoefficient() {
+        return position_coefficient;
+    }
+
     public double getMaximumVelocity() {
         return max_velocity;
     }
 
     public double getLength() {
         return length;
-    }
-
-    public int getTurnDirections(){
-        return turnDirections;
     }
 
     public void update(double timestep) {
@@ -72,11 +68,16 @@ public class Lane {
 
         for (Car car : cars) {
             if (leader) {
-                car.update(timestep, 0.0, length - car.getPosition());
+
+                if (position_coefficient < 0)
+                    car.update(timestep, 0.0, car.getPosition());
+                else
+                    car.update(timestep, 0.0, length - car.getPosition());
+
                 previous = car;
                 leader = false;
             } else {
-                car.update(timestep, previous.getVelocity(), previous.getPosition() - previous.getLength() - car.getPosition());
+                car.update(timestep, previous.getVelocity(), Math.abs(previous.getBack() - car.getPosition()));
             }
 
         }
@@ -88,28 +89,42 @@ public class Lane {
 
         int resolution = 100;
 
-        int c = 0;
-
         Car car;
 
-        for (int i = cars.size() - 1; i >= 0; i--) {
-            car = cars.get(i);
-            
-            int p = (int)Math.round((car.getPosition() / length) * (double)resolution);
-                    
-            if (c == p)
-                continue;
+        List<Integer> car_positions = new ArrayList<Integer>();
+        int p;
 
-            for (int j = c; j < p; j++)
-                out += "=";
-
-            out += "*";
-
-            c = p;
+        for (Car c : cars)
+        {
+            p = (int)Math.floor((c.getPosition() / length) * (double)resolution);
+            car_positions.add(p);
         }
 
-        for (int i = c; i < resolution; i++)
+        int lowest;
+        int current;
+
+        lowest = Integer.MAX_VALUE;
+        for (int j = 0; j < car_positions.size(); j++) {
+            current = car_positions.get(j);
+            if (current < lowest) {
+                lowest = current;
+            }
+        }
+
+        for (int i = 0; i < resolution; i++) {
+            if (i == lowest) {
+                out += "*";
+                lowest = Integer.MAX_VALUE;
+                for (int j = 0; j < car_positions.size(); j++) {
+                    current = car_positions.get(j);
+                    if (current > i && current < lowest) {
+                        lowest = current;
+                    }
+                }
+            } else {
                 out += "=";
+            }
+        }
 
         return out;
     }

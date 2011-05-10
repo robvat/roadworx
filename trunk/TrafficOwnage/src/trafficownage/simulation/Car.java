@@ -17,7 +17,8 @@ public class Car {
 
     private DriverModel driverModel;
 
-    private Lane lane;
+    private Lane current_lane;
+    private double position_coefficient;
 
     private double max_velocity;
 
@@ -74,13 +75,19 @@ public class Car {
     }
 
     public void switchLane(Lane lane) {
-        this.lane = lane;
+        this.current_lane = lane;
     }
 
     public void setLane(Lane lane) {
-        this.lane = lane;
+        this.current_lane = lane;
         this.max_velocity = lane.getMaximumVelocity();
-        this.position = 0.0;
+        this.position_coefficient = lane.getPositionCoefficient();
+
+        if (position_coefficient < 0)
+            this.position = lane.getLength();
+        else
+            this.position = 0.0;
+
         driverModel.setMaxVelocity(max_velocity);
     }
 
@@ -116,6 +123,14 @@ public class Car {
         return position;
     }
 
+    public double getFront() {
+        return position;
+    }
+
+    public double getBack() {
+        return position - (position_coefficient * carType.getLength());
+    }
+
     public double getLength() {
         return carType.getLength();
     }
@@ -125,7 +140,7 @@ public class Car {
     }
 
     public Lane getLane(){
-        return lane;
+        return current_lane;
     }
 
     public Node getNextNode(){
@@ -143,6 +158,6 @@ public class Car {
     public void update(double timestep, double velocity_leader, double distance_to_leader) {
         acceleration = driverModel.update(velocity_leader, distance_to_leader);
         velocity += acceleration * timestep;
-        position += velocity * timestep;
+        position += position_coefficient * velocity * timestep;
     }
 }
