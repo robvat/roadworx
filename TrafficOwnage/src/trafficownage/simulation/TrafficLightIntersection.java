@@ -7,64 +7,64 @@ import java.awt.geom.Point2D;
 public class TrafficLightIntersection extends Node{
     
     private String light;//the color of the light
-    private List<Road> roads_connected; //roads connected to the node /im guessing
+    private List<Road> roads_connected; //roads connected to the node 
     private HashMap<Node, Road> destinations;
-    private List<Lane> cars;//all the cars on each lane
+    private List<Lane> lanes; //List with alles the lanes the node has.
+    private List<TrafficLight> traffic_lights;
+    private static double time;
+    private static final double NUMBER = 3600000; //one hour in milliseconds
+    private int carsCounted;
     
-    private static int delay;//how long the light lasts for
-    private static double start_time;//time when the lights change to green
-    private static double global_time;
-    private static int yellow_time;
-    private static int duration;
+   
     
-    public TrafficLightIntersection(Point2D.Double location, Road[] roads, HashMap<Node, Road> destination_roads) {
-
+    public TrafficLightIntersection(Point2D.Double location) {
         super(location);
+    }
+
+    public void init( Road[] roads, HashMap<Node, Road> destination_roads, List<TrafficLight> Traffic_lights){
+        traffic_lights = Traffic_lights;
         destinations = destination_roads;//not sure if i can just do this
         for (int i = 0; i < roads.length; i++) {
             roads_connected.add(roads[i]);
         }//not sure if roads connected counts as possible destinations
-        
+
         for (int i = 0; i < destinations.size(); i++) {
-            //number_of_lights = 
+            //number_of_lights =
         }
     }
     @Override 
     void acceptCar(Car incoming) {
-        if(light == "green") {
-            //accept
-        }
-        else {
-          //dont accept
-        }            
+                // add a car to the node when its passing the traffic light
     }
 
     @Override
     boolean drivethrough(Car incoming) {
-        // TODO Auto-generated method stub
+        if(light == "green") {
+            //let him drive through
+        }
+        else if(light == "yellow"){
+           // get the distance to the light and the velocity -> decide wether to break or not
+        }
+        else {
+            //dont let him drive through
+        }
         return false;
     }
 
     @Override
     void update(double timestep) {
         // TODO Auto-generated method stub
-        
-    }
-    public void setMainLightsTime() {
-        
-        if(global_time == start_time && global_time > start_time + duration - yellow_time) {
-            light = "green";
+        time += timestep;
+        if (time >= NUMBER){
+            // do something with the counted cars
+            resetTime();
         }
-        else if(global_time == start_time + duration - yellow_time && global_time >= start_time + duration) {
-            light = "yellow";
-        }            
-        else
-            light = "red";
-        
-        start_time += delay;
-        
+
     }
-    public void changeTimes() {
-        //TODO: will change the times everytime the traffic light systems updates its timers to optimze it
+
+    public void resetTime(){
+        time = 0;
+        carsCounted = 0;
     }
+
 }
