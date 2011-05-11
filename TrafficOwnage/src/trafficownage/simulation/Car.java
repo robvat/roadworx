@@ -181,9 +181,6 @@ public class Car {
             acceleration = 0.0;
             velocity = 0.0;
         } else {
-            if (distance_to_leader  < 1.0) {
-                System.out.println("Almost there!");
-            }
             acceleration = driver_model.update(velocity_leader, distance_to_leader);
             velocity += acceleration * timestep;
             position += position_coefficient * velocity * timestep;

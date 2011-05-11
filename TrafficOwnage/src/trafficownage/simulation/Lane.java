@@ -8,38 +8,51 @@ package trafficownage.simulation;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  *
  * @author Gerrit Drost <gerritdrost@gmail.com>
  */
 public class Lane {
-    private List<Car> cars;
+    private LinkedList<Car> cars;
     private double length;
     private double max_velocity;
     private double position_coefficient;
 
-    private static double VELOCITY_THRESHOLD = 0.5;
-    private static double DISTANCE_THRESHOLD = 0.1;
+    private double start_position;
+
+    private static double DISTANCE_THRESHOLD = 0.2;
 
     private TrafficQueue queue;
 
     public Lane(double length, double max_velocity, double position_coefficient) {
         this.length = length;
-        this.cars = new ArrayList<Car>();
+        this.cars = new LinkedList<Car>();
         this.max_velocity = max_velocity;
         this.position_coefficient = position_coefficient;
 
 
         if (position_coefficient < 0)
-            queue = new TrafficQueue(0.0);
+            start_position = 0.0;
         else
-            queue = new TrafficQueue(length);
+            start_position = length;
+
+        queue = new TrafficQueue(start_position);
+    }
+
+    public boolean acceptsCar(Car car) {
+        if (!cars.isEmpty() && Math.abs(cars.getLast().getBack() - start_position) < car.getDriverModel().getMinimumDistanceToLeader())
+            return false;
+        else
+            return true;
     }
 
     public void addCar(Car car) {
-        cars.add(cars.size(),car);
-        car.setLane(this);
+        if (acceptsCar(car)) {
+            cars.add(cars.size(),car);
+            car.setLane(this);
+        }
     }
 
     public void insertCar(Car car) {
@@ -78,12 +91,12 @@ public class Lane {
     public class TrafficQueue {
 
         private double default_queue_end;
-        private ArrayDeque<Car> queue;
+        private LinkedList<Car> queue;
         private Car last_car = null;
 
         public TrafficQueue(double default_queue_end) {
             this.default_queue_end = default_queue_end;
-            this.queue = new ArrayDeque<Car>();
+            this.queue = new LinkedList<Car>();
         }
 
         public void addCar(Car c) {
@@ -91,7 +104,7 @@ public class Lane {
             last_car = c;
         }
 
-        public ArrayDeque<Car> getQueue() {
+        public LinkedList<Car> getQueue() {
             return queue;
         }
 
@@ -101,6 +114,10 @@ public class Lane {
             else
                 return last_car.getBack();
         }
+    }
+
+    public List<Car> getQueue() {
+        return queue.getQueue();
     }
 
 
