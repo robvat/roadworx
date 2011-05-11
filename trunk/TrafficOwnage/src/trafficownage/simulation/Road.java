@@ -14,17 +14,22 @@ import java.util.List;
  * @author Gerrit Drost <gerritdrost@gmail.com>
  */
 public class Road {
-    public HashMap<Node,List<Lane>> laneMap;
+    private HashMap<Node,List<Lane>> laneMap;
 
-    public Node node1, node2;
+    private Node node1, node2;
     
-    public List<Lane> lanes, lanes_from_node1, lanes_from_node2;
+    private List<Lane> lanes, lanes_from_node1, lanes_from_node2;
+
+    private double length;
+
     private boolean priority;
 
 
     public Road(Node node1, Node node2, double length, double max_velocity, int lanes_per_side, boolean oneway) {
         lanes_from_node1 = new ArrayList<Lane>();
         lanes_from_node2 = new ArrayList<Lane>();
+
+        this.length = length;
 
         this.node1 = node1;
         this.node2 = node2;
@@ -43,13 +48,25 @@ public class Road {
         laneMap.put(node1, lanes_from_node1);
         laneMap.put(node2, lanes_from_node2);
     }
-    
+
+    public Node getStartNode() {
+        return node1;
+    }
+
+    public Node getEndNode() {
+        return node2;
+    }
+
     public List<Lane> getLanes(Node destination) {
         return laneMap.get(destination);
     }
 
     public List<Lane> getAllLanes() {
         return lanes;
+    }
+
+    public double getLength() {
+        return length;
     }
 
     public boolean hasPriority(){

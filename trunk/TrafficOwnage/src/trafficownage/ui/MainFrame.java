@@ -31,6 +31,8 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
         mapComponent2.init(m);
 
         mapComponent2.repaint();
+
+        new Thread(m).start();
     }
 
     /** This method is called from within the constructor to
@@ -44,6 +46,7 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
 
         mapComponent1 = new trafficownage.ui.MapComponent();
         mapComponent2 = new trafficownage.ui.MapComponent();
+        addCarButton = new javax.swing.JButton();
 
         javax.swing.GroupLayout mapComponent1Layout = new javax.swing.GroupLayout(mapComponent1);
         mapComponent1.setLayout(mapComponent1Layout);
@@ -66,8 +69,15 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
         );
         mapComponent2Layout.setVerticalGroup(
             mapComponent2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 278, Short.MAX_VALUE)
+            .addGap(0, 244, Short.MAX_VALUE)
         );
+
+        addCarButton.setText("Add Car");
+        addCarButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addCarButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -75,19 +85,27 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(addCarButton))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(addCarButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void addCarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addCarButtonActionPerformed
+        m.addCar();
+    }//GEN-LAST:event_addCarButtonActionPerformed
 
     /**
     * @param args the command line arguments
@@ -101,12 +119,14 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addCarButton;
     private trafficownage.ui.MapComponent mapComponent1;
     private trafficownage.ui.MapComponent mapComponent2;
     // End of variables declaration//GEN-END:variables
 
     public void carsUpdated() {
-        
+        //System.out.println("Update call!");
+        mapComponent2.repaint();
     }
 
 }
