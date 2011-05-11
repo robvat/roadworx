@@ -27,34 +27,55 @@ public class MainLoop implements Runnable {
     private UIListener listener = null;
 
     public void init() {
-        /*Node[] n = {
-            new DummyNode(new Point2D.Double(0.0,0.0)),
-            new DummyNode(new Point2D.Double(-100.0,0.0)),
-            new DummyNode(new Point2D.Double(100.0,0.0)),
-            new DummyNode(new Point2D.Double(0.0,100.0)),
-            new DummyNode(new Point2D.Double(0.0,-100.0)),
-            new DummyNode(new Point2D.Double(-100.0,-100.0)),
-            new DummyNode(new Point2D.Double(100.0,-100.0)),
-            new DummyNode(new Point2D.Double(-100.0,100.0)),
-            new DummyNode(new Point2D.Double(100.0,100.0))
+
+        double SIDE_DISTANCE = 200.0;
+        double SLOPE_DISTANCE = Math.sqrt(2*(SIDE_DISTANCE * SIDE_DISTANCE));
+        double MAX_SPEED = 120.0 / 3.6;
+
+        Node[] n = {
+            new DummyNode(new Point2D.Double(0.0,0.0)), //0
+            new DummyNode(new Point2D.Double(-SIDE_DISTANCE,0.0)), //1
+            new DummyNode(new Point2D.Double(SIDE_DISTANCE,0.0)), //2
+            new DummyNode(new Point2D.Double(0.0,SIDE_DISTANCE)), //3
+            new DummyNode(new Point2D.Double(0.0,-SIDE_DISTANCE)), //4
+            new DummyNode(new Point2D.Double(-SIDE_DISTANCE,-SIDE_DISTANCE)), //5
+            new DummyNode(new Point2D.Double(SIDE_DISTANCE,-SIDE_DISTANCE)), //6
+            new DummyNode(new Point2D.Double(-SIDE_DISTANCE,SIDE_DISTANCE)), //7
+            new DummyNode(new Point2D.Double(SIDE_DISTANCE,SIDE_DISTANCE)), //8
+            new DummyNode(new Point2D.Double(0.0,-2 * SIDE_DISTANCE)), //9
+            new DummyNode(new Point2D.Double(0.0,2 * SIDE_DISTANCE)), //10
+            new DummyNode(new Point2D.Double(2 * SIDE_DISTANCE,0.0)), //11
+            new DummyNode(new Point2D.Double(-2 * SIDE_DISTANCE,0.0)) //12
         };
 
         nodes = new ArrayList<Node>();
         nodes.addAll(Arrays.asList(n));
 
         Road[] r = {
-            new Road(n[0],n[1],100.0,13.9,1,false),
-            new Road(n[0],n[2],100.0,13.9,1,false),
-            new Road(n[0],n[3],100.0,13.9,1,false),
-            new Road(n[0],n[4],100.0,13.9,1,false),
-            new Road(n[0],n[5],142.0,13.9,1,false),
-            new Road(n[0],n[6],142.0,13.9,1,false),
-            new Road(n[0],n[7],142.0,13.9,1,false),
-            new Road(n[0],n[8],142.0,13.9,1,false),
-            new Road(n[1],n[2],200.0,13.9,1,false)
-        };*/
+            new Road(n[0],n[1],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[0],n[2],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[0],n[3],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[0],n[4],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[0],n[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[0],n[6],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[0],n[7],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[0],n[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
 
-        Node[] n = {
+            //new Road(n[9],n[4],100.0,13.9,1,false),
+            new Road(n[9],n[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[9],n[6],SLOPE_DISTANCE,MAX_SPEED,1,false)
+                    ,
+            new Road(n[10],n[7],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[10],n[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
+
+            new Road(n[11],n[6],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[11],n[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
+
+            new Road(n[12],n[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(n[12],n[7],SLOPE_DISTANCE,MAX_SPEED,1,false)
+        };
+
+        /*Node[] n = {
             new DummyNode(new Point2D.Double(-150.0,0.0)),
             new DummyNode(new Point2D.Double(150.0,0.0))
         };
@@ -64,7 +85,7 @@ public class MainLoop implements Runnable {
 
         Road[] r = {
             new Road(n[0],n[1],300.0,56.0,1,false),
-        };
+        };*/
 
         roads = new ArrayList<Road>();
         roads.addAll(Arrays.asList(r));
@@ -79,17 +100,28 @@ public class MainLoop implements Runnable {
         this.listener = listener;
     }
 
+    Random randy = new Random();
     public void addCar() {
-        Road road = roads.get(0);
-        Lane lane = road.getAllLanes().get(0);
+
+        for (Road road : roads) {
+            for (Lane lane : road.getAllLanes()) {
+                Car car = new Car();
+                car.init(CarType.CAR, DriverType.NORMAL);
+                lane.addCar(car);
+            }
+        }
+        
+        /*Road road = roads.get(randy.nextInt(roads.size()));
+
+        Lane lane = road.getAllLanes().get(randy.nextInt(road.getAllLanes().size()));
+
         Car car = new Car();
         car.init(CarType.CAR, DriverType.NORMAL);
-        lane.addCar(car);
+        lane.addCar(car);*/
     }
 
     public void run() {
 
-        Random randy = new Random();
 
         run = true;
 
@@ -103,9 +135,10 @@ public class MainLoop implements Runnable {
         double car_counter = 0.0;
 
         while (run) {
-            for (Road r : roads) {
 
-                start = System.currentTimeMillis();
+            start = System.currentTimeMillis();
+
+            for (Road r : roads) {
 
                 r.update(s_step);
 
@@ -128,17 +161,17 @@ public class MainLoop implements Runnable {
                         }
                     }).start();
 
-                end = System.currentTimeMillis();
+            }
 
-                span = end - start;
+            end = System.currentTimeMillis();
 
-                leftover = Math.max(0, ms_step - span);
+            span = end - start;
 
-                try {
-                    Thread.sleep(leftover);
-                } catch (InterruptedException ex) {
+            leftover = Math.max(0, ms_step - span);
 
-                }
+            try {
+                Thread.sleep(leftover);
+            } catch (InterruptedException ex) {
 
             }
         }
