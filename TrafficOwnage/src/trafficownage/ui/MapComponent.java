@@ -7,9 +7,14 @@ package trafficownage.ui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -18,9 +23,13 @@ import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
+import sun.font.Font2D;
+import trafficownage.simulation.Car;
+import trafficownage.simulation.Lane;
 import trafficownage.simulation.MainLoop;
 import trafficownage.simulation.Node;
 import trafficownage.simulation.Road;
@@ -29,7 +38,7 @@ import trafficownage.simulation.Road;
  *
  * @author Gerrit Drost <gerritdrost@gmail.com>
  */
-public class MapComponent extends JComponent implements MouseWheelListener, MouseMotionListener, MouseListener {
+public class MapComponent extends JComponent implements MouseWheelListener, MouseMotionListener, MouseListener, ComponentListener {
 
     MainLoop mainLoop;
 
@@ -42,12 +51,15 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
     private double height;
     private Rectangle2D.Double frame_bounds;
 
+    private boolean map_invalid = false;
+
     public void init(MainLoop mainLoop) {
         this.mainLoop = mainLoop;
 
         addMouseWheelListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
+        addComponentListener(this);
 
         initMap();
 
@@ -66,14 +78,20 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         width = (double)getWidth();
         height = (double)getHeight();
 
-        back_layer = new BufferedImage(getWidth(),getHeight(), BufferedImage.TYPE_INT_ARGB);
-        gr = (Graphics2D)back_layer.createGraphics();
 
-        drawMap(gr);
+        if (back_layer == null || map_invalid)
+            drawMap();
 
         gr = (Graphics2D)g;
 
         gr.drawImage(back_layer,0,0,null);
+
+        for (Road r : map_roads)
+            drawRoadCars(gr,r);
+
+
+        if (selected_car != null)
+            drawCarInfo(gr,selected_car);
 
     }
 
@@ -82,7 +100,14 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
     private final static double[] NODERADIUSES = {10.0,15.0,25.0};
     private final static double[] ROADWIDTHS = {4.0,6.0,10.0};
 
-    private void drawMap(Graphics2D gr) {
+    private final static Font INFO_FONT = new Font(Font.SANS_SERIF,Font.BOLD,12);
+
+    private void drawMap() {
+        map_invalid = false;
+
+        back_layer = new BufferedImage(getWidth(),getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gr = (Graphics2D)back_layer.createGraphics();
+
         double halfwidth = width / 2;
         double halfheight = height / 2;
 
@@ -90,25 +115,29 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         frame_bounds = new Rectangle2D.Double(center.x - (mpp * halfwidth), center.y - (mpp * halfheight), mpp * width, mpp * height);
 
-        for (MapRoad r : map_roads) {
-            if (r.inBounds(frame_bounds))
-                drawRoad(gr,r);
+        for (Road r : map_roads) {
+            drawRoad(gr,r);
         }
 
-        for (MapNode n : map_nodes) {
-            if (n.inBounds(frame_bounds))
-                drawNode(gr,n);
+        for (Node n : map_nodes) {
+            drawNode(gr,n);
         }
+    }
+
+
+    private Car selected_car;
+    private void setSelectedCar(Car car) {
+        selected_car = car;
     }
 
     private Point2D.Double start_point, end_point, point;
     
-    private void drawRoad(Graphics2D gr, MapRoad r) {
-        start_point = r.getStartPoint();
-        end_point = r.getEndPoint();
+    private void drawRoad(Graphics2D gr, Road r) {
+        start_point = r.getStartNode().getLocation();
+        end_point = r.getEndNode().getLocation();
 
-        gr.setColor(ROADCOLORS[r.getPriority()]);
-        gr.setStroke(new BasicStroke((int)(ppm * ROADWIDTHS[r.getPriority()])));
+        gr.setColor(ROADCOLORS[1]);//r.getPriority()]);
+        gr.setStroke(new BasicStroke((int)(ppm * ROADWIDTHS[1])));//r.getPriority()])));
 
         gr.drawLine(
                 (int)(ppm * (frame_bounds.getMaxX() - start_point.x)),
@@ -118,17 +147,88 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
                 );
     }
 
-    private void drawNode(Graphics2D gr, MapNode n) {
+
+
+    private void drawCarInfo(Graphics2D gr, Car c) {
+        gr.setColor(new Color(0,0,0,192));// = new Rectangle2D.Double();
+
+        DecimalFormat twoDForm = new DecimalFormat("#.##");
+		 ;
+
+        String acc = "a: " + twoDForm.format(c.getAcceleration()) + "m/s^2";
+        String vel = "v: " + twoDForm.format(c.getVelocity()) + "m/s";
+        String pos = "p: " + twoDForm.format(c.getPosition()) + "m";
+
+           // get metrics from the graphics
+        FontMetrics metrics = gr.getFontMetrics(INFO_FONT);
+        // get the height of a line of text in this font and render context
+        int line_height = metrics.getHeight();
+        // get the advance of my text in this font and render context
+        int line_width = Math.max(metrics.stringWidth(acc),Math.max(metrics.stringWidth(vel),metrics.stringWidth(pos)));
+
+
+        gr.fillRect(8,8,line_width + 8,(line_height + 2) * 3 + 8);
+
+        gr.setColor(Color.white);
+        gr.drawString(acc,12,12 + line_height + 2);
+        gr.drawString(vel,12,12 + (line_height * 2) + 2);
+        gr.drawString(pos,12,12 + (line_height * 3) + 2);
+
+
+    }
+
+    private void drawRoadCars(Graphics2D gr, Road r) {
+
+        start_point = r.getStartNode().getLocation();
+        end_point = r.getEndNode().getLocation();
+
+        gr.setStroke(new BasicStroke((int)(ppm * ROADWIDTHS[1])));//r.getPriority()])));
+
+        double x1 = ppm * (frame_bounds.getMaxX() - start_point.x);
+        double y1 = ppm * (frame_bounds.getMaxY() - start_point.y);
+        double x2 = ppm * (frame_bounds.getMaxX() - end_point.x);
+        double y2 = ppm * (frame_bounds.getMaxY() - end_point.y);
+        
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+
+
+        double length = r.getLength();
+        double pos;
+
+        int carside = (int)(ppm * ROADWIDTHS[1]);
+        int carhalf = carside / 2;
+
+        for (Lane l : r.getAllLanes()) {
+
+            if (l.getCars().isEmpty())
+                continue;
+            
+            selected_car = l.getCars().get(0);
+
+            for (Car c : l.getCars()) {
+                pos = c.getPosition() / length;
+
+                if (c == selected_car)
+                    gr.setColor(Color.green);//r.getPriority()]);
+                else
+                    gr.setColor(Color.black);//r.getPriority()]);
+                gr.fillOval((int)(x1 + (pos*dx))-carhalf, (int)(y1 + (pos*dy))-carhalf,carside,carside);
+            }
+        }
+    }
+
+    private void drawNode(Graphics2D gr, Node n) {
         point = n.getLocation();
 
         int x = (int)(ppm * (frame_bounds.getMaxX() - point.x));
         int y = (int)(ppm * (frame_bounds.getMaxY() - point.y));
 
-        int r = (int)(ppm * NODERADIUSES[n.getPriority()]);
+        int r = (int)(ppm * NODERADIUSES[1]);//n.getPriority()]);
         
         int d = r*2;
 
-        gr.setColor(NODECOLORS[n.getPriority()]);
+        gr.setColor(NODECOLORS[1]);//n.getPriority()]);
         gr.fillOval(x-r, y-r, d, d);
     }
 
@@ -141,16 +241,23 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             ppm *= .8;
         }
 
+        map_invalid = true;
+
         repaint();
     }
 
     Point offset;
 
     public void mouseDragged(MouseEvent e) {
+
         double mpp = 1.0 / ppm;
+
         center.x -= mpp * ((double)offset.x - e.getX());
         center.y -= mpp * ((double)offset.y - e.getY());
+
+        map_invalid = true;
         repaint();
+
         offset = e.getPoint();
     }
 
@@ -165,86 +272,26 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
 
-    private class MapNode {
-        private Point2D.Double location;
 
-        private int priority;
-
-        public MapNode(Point2D.Double location) {
-            this(location,1);
-        }
-
-        public MapNode(Point2D.Double location, int priority) {
-            this.location = location;
-        }
-
-        public Point2D.Double getLocation() {
-            return location;
-        }
-        
-        public boolean inBounds(Rectangle2D.Double rect) {
-            return (location.x >= rect.getMinX() && location.x <= rect.getMaxX() && location.y >= rect.getMinY() && location.y <= rect.getMaxY());
-        }
-
-        public int getPriority() {
-            return priority;
-        }
-    }
-
-    private class MapRoad {
-        private Point2D.Double startPoint, endPoint;
-        private Point2D.Double[] points;
-
-        private int priority;
-
-        public MapRoad(Point2D.Double startPoint, Point2D.Double endPoint) {
-            this(startPoint, endPoint, 1);
-
-        }
-        public MapRoad(Point2D.Double startPoint, Point2D.Double endPoint, int priority) {
-            this.startPoint = startPoint;
-            this.endPoint = endPoint;
-
-            this.points = new Point2D.Double[] {startPoint, endPoint};
-
-            this.priority = priority;
-        }
-
-        public boolean inBounds(Rectangle2D.Double rect) {
-            return true;
-        }
-
-        public Point2D.Double getStartPoint() {
-            return startPoint;
-        }
-        
-        public Point2D.Double getEndPoint() {
-            return endPoint;
-        }
-
-        public Point2D.Double[] getPoints() {
-            return points;
-        }
-
-        public int getPriority() {
-            return priority;
-        }
-    }
-
-    private List<MapNode> map_nodes;
-    private List<MapRoad> map_roads;
+    private List<Node> map_nodes;
+    private List<Road> map_roads;
 
     private void initMap() {
-        map_nodes = new ArrayList<MapNode>();
-        map_roads = new ArrayList<MapRoad>();
 
-        for (Node n : mainLoop.getNodes())
-            map_nodes.add(new MapNode(n.getLocation()));
-
-        for (Road r : mainLoop.getRoads())
-            map_roads.add(new MapRoad(r.node1.getLocation(), r.node2.getLocation()));
+        map_nodes = mainLoop.getNodes();
+        map_roads = mainLoop.getRoads();
 
         center = new Point2D.Double(0.0,0.0);
         ppm = 1.3;
     }
+
+    public void componentResized(ComponentEvent e) {
+        map_invalid = true;
+    }
+
+    public void componentMoved(ComponentEvent e) { }
+
+    public void componentShown(ComponentEvent e) { }
+
+    public void componentHidden(ComponentEvent e) { }
 }

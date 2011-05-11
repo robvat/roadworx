@@ -13,4 +13,5 @@ public interface DriverModel {
     void init(DriverType driver, CarType car, double initial_max_velocity);
     void setMaxVelocity(double max_velocity);
     double update(double velocity_leader, double distance_to_leader);
+    double getMinimumDistanceToLeader();
 }

@@ -12,10 +12,12 @@ import java.util.List;
  * @author Gerrit
  */
 public class Car {
-    private CarType carType;
-    private DriverType driverType;
+    private CarType car_type;
+    private DriverType driver_type;
 
-    private DriverModel driverModel;
+    private boolean in_queue = false;
+
+    private DriverModel driver_model;
 
     private Lane current_lane;
     private double position_coefficient;
@@ -37,10 +39,13 @@ public class Car {
             v0 = initial_max_velocity;
             s0 = driver.getMinimumDistanceToLeader();
             T = driver.getDesiredTimeHeadway();
+
+            in_queue = false;
         }
 
         private double desired_distance;
         public double update(double velocity_leader, double distance_to_leader) {
+
             desired_distance = s0 + (velocity * T) + ((velocity * Math.abs(velocity_leader - velocity)) / (2 * Math.sqrt(a*b)));
             
             return a * (1 - Math.pow((velocity/v0),4.0) - (desired_distance / distance_to_leader));
@@ -51,6 +56,10 @@ public class Car {
             v0 = max_velocity;
         }
 
+        public double getMinimumDistanceToLeader() {
+            return s0;
+        }
+
     }
 
     /**
@@ -59,7 +68,7 @@ public class Car {
      * @param driverType
      */
     public Car() {
-        driverModel = new IDM();
+        driver_model = new IDM();
     }
 
 
@@ -69,9 +78,9 @@ public class Car {
      * @param max_velocity
      */
     public void init(CarType carType, DriverType driverType) {
-        this.carType = carType;
-        this.driverType = driverType;
-        driverModel.init(driverType, carType, max_velocity);
+        this.car_type = carType;
+        this.driver_type = driverType;
+        driver_model.init(driverType, carType, max_velocity);
     }
 
     public void switchLane(Lane lane) {
@@ -88,7 +97,7 @@ public class Car {
         else
             this.position = 0.0;
 
-        driverModel.setMaxVelocity(max_velocity);
+        driver_model.setMaxVelocity(max_velocity);
     }
 
 
@@ -99,7 +108,11 @@ public class Car {
     public void setMaxVelocity(double max_velocity) {
         this.max_velocity = max_velocity;
 
-        driverModel.setMaxVelocity(max_velocity);
+        driver_model.setMaxVelocity(max_velocity);
+    }
+
+    public DriverModel getDriverModel() {
+        return driver_model;
     }
 
     /**
@@ -128,11 +141,11 @@ public class Car {
     }
 
     public double getBack() {
-        return position - (position_coefficient * carType.getLength());
+        return position - (position_coefficient * car_type.getLength());
     }
 
     public double getLength() {
-        return carType.getLength();
+        return car_type.getLength();
     }
 
     public List<Node> getRoute(){
@@ -141,6 +154,14 @@ public class Car {
 
     public Lane getLane(){
         return current_lane;
+    }
+
+    public void setInQueue(boolean in_queue) {
+        this.in_queue = in_queue;
+    }
+
+    public boolean getInQueue() {
+        return in_queue;
     }
 
     public Node getNextNode(){
@@ -156,8 +177,16 @@ public class Car {
      * @param distance_to_leader
      */
     public void update(double timestep, double velocity_leader, double distance_to_leader) {
-        acceleration = driverModel.update(velocity_leader, distance_to_leader);
-        velocity += acceleration * timestep;
-        position += position_coefficient * velocity * timestep;
+        if (in_queue) {
+            acceleration = 0.0;
+            velocity = 0.0;
+        } else {
+            if (distance_to_leader  < 1.0) {
+                System.out.println("Almost there!");
+            }
+            acceleration = driver_model.update(velocity_leader, distance_to_leader);
+            velocity += acceleration * timestep;
+            position += position_coefficient * velocity * timestep;
+        }
     }
 }

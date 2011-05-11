@@ -11,7 +11,7 @@ package trafficownage.simulation;
  */
 public enum CarType {
     LORRY(28, .14f, 4500, 12),
-    CAR(45, .56f, 1000, 4);
+    CAR(45, 100.0f, 1000, 4);
 
     private int max_v, weight, length;
     private float max_acc;
