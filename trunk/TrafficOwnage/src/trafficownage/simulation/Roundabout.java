@@ -37,29 +37,31 @@ public class Roundabout extends Node
         }
     }
 
-
+    // Drivethrough decides wether car gets accepter or not
     public boolean drivethrough(Car incoming)
     {
-        /* atm a normal amount of cars you have
-         to stop for but quite random */
-        // TODO: find a more realistic way to descide this
-        if(cars.size() > 1)
-            return false;
-        else
-            return true;
+        double factor;
+        double chance = acceptChance();
 
+        if(Math.random() <= chance)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public void acceptCar(Car incoming)
     {
-        double time, factor;
-        double chance = acceptChance();
-        //First try to get on the road
-        if(Math.random() <= chance)
-        {
-            try
+       double time, factor = 0;
+        // he's part of the node and gets a waiting time assigned
+        cars.add(incoming);
+
+        try
             {
-                    factor = directionPercentage(incoming); // not all around!
+                factor = directionPercentage(incoming); // not all around!
             } catch (wrongFromException e) {
                 // TODO needs to print a not that bad error to the logger
             } catch (wrongToException f)
@@ -69,16 +71,12 @@ public class Roundabout extends Node
                 * to his original road
                 */
             }
-            // he's part of the node and gets a waiting time assigned
-            cars.add(incoming);
-            
-            time = size / speed;
-            times.add(new Double(time));
-           /* TODO: Cars need to be able to be on nodes (and NOT on roads)
-            * before this can be implemented fully
-            */
-        }
 
+        time = (size * factor) / speed;
+        times.add(new Double(time));
+       /* TODO: Cars need to be able to be on nodes (and NOT on roads)
+        * before this can be implemented fully
+        */
     }
 
     public void update(double timestep)
