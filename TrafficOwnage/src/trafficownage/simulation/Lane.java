@@ -114,10 +114,14 @@ public class Lane {
             else
                 return last_car.getBack();
         }
+
+        public boolean isEmpty() {
+            return queue.isEmpty();
+        }
     }
 
-    public List<Car> getQueue() {
-        return queue.getQueue();
+    public TrafficQueue getQueue() {
+        return queue;
     }
 
 
@@ -128,24 +132,25 @@ public class Lane {
         
         Car previous = null;
 
-        Car car;
+        for (Car car : cars) {
 
-        for (int i = 0; i < cars.size(); i++) {
-            car = cars.get(i);
+            if (car.getInQueue())
+                continue;
 
             //the car is not in queue, check if it is the leader
             if (leader) {
-                distance_to_leader = Math.abs(queue.getQueueEnd() - car.getPosition());
-                car.update(timestep, 0.0, distance_to_leader);
 
-                if (distance_to_leader < (DISTANCE_THRESHOLD + car.getDriverModel().getMinimumDistanceToLeader())) {
+                //if the car is able to join the queue, it is not the leader
+                if (car.getDistanceToQueueEnd() < (DISTANCE_THRESHOLD + car.getDriverModel().getMinimumDistanceToLeader())) {
 
-                    cars.remove(i);
-                    i--;
-
+                    //add the car to the queue
                     queue.addCar(car);
                     car.setInQueue(true);
+
+                //normally it is the leader
                 } else {
+                    car.update(timestep, 0.0, car.getDistanceToQueueEnd());
+                    
                     leader = false;
                 }
 
