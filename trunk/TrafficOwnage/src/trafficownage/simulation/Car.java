@@ -100,6 +100,20 @@ public class Car {
         driver_model.setMaxVelocity(max_velocity);
     }
 
+    public double getDistanceToLaneEnd() {
+        if (position_coefficient > 0)
+            return current_lane.getLength() - position;
+        else
+            return position;
+    }
+
+
+    public double getDistanceToQueueEnd() {
+        if (position_coefficient > 0)
+            return current_lane.getQueue().getQueueEnd() - position;
+        else
+            return position - current_lane.getQueue().getQueueEnd();
+    }
 
     /**
      * Sets the maximum allowed velocity.

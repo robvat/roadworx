@@ -51,7 +51,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
     private boolean map_invalid = false;
 
-    private final static Color BACKGROUND_COLOR = new Color(0,0,0);
+    private final static Color BACKGROUND_COLOR = new Color(192,192,255);
 
     private final static Color ROAD_COLOR = new Color(255,255,255);
     private final static Color NODE_COLOR = new Color(255,192,64);
@@ -224,23 +224,12 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
             if (l.getQueue().isEmpty() && l.getCars().isEmpty())
                 continue;
-
-            if (!l.getCars().isEmpty())
-                selected_car = l.getCars().get(0);
-
-            for (Car c : l.getQueue()) {
-                pos = c.getPosition() / length;
-                gr.setColor(CAR_QUEUE_COLOR);//r.getPriority()]);
-                gr.fillOval((int)(x1 + (pos*dx))-carhalf, (int)(y1 + (pos*dy))-carhalf,carside,carside);
-                
-                car_count++;
-            }
             
             for (Car c : l.getCars()) {
                 pos = c.getPosition() / length;
 
-                if (c == selected_car)
-                    gr.setColor(CAR_LEADER_COLOR);//r.getPriority()]);
+                if (c.getInQueue())
+                    gr.setColor(CAR_QUEUE_COLOR);//r.getPriority()]);
                 else
                     gr.setColor(CAR_DEFAULT_COLOR);//r.getPriority()]);
 
