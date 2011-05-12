@@ -56,10 +56,14 @@ public class TrafficLightIntersection extends Node{
         // TODO Auto-generated method stub
         time += timestep;
         if (time >= NUMBER){
-            // do something with the counted cars
+            // do something with the counted carSs
             resetTime();
         }
 
+    }
+    public List<TrafficLight> getDestinations(){//needs to change for each trafficlight.
+        List<TrafficLight> destinations = null;//need to add how to get destinations from node class
+        return destinations;//needs to return this per trafficlight
     }
 
     public void resetTime(){
