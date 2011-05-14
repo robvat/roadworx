@@ -6,6 +6,7 @@
 package trafficownage.simulation;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  *
@@ -14,6 +15,8 @@ import java.util.List;
 public class Car {
     private CarType car_type;
     private DriverType driver_type;
+
+    private Route route;
 
     private boolean in_queue = false;
 
@@ -28,7 +31,6 @@ public class Car {
     private double acceleration;
 
     private double position;
-    private List<Node> route;
 
     private class IDM implements DriverModel {
         private double a,b,v0,s0,T;
@@ -81,6 +83,8 @@ public class Car {
         this.car_type = carType;
         this.driver_type = driverType;
         driver_model.init(driverType, carType, max_velocity);
+        route = new Route();
+
     }
 
     public void switchLane(Lane lane) {
@@ -162,10 +166,6 @@ public class Car {
         return car_type.getLength();
     }
 
-    public List<Node> getRoute(){
-        return route;
-    }
-
     public Lane getLane(){
         return current_lane;
     }
@@ -178,12 +178,79 @@ public class Car {
         return in_queue;
     }
 
-    public Node getNextNode(){
-        return route.get(1);
-        //assumed that the first item of the route is the next node you will reach, so the second one is the next one,
-        //or should this be the 0th item?
-        //It depends when the route is updated, but in any case, I assumed that nodes that you already visited are out of the route.
+    private class Route {
+
+        private Node current_node;
+        private Node next_node = null;
+
+        private Random randy;
+
+        public Route() {
+            randy = new Random();
+        }
+
+        private void setCurrentNode() {
+            current_node = current_lane.getDestinationNode();
+        }
+
+        public Node getCurrent() {
+            if (current_node == null)
+                setCurrentNode();
+
+            return current_node;
+        }
+
+        public Node getNext() {
+            if (current_node == null)
+                setCurrentNode();
+
+            if (next_node == null)
+                next_node = current_node.getDestinationNodes().get(randy.nextInt(current_node.getDestinationNodes().size()));
+
+            return next_node;
+        }
+
+        public boolean advance() {
+            current_node = next_node;
+            next_node = null;
+            return true;
+        }
     }
+
+    /*private class Route {
+
+        private Node[] route;
+        private int current_node_index;
+        private Node current_node;
+
+        public Route(Node[] route) {
+            this.route = route;
+            this.current_node_index = 0;
+            current_node = route[current_node_index];
+        }
+
+        public Node getCurrent() {
+            return current_node;
+        }
+
+        public Node getNext() {
+            if (current_node_index < route.length - 1)
+                return route[current_node_index + 1];
+            else
+                return null;
+        }
+
+        public boolean advance() {
+            if (current_node_index < route.length - 1) {
+                current_node_index++;
+                current_node = route[current_node_index];
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }*/
+
     /**
      * Updates the car position and velocity
      * @param dT
