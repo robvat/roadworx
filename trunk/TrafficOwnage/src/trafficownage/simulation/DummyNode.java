@@ -12,6 +12,7 @@ import java.awt.geom.Point2D;
  * @author Gerrit
  */
 public class DummyNode extends Node {
+        //TODO: THIS DOES NOT WORK PROPERLY YET DUE TO THE NEW LANE IMPLEMENTATION!e {
 
     public DummyNode(Point2D.Double location) {
         super(location);
@@ -28,6 +29,11 @@ public class DummyNode extends Node {
 
     @Override
     void update(double timestep) {
+    }
+
+    @Override
+    public void init() {
+        
     }
 
 }

@@ -18,10 +18,38 @@ public abstract class Node
 {
     private Point2D.Double location;
     private HashMap<Node,Road> destination_roads;
+    private List<Node> destination_nodes;
+    private List<Lane> incoming_lanes;
 
     public Node(Point2D.Double location) {
         this.location = location;
         destination_roads = new HashMap<Node,Road>();
+        destination_nodes = new ArrayList<Node>();
+        incoming_lanes = new ArrayList<Lane>();
+    }
+
+    public void init() {
+
+        sortNodes();
+
+        determineIncomingLanes();
+        
+    }
+
+    private void determineIncomingLanes() {
+        Road r;
+        
+        for (Node n : getDestinationNodes()) {
+            r = this.getRoad(n);
+
+            for (Lane l : r.getLanes(this)) {
+                incoming_lanes.add(l);
+            }
+        }
+    }
+
+    public List<Lane> getIncomingLanes() {
+        return incoming_lanes;
     }
 
     public double distanceTo(Node destination) {
@@ -32,6 +60,7 @@ public abstract class Node
     }
 
     public void addDestination(Node n, Road r) {
+        destination_nodes.add(n);
         destination_roads.put(n,r);
     }
 
@@ -43,10 +72,45 @@ public abstract class Node
         return location;
     }
 
-    public Road[] sortRoads(){
-        Road[] sortedRoads = new Road[4];
-        //TODO: sort them so that the second is right of the first etc, null if there is no road in that direction
-        return sortedRoads;
+    public List<Node> getDestinationNodes() {
+        return destination_nodes;
+    }
+
+    private void sortNodes() {
+        double
+                x = this.getLocation().x,
+                y = this.getLocation().y,
+                max_angle,
+                angle;
+
+        Node n, max_node = null;
+        int i, sorted = 0;
+
+        while (sorted < destination_nodes.size()) {
+            max_angle = Double.MIN_VALUE;
+
+            for (i = sorted; i < destination_nodes.size(); i++) {
+
+                n = destination_nodes.get(i);
+
+                angle = Math.atan2(
+                            (y - n.getLocation().y),
+                            (x - n.getLocation().x)
+                        );
+
+                if (angle > max_angle) {
+                    max_angle = angle;
+                    max_node = n;
+                }
+            }
+
+            if (max_node != null) {
+                //move the selected node to position 0.
+                destination_nodes.remove(max_node);
+                destination_nodes.add(0,max_node);
+            }
+            sorted++;
+        }
     }
 
     /* incoming cars need to know wether to brake or continue driving */

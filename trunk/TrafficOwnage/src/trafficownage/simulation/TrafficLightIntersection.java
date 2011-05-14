@@ -71,4 +71,9 @@ public class TrafficLightIntersection extends Node{
         carsCounted = 0;
     }
 
+    @Override
+    public void init() {
+        
+    }
+
 }

@@ -32,7 +32,7 @@ public class MainLoop implements Runnable {
         double SLOPE_DISTANCE = Math.sqrt(2*(SIDE_DISTANCE * SIDE_DISTANCE));
         double MAX_SPEED = 120.0 / 3.6;
 
-        Node[] n = {
+        Node[] node_array = {
             new DummyNode(new Point2D.Double(0.0,0.0)), //0
             new DummyNode(new Point2D.Double(-SIDE_DISTANCE,0.0)), //1
             new DummyNode(new Point2D.Double(SIDE_DISTANCE,0.0)), //2
@@ -48,47 +48,44 @@ public class MainLoop implements Runnable {
             new DummyNode(new Point2D.Double(-2 * SIDE_DISTANCE,0.0)) //12
         };
 
-        nodes = new ArrayList<Node>();
-        nodes.addAll(Arrays.asList(n));
-
-        Road[] r = {
-            new Road(n[0],n[1],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[0],n[2],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[0],n[3],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[0],n[4],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[0],n[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[0],n[6],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[0],n[7],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[0],n[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
+        Road[] road_array = {
+            new Road(node_array[0],node_array[1],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[2],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[3],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[4],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[6],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[7],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
 
             //new Road(n[9],n[4],100.0,13.9,1,false),
-            new Road(n[9],n[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[9],n[6],SLOPE_DISTANCE,MAX_SPEED,1,false)
+            new Road(node_array[9],node_array[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[9],node_array[6],SLOPE_DISTANCE,MAX_SPEED,1,false)
                     ,
-            new Road(n[10],n[7],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[10],n[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[10],node_array[7],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[10],node_array[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
 
-            new Road(n[11],n[6],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[11],n[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[11],node_array[6],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[11],node_array[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
 
-            new Road(n[12],n[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(n[12],n[7],SLOPE_DISTANCE,MAX_SPEED,1,false)
+            new Road(node_array[12],node_array[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[12],node_array[7],SLOPE_DISTANCE,MAX_SPEED,1,false)
         };
 
-        /*Node[] n = {
-            new DummyNode(new Point2D.Double(-150.0,0.0)),
-            new DummyNode(new Point2D.Double(150.0,0.0))
-        };
 
         nodes = new ArrayList<Node>();
-        nodes.addAll(Arrays.asList(n));
-
-        Road[] r = {
-            new Road(n[0],n[1],300.0,56.0,1,false),
-        };*/
+        nodes.addAll(Arrays.asList(node_array));
 
         roads = new ArrayList<Road>();
-        roads.addAll(Arrays.asList(r));
+        roads.addAll(Arrays.asList(road_array));
+        
+        for (Node n : nodes)
+            n.init();
+        
+        for (Road r : roads)
+            r.init();
+
+
     }
 
     public void init(UIListener listener) {
@@ -137,6 +134,10 @@ public class MainLoop implements Runnable {
         while (run) {
 
             start = System.currentTimeMillis();
+
+            for (Node n : nodes) {
+                n.update(s_step);
+            }
 
             for (Road r : roads) {
 

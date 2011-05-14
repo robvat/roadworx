@@ -35,8 +35,8 @@ public class Road {
         this.node2 = node2;
 
         for (int i = 0; i < lanes_per_side; i++) {
-            lanes_from_node1.add(new Lane(length,max_velocity,1));
-            lanes_from_node2.add(new Lane(length,max_velocity,-1));
+            lanes_from_node1.add(new Lane(node1, node2, length,max_velocity,1));
+            lanes_from_node2.add(new Lane(node2, node1, length,max_velocity,-1));
         }
 
         lanes = new ArrayList<Lane>();
@@ -85,6 +85,10 @@ public class Road {
     public void update(double timestep) {
         for (Lane l : lanes)
             l.update(timestep);
+        
+    }
+
+    public void init() {
         
     }
 

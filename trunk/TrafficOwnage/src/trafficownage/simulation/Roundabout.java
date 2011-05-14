@@ -196,6 +196,11 @@ public class Roundabout extends Node
 
         return outcome;
     }
+
+    @Override
+    public void init() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
     
     
     /*

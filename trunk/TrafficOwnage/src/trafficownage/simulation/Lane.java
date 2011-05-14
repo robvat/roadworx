@@ -15,6 +15,7 @@ import java.util.LinkedList;
  * @author Gerrit Drost <gerritdrost@gmail.com>
  */
 public class Lane {
+    private Node source_node, destination_node;
     private LinkedList<Car> cars;
     private double length;
     private double max_velocity;
@@ -26,7 +27,9 @@ public class Lane {
 
     private TrafficQueue queue;
 
-    public Lane(double length, double max_velocity, double position_coefficient) {
+    public Lane(Node source_node, Node destination_node, double length, double max_velocity, double position_coefficient) {
+        this.source_node = source_node;
+        this.destination_node = destination_node;
         this.length = length;
         this.cars = new LinkedList<Car>();
         this.max_velocity = max_velocity;
@@ -85,6 +88,14 @@ public class Lane {
 
     public double getLength() {
         return length;
+    }
+
+    public Node getSourceNode() {
+        return source_node;
+    }
+
+    public Node getDestinationNode() {
+        return destination_node;
     }
 
 
