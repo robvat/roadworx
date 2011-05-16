@@ -98,16 +98,18 @@ public class MainLoop implements Runnable {
     }
 
     Random randy = new Random();
-    public void addCar() {
+    private Object syncObject = new Object();
 
-        for (Road road : roads) {
-            for (Lane lane : road.getAllLanes()) {
-                Car car = new Car();
-                car.init(CarType.CAR, DriverType.NORMAL);
-                lane.addCar(car);
+    public void addCar() {
+        synchronized(syncObject) {
+            for (Road road : roads) {
+                for (Lane lane : road.getAllLanes()) {
+                    Car car = new Car();
+                    car.init(CarType.CAR, DriverType.NORMAL);
+                    lane.addCar(car);
+                }
             }
         }
-        
         /*Road road = roads.get(randy.nextInt(roads.size()));
 
         Lane lane = road.getAllLanes().get(randy.nextInt(road.getAllLanes().size()));
@@ -135,35 +137,37 @@ public class MainLoop implements Runnable {
 
             start = System.currentTimeMillis();
 
-            for (Node n : nodes) {
-                n.update(s_step);
-            }
+            synchronized(syncObject){
 
-            for (Road r : roads) {
-
-                r.update(s_step);
-
-                //TODO: THIS IS TEST CODE, SHOULD BE DELETED SOME TIME
-                if (car_counter > 2.5) {
-                    //lets add a car
-                    car_counter = 0.0;
-                    
+                for (Node n : nodes) {
+                    n.update(s_step);
                 }
 
-                simulated_time += s_step;
-                car_counter += s_step;
+                for (Road r : roads) {
 
-                //System.out.println("Simulated: " + simulated_time);
+                    r.update(s_step);
 
-                if (listener != null)
-                    new Thread(new Runnable() {
-                        public void run() {
-                            listener.carsUpdated();
-                        }
-                    }).start();
+                    //TODO: THIS IS TEST CODE, SHOULD BE DELETED SOME TIME
+                    if (car_counter > 2.5) {
+                        //lets add a car
+                        car_counter = 0.0;
 
+                    }
+
+                    simulated_time += s_step;
+                    car_counter += s_step;
+
+                    //System.out.println("Simulated: " + simulated_time);
+
+                    if (listener != null)
+                        new Thread(new Runnable() {
+                            public void run() {
+                                listener.carsUpdated();
+                            }
+                        }).start();
+
+                }
             }
-
             end = System.currentTimeMillis();
 
             span = end - start;

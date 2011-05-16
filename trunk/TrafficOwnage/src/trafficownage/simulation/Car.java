@@ -93,7 +93,7 @@ public class Car {
 
     public void setLane(Lane lane) {
         this.current_lane = lane;
-        this.max_velocity = lane.getMaximumVelocity();
+        this.max_velocity = Math.min(Math.min((double) car_type.getMaxV(), (double) driver_type.getMaxVelocity()), lane.getMaximumVelocity());
         this.position_coefficient = lane.getPositionCoefficient();
 
         if (position_coefficient < 0)
