@@ -47,6 +47,12 @@ public class Road {
 
         laneMap.put(node1, lanes_from_node1);
         laneMap.put(node2, lanes_from_node2);
+
+        node1.addDestination(node2, this);
+        
+        if (!oneway)
+            node2.addDestination(node1, this);
+        
     }
 
     public Node getStartNode() {

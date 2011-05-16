@@ -31,9 +31,4 @@ public class DummyNode extends Node {
     void update(double timestep) {
     }
 
-    @Override
-    public void init() {
-        
-    }
-
 }

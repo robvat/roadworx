@@ -228,7 +228,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             for (Car c : l.getCars()) {
                 pos = c.getPosition() / length;
 
-                if (c.getInQueue())
+                if (c.isInQueue())
                     gr.setColor(CAR_QUEUE_COLOR);//r.getPriority()]);
                 else
                     gr.setColor(CAR_DEFAULT_COLOR);//r.getPriority()]);
@@ -303,7 +303,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         map_roads = mainLoop.getRoads();
 
         center = new Point2D.Double(0.0,0.0);
-        ppm = 1.3;
+        ppm = 0.5;
     }
 
     public void componentResized(ComponentEvent e) {

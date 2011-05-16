@@ -47,9 +47,22 @@ public class Lane {
         queue = new TrafficQueue(end_position);
     }
 
-    private double spawn_margin = 2;
+    public Car getFirstCar() {
+        if (!cars.isEmpty())
+            return cars.get(0);
+        else
+            return null;
+    }
+
     public boolean acceptsCar(Car car) {
-        if (!cars.isEmpty() && ((position_coefficient > 0 && cars.getLast().getBack() - start_position < spawn_margin + car.getLength()) || (position_coefficient < 0 &&  start_position - cars.getLast().getBack() < spawn_margin + car.getLength())))
+        if (
+                !cars.isEmpty() &&
+                (
+                    (position_coefficient > 0 && cars.getLast().getBack() - start_position < car.getDriverModel().getMinimumDistanceToLeader() + car.getLength())
+                    ||
+                    (position_coefficient < 0 &&  start_position - cars.getLast().getBack() < car.getDriverModel().getMinimumDistanceToLeader() + car.getLength())
+                )
+            )
             return false;
         else
             return true;
@@ -103,7 +116,6 @@ public class Lane {
         return destination_node;
     }
 
-
     public class TrafficQueue {
 
         private double default_queue_end;
@@ -150,7 +162,7 @@ public class Lane {
 
         for (Car car : cars) {
 
-            if (car.getInQueue())
+            if (car.isInQueue())
                 continue;
 
             //the car is not in queue, check if it is the leader
@@ -161,7 +173,7 @@ public class Lane {
 
                     //add the car to the queue
                     queue.addCar(car);
-                    car.setInQueue(true);
+                    car.putInQueue(true);
 
                 //normally it is the leader
                 } else {

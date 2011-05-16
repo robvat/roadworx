@@ -6,7 +6,6 @@
 package trafficownage.ui;
 
 import java.awt.geom.Point2D;
-import java.util.Iterator;
 import trafficownage.simulation.Car;
 import trafficownage.simulation.CarType;
 import trafficownage.simulation.DriverType;
