@@ -24,7 +24,7 @@ public class TrafficLightIntersection extends Node{
     public void init( Road[] roads, HashMap<Node, Road> destination_roads, List<TrafficLight> Traffic_lights){
         traffic_lights = Traffic_lights;
         destinations = destination_roads;//not sure if i can just do this
-        for (int i = 0; i < roads.length; i++) {
+        for(int i = 0; i < roads.length; i++) {
             roads_connected.add(roads[i]);
         }//not sure if roads connected counts as possible destinations
 
@@ -61,9 +61,12 @@ public class TrafficLightIntersection extends Node{
         }
 
     }
-    public List<TrafficLight> getDestinations(){//needs to change for each trafficlight.
-        List<TrafficLight> destinations = null;//need to add how to get destinations from node class
+    public List<Node> getDestinations(){//needs to change for each trafficlight.
+        List<Node> destinations = null;//need to add how to get destinations from node class
         return destinations;//needs to return this per trafficlight
+    }
+    public int getNumberOfLights(){
+        return traffic_lights.size();
     }
 
     public void resetTime(){
