@@ -170,11 +170,11 @@ public class Car {
         return current_lane;
     }
 
-    public void setInQueue(boolean in_queue) {
+    public void putInQueue(boolean in_queue) {
         this.in_queue = in_queue;
     }
 
-    public boolean getInQueue() {
+    public boolean isInQueue() {
         return in_queue;
     }
 

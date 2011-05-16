@@ -7,6 +7,7 @@ package trafficownage.simulation;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -87,7 +88,8 @@ public abstract class Node
         int i, sorted = 0;
 
         while (sorted < destination_nodes.size()) {
-            max_angle = Double.MIN_VALUE;
+            max_angle = -Double.MAX_VALUE;
+            max_node = null;
 
             for (i = sorted; i < destination_nodes.size(); i++) {
 
@@ -111,6 +113,7 @@ public abstract class Node
             }
             sorted++;
         }
+
     }
 
     /* incoming cars need to know wether to brake or continue driving */
@@ -127,4 +130,9 @@ public abstract class Node
      updated aswell (if a car has to be 40 sec on a node then the node needs to
      know the time */
     abstract void update(double timestep);
+
+    @Override
+    public String toString() {
+        return location.toString();
+    }
 }

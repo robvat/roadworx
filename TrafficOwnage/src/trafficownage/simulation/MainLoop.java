@@ -23,6 +23,7 @@ public class MainLoop implements Runnable {
     private List<Node> nodes;
 
     private boolean run;
+    private boolean realtime = false;
 
     private UIListener listener = null;
 
@@ -79,11 +80,6 @@ public class MainLoop implements Runnable {
         roads = new ArrayList<Road>();
         roads.addAll(Arrays.asList(road_array));
         
-        for (Node n : nodes)
-            n.init();
-        
-        for (Road r : roads)
-            r.init();
 
 
     }
@@ -119,9 +115,11 @@ public class MainLoop implements Runnable {
         lane.addCar(car);*/
     }
 
+    public void setRealtime(boolean realtime) {
+        this.realtime = realtime;
+    }
+
     public void run() {
-
-
         run = true;
 
         double s_step = 1.0 / (double)FPS; //Step size in seconds
@@ -131,7 +129,14 @@ public class MainLoop implements Runnable {
         long span,start,end,leftover;
 
         double simulated_time = 0.0;
-        double car_counter = 0.0;
+
+        //Init all roads/nodes
+
+        for (Node n : nodes)
+            n.init();
+
+        for (Road r : roads)
+            r.init();
 
         while (run) {
 
@@ -147,15 +152,7 @@ public class MainLoop implements Runnable {
 
                     r.update(s_step);
 
-                    //TODO: THIS IS TEST CODE, SHOULD BE DELETED SOME TIME
-                    if (car_counter > 2.5) {
-                        //lets add a car
-                        car_counter = 0.0;
-
-                    }
-
                     simulated_time += s_step;
-                    car_counter += s_step;
 
                     //System.out.println("Simulated: " + simulated_time);
 
@@ -174,10 +171,12 @@ public class MainLoop implements Runnable {
 
             leftover = Math.max(0, ms_step - span);
 
-            try {
-                Thread.sleep(leftover);
-            } catch (InterruptedException ex) {
+            if (realtime) {
+                try {
+                    Thread.sleep(leftover);
+                } catch (InterruptedException ex) {
 
+                }
             }
         }
     }
