@@ -21,7 +21,7 @@ public class Lane {
     private double max_velocity;
     private double position_coefficient;
 
-    private double start_position;
+    private double end_position, start_position;
 
     private static double DISTANCE_THRESHOLD = 0.2;
 
@@ -36,16 +36,20 @@ public class Lane {
         this.position_coefficient = position_coefficient;
 
 
-        if (position_coefficient < 0)
+        if (position_coefficient > 0){
+            end_position = length;
             start_position = 0.0;
-        else
+        }else{
+            end_position = 0.0;
             start_position = length;
+        }
 
-        queue = new TrafficQueue(start_position);
+        queue = new TrafficQueue(end_position);
     }
 
+    private double spawn_margin = 2;
     public boolean acceptsCar(Car car) {
-        if (!cars.isEmpty() && Math.abs(cars.getLast().getBack() - start_position) < car.getDriverModel().getMinimumDistanceToLeader())
+        if (!cars.isEmpty() && ((position_coefficient > 0 && cars.getLast().getBack() - start_position < spawn_margin + car.getLength()) || (position_coefficient < 0 &&  start_position - cars.getLast().getBack() < spawn_margin + car.getLength())))
             return false;
         else
             return true;
@@ -55,7 +59,8 @@ public class Lane {
         if (acceptsCar(car)) {
             cars.add(cars.size(),car);
             car.setLane(this);
-        }
+        } else
+            System.err.println("Rejected");
     }
 
     public void insertCar(Car car) {
