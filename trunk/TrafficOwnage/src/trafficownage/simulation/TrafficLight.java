@@ -5,6 +5,8 @@
 
 package trafficownage.simulation;
 
+import java.util.List;
+
 /**
  *
  * @author JonaForce
@@ -16,6 +18,7 @@ public class TrafficLight {
     private int yellow_time;
     private int duration;
     private String light;//the color of the light
+    private List<Lane> destinations;
 
     public TrafficLight(){
     }
@@ -49,5 +52,7 @@ public class TrafficLight {
     public int getDuration(){
         return duration;
     }
-
+    public List<Lane> getDestinationLanes(){
+        return destinations;
+    }
 }
