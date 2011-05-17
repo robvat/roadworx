@@ -19,6 +19,7 @@ public abstract class Node
 {
     private Point2D.Double location;
     private HashMap<Node,Road> destination_roads;
+    private List<Road> roads;
     private List<Node> destination_nodes;
     private List<Lane> incoming_lanes;
 
@@ -27,10 +28,10 @@ public abstract class Node
         destination_roads = new HashMap<Node,Road>();
         destination_nodes = new ArrayList<Node>();
         incoming_lanes = new ArrayList<Lane>();
+        roads = new ArrayList<Road>();
     }
 
     public void init() {
-
         sortNodes();
 
         determineIncomingLanes();
@@ -61,6 +62,7 @@ public abstract class Node
     }
 
     public void addDestination(Node n, Road r) {
+        roads.add(r);
         destination_nodes.add(n);
         destination_roads.put(n,r);
     }

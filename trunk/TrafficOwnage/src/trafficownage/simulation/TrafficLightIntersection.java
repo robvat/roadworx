@@ -6,19 +6,28 @@ import java.awt.geom.Point2D;
 
 public class TrafficLightIntersection extends Node{
     
-    private String light;//the color of the light
-    private List<Road> roads_connected; //roads connected to the node 
-    private HashMap<Node, Road> destinations;
-    private List<Lane> lanes; //List with all the lanes the node has.
-    private List<TrafficLight> traffic_lights;
-    private static double time;
-    private static final double NUMBER = 3600000; //one hour in milliseconds
-    private int carsCounted;
+    private HashMap<Lane, TrafficLight> traffic_lights; //List with all the lanes the node has.
+    private double time; // keeps track of how long you're counting cars
+    private static final double NUMBER = 3600000; //an hour in milliseconds
+    private int carsCounted; // cars counted in running hour
+    private int totalCarsCounted; //overall cars counted
+    private List<Road> roads;
     
    
     
     public TrafficLightIntersection(Point2D.Double location) {
         super(location);
+
+        traffic_lights = new HashMap<Lane,TrafficLight>();
+    }
+    
+    @Override
+    public void init() {
+        super.init();
+
+        for (Lane l : getIncomingLanes()) {
+            traffic_lights.put(l,new TrafficLight());
+        }
     }
 
     @Override 
@@ -28,11 +37,14 @@ public class TrafficLightIntersection extends Node{
 
     @Override
     boolean drivethrough(Car incoming) {
-        if(light == "green") {
+        Lane l = incoming.getLane();
+        TrafficLight t = traffic_lights.get(l);
+        if(t.getCurrentLight() == TrafficLight.GREEN) {
             //let him drive through
         }
-        else if(light == "yellow"){
+        else if(t.getCurrentLight() == TrafficLight.YELLOW){
            // get the distance to the light and the velocity -> decide wether to break or not
+            //let the car decide, not the intersection! For now: it is red :P
         }
         else {
             //dont let him drive through
@@ -60,13 +72,5 @@ public class TrafficLightIntersection extends Node{
     }
 
     public void resetTime(){
-        time = 0;
-        carsCounted = 0;
-    }
-
-    @Override
-    public void init() {
-        
-    }
-
+    }    
 }
