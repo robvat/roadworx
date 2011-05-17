@@ -58,9 +58,7 @@ public class Lane {
         if (
                 !cars.isEmpty() &&
                 (
-                    (position_coefficient > 0 && cars.getLast().getBack() - start_position < car.getDriverModel().getMinimumDistanceToLeader() + car.getLength())
-                    ||
-                    (position_coefficient < 0 &&  start_position - cars.getLast().getBack() < car.getDriverModel().getMinimumDistanceToLeader() + car.getLength())
+                    (position_coefficient * (cars.getLast().getBack() - start_position) < car.getDriverModel().getMinimumDistanceToLeader() + car.getLength())
                 )
             )
             return false;
