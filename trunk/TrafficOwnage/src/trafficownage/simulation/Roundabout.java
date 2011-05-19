@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class Roundabout extends Node
 {
-    public static final double speed = 9.72222222; //TODO: turn into a function
+    public static final double speed = 9.72222222; //FIXME: turn into a function
     private double size; // circumference in meters
     private boolean suc;
     private List<Road> roadsConnected; // list of all the roads connected: NOT NEEDED SEE NODE
@@ -31,10 +31,7 @@ public class Roundabout extends Node
         super(location);
         
         this.size = (radius * 2) * Math.PI;
-        for(int i = 0; i < (roads.length - 1);i++)
-        {
-           suc = roadsConnected.add(roads[i]);
-        }
+        // Warning, doesn't have any roads yet at this point!
     }
 
     // Drivethrough decides wether car gets accepter or not
@@ -63,13 +60,13 @@ public class Roundabout extends Node
             {
                 factor = directionPercentage(incoming); // not all around!
             } catch (wrongFromException e) {
-                // TODO needs to print a not that bad error to the logger
+                // FIXME needs to print a not that bad error to the logger
                 System.out.println("The lane where car" + incoming + "came "
                         + "from isn't part of this roundabout");
             } catch (wrongToException f)
             {
                /*
-                * TODO: big error, needs to be logged and send back
+                * FIXME: big error, needs to be logged and send back
                 * to his original road
                 */
                 System.out.println("The lane where car" + incoming + "is going "
@@ -145,12 +142,15 @@ public class Roundabout extends Node
      */
     private void getRidOfHim(int i)
     {
-        //TODO: change Car (retrieve lane from road) and change lane
+        List<Lane> possibleLanes;
+        //FIXME: change Car (retrieve lane from road) and change lane
         Car rem = cars.get(i);
-        //Node next
-        /*
-         * Put the car on his way again!
-         */
+        Node next = rem.getNextNode();
+        Road togo = super.getRoad(next);
+        possibleLanes = togo.getLanes(next);
+        rem.setLane(possibleLanes.get(0));
+        // FIXME Check if something is on lane 0 and put him on lane 1
+        // FIXME Car.advance() or not ??, time for next node
         cars.remove(i);
         times.remove(i);
     }
@@ -161,26 +161,25 @@ public class Roundabout extends Node
     private double directionPercentage(Car c) throws wrongFromException,
             wrongToException
     {
-        Node direction = null;
-        Road togo,from = null;
+        Node togo, from = null;
         int[] pos = new int[2];
         pos[0] = 666;
         pos[1] = 666;
         int size, v;
         double outcome;
-        size = roadsConnected.size();
+        List<Node> destinations = super.getDestinationNodes();
+        size = destinations.size();
 
-        // TODO: direction = c.blabla
-        //from = c.currentRoad // and get rid of the = null's
-        togo = super.getRoad(direction);
-        for(int i = 0; i < roadsConnected.size(); i++)
+        togo = c.getNextNode();
+        // from = c.getcurrentnode() check were road leads to and thats previous
+        for(int i = 0; i < size; i++)
         {
             /*
-             * TODO: equals might be slow, use id's in the future
+             * FIXME: equals might be slow, use id's in the future
              */
-           if(togo.equals(roadsConnected.get(i)))
+           if(togo.equals(destinations.get(i)))
                pos[0] = i + 1;
-           else if(from.equals(roadsConnected.get(i)))
+           else if(from.equals(destinations.get(i)))
                pos[1] = i + 1;
         }
         if(pos[0] == 666)
@@ -242,6 +241,6 @@ public class Roundabout extends Node
 
     public void logTimePrint()
     {
-        // TODO in the log, have a overview of all the cars and their times
+        // FIXME in the log, have a overview of all the cars and their times
     }
 }
