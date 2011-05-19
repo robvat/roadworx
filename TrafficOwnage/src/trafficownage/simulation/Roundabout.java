@@ -64,21 +64,25 @@ public class Roundabout extends Node
                 factor = directionPercentage(incoming); // not all around!
             } catch (wrongFromException e) {
                 // TODO needs to print a not that bad error to the logger
+                System.out.println("The lane where car" + incoming + "came "
+                        + "from isn't part of this roundabout");
             } catch (wrongToException f)
             {
                /*
                 * TODO: big error, needs to be logged and send back
                 * to his original road
                 */
+                System.out.println("The lane where car" + incoming + "is going "
+                        + "to isn't part of this roundabout");
             }
 
         time = (size * factor) / speed;
         times.add(new Double(time));
-       /* TODO: Cars need to be able to be on nodes (and NOT on roads)
-        * before this can be implemented fully
-        */
     }
 
+    /**
+     * Each update the cars alrready on the roundabout advance.
+     */
     public void update(double timestep)
     {
         double newTime;
@@ -142,6 +146,11 @@ public class Roundabout extends Node
     private void getRidOfHim(int i)
     {
         //TODO: change Car (retrieve lane from road) and change lane
+        Car rem = cars.get(i);
+        //Node next
+        /*
+         * Put the car on his way again!
+         */
         cars.remove(i);
         times.remove(i);
     }
