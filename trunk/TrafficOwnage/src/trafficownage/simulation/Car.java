@@ -5,7 +5,6 @@
 
 package trafficownage.simulation;
 
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -176,6 +175,13 @@ public class Car {
 
     public boolean isInQueue() {
         return in_queue;
+    }
+
+    public Node getNextNode() {
+        if (route != null)
+            return route.next_node;
+        else
+            return null;
     }
 
     private class Route {
