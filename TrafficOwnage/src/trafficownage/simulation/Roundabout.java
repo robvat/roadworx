@@ -1,18 +1,16 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package trafficownage.simulation;
 
 import java.awt.geom.Point2D;
 import java.util.List;
 /**
- *
+ * A roundabout found on a road near you!
  * @author frans
  */
 public class Roundabout extends Node
 {
+    /**
+     * The average speed on a roundabout, used in the calculation
+     */
     public static final double speed = 9.72222222; //FIXME: turn into a function
     private double size; // circumference in meters
     private boolean suc;
@@ -20,13 +18,13 @@ public class Roundabout extends Node
     private List<Car> cars;
     private List<Double> times; // a list of times, the cars have to spend on the roundabout
 
-    /*
-     * Constructs a roundabout
-     * @param roads all the roads that are connected
-     * The constructor assumes the roads are given in a
-     * clockwise fashion
+    /**
+     *  Constructs a roundabout
+     *  Assumes all the roads get added in a clockwise manner
+     * @param location Location on the map
+     * @param radius Radius of the roundabout in meters
      */
-    public Roundabout(Point2D.Double location, double radius, Road[] roads)
+    public Roundabout(Point2D.Double location, double radius)
     {
         super(location);
         
@@ -34,10 +32,13 @@ public class Roundabout extends Node
         // Warning, doesn't have any roads yet at this point!
     }
 
-    // Drivethrough decides wether car gets accepter or not
+    /**
+     * Decides wether you can drive onto the roundabout or not
+     * @param incoming A car heading for the Node
+     */
     public boolean drivethrough(Car incoming)
     {
-        double factor;
+        // incoming is NOT USED!
         double chance = acceptChance();
 
         if(Math.random() <= chance)
@@ -50,35 +51,40 @@ public class Roundabout extends Node
         }
     }
 
+    /**
+     * Placing the car on the roundabout (No matter what)
+     * @param incoming The car you want placed on the roundabout
+     */
     public void acceptCar(Car incoming)
     {
-       double time, factor = 0;
+        double time, factor = 0;
         // he's part of the node and gets a waiting time assigned
         cars.add(incoming);
 
         try
-            {
-                factor = directionPercentage(incoming); // not all around!
-            } catch (wrongFromException e) {
-                // FIXME needs to print a not that bad error to the logger
-                System.out.println("The lane where car" + incoming + "came "
-                        + "from isn't part of this roundabout");
-            } catch (wrongToException f)
-            {
-               /*
-                * FIXME: big error, needs to be logged and send back
-                * to his original road
-                */
-                System.out.println("The lane where car" + incoming + "is going "
-                        + "to isn't part of this roundabout");
-            }
+        {
+            factor = directionPercentage(incoming); // not all around!
+        } catch (wrongFromException e) {
+            // FIXME needs to print a not that bad error to the logger
+            System.out.println("The lane where car" + incoming + "came "
+                    + "from isn't part of this roundabout");
+        } catch (wrongToException f)
+        {
+           /*
+            * FIXME: big error, needs to be logged and send back
+            * to his original road
+            */
+            System.out.println("The lane where car" + incoming + "is going "
+                    + "to isn't part of this roundabout");
+        }
 
         time = (size * factor) / speed;
         times.add(new Double(time));
     }
 
     /**
-     * Each update the cars alrready on the roundabout advance.
+     * Each update, the cars already on the roundabout advance
+     * @param timestep amount of seconds that time has shifted
      */
     public void update(double timestep)
     {
@@ -88,7 +94,7 @@ public class Roundabout extends Node
              newTime = times.get(i) - timestep;
              if(newTime < 0)
              {
-                 //Time to put him at his new Lane
+                 //Time to put him on his new Lane
                  getRidOfHim(i);
              }
              else
@@ -98,7 +104,8 @@ public class Roundabout extends Node
         }
     }
 
-    /* private method using a "homebrew" formula for calculating the chance
+    /**
+     * private method using a "homebrew" formula for calculating the chance
      * of acceptance
      */
     private double acceptChance()
@@ -136,26 +143,25 @@ public class Roundabout extends Node
     }
 
 
-    /*
+    /**
      * Car at spot i in the lists, will be put on his way
      * with a little knapsack and everything!
      */
     private void getRidOfHim(int i)
     {
         List<Lane> possibleLanes;
-        //FIXME: change Car (retrieve lane from road) and change lane
         Car rem = cars.get(i);
         Node next = rem.getNextNode();
         Road togo = super.getRoad(next);
         possibleLanes = togo.getLanes(next);
         rem.setLane(possibleLanes.get(0));
         // FIXME Check if something is on lane 0 and put him on lane 1
-        // FIXME Car.advance() or not ??, time for next node
+        // FIXME !!! Car.advance() or not ??, time for next node
         cars.remove(i);
         times.remove(i);
     }
 
-    /*
+    /**
      * Calculates the percentage of roundabout the car wants to travel
      */
     private double directionPercentage(Car c) throws wrongFromException,
@@ -163,20 +169,19 @@ public class Roundabout extends Node
     {
         Node togo, from = null;
         int[] pos = new int[2];
-        pos[0] = 666;
-        pos[1] = 666;
+        pos[0] = 666; //togo
+        pos[1] = 666; //from
         int size, v;
         double outcome;
         List<Node> destinations = super.getDestinationNodes();
         size = destinations.size();
 
         togo = c.getNextNode();
-        // from = c.getcurrentnode() check were road leads to and thats previous
+        from = c.getPreviousNode();
+        // Assuming there are no 1-way lanes going to roundabout-node
         for(int i = 0; i < size; i++)
         {
-            /*
-             * FIXME: equals might be slow, use id's in the future
-             */
+           // FIXME: might use id's in the future
            if(togo.equals(destinations.get(i)))
                pos[0] = i + 1;
            else if(from.equals(destinations.get(i)))
@@ -205,16 +210,14 @@ public class Roundabout extends Node
         return outcome;
     }
 
+    /**
+     *
+     */
     @Override
     public void init() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        super.init();
+        // might add here more later!
     }
-    
-    
-    /*
-     * remember pos 0 = to go
-     * pos 1 = where you're from
-     */
 
     private class wrongFromException extends Exception
     {
@@ -235,10 +238,12 @@ public class Roundabout extends Node
     @Override
     public String toString()
     {
-        return "Roads Connected " + roadsConnected.size() +
-                " Cars on driverway" + cars.size();
+        return " Cars on driverway: " + cars.size() + " Node info:" + super.toString();
     }
 
+    /**
+     * Prints all the Cars with their respected times in the log-file
+     */
     public void logTimePrint()
     {
         // FIXME in the log, have a overview of all the cars and their times

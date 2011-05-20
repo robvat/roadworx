@@ -184,8 +184,17 @@ public class Car {
             return null;
     }
 
+    public Node getPreviousNode()
+    {
+        if(route != null)
+            return route.previous_node;
+        else
+            return null;
+    }
+
     private class Route {
 
+        private Node previous_node;
         private Node current_node;
         private Node next_node = null;
 
@@ -217,6 +226,7 @@ public class Car {
         }
 
         public boolean advance() {
+            previous_node = current_node;
             current_node = next_node;
             next_node = null;
             return true;
