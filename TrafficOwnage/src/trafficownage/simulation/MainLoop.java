@@ -17,7 +17,7 @@ import trafficownage.ui.UIListener;
  * @author Gerrit
  */
 public class MainLoop implements Runnable {
-    private final static long FPS = 30;
+    private final static long FPS = 25;
 
     private List<Road> roads;
     private List<Node> nodes;
@@ -27,13 +27,16 @@ public class MainLoop implements Runnable {
 
     private UIListener listener = null;
 
+    private Node ze_dummy;
+    private Node ze_intersection;
+
     public void init() {
 
-        double SIDE_DISTANCE = 200.0;
+        double SIDE_DISTANCE = 1000.0;
         double SLOPE_DISTANCE = Math.sqrt(2*(SIDE_DISTANCE * SIDE_DISTANCE));
         double MAX_SPEED = 120.0 / 3.6;
 
-        Node[] node_array = {
+        /*Node[] node_array = {
             new DummyNode(new Point2D.Double(0.0,0.0)), //0
             new DummyNode(new Point2D.Double(-SIDE_DISTANCE,0.0)), //1
             new DummyNode(new Point2D.Double(SIDE_DISTANCE,0.0)), //2
@@ -71,6 +74,24 @@ public class MainLoop implements Runnable {
 
             new Road(node_array[12],node_array[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
             new Road(node_array[12],node_array[7],SLOPE_DISTANCE,MAX_SPEED,1,false)
+        };*/
+
+        ze_dummy = new DummyNode(new Point2D.Double(-SIDE_DISTANCE,0.0));
+        ze_intersection = new NormalJunction(new Point2D.Double(0.0,0.0));
+
+        Node[] node_array = {
+            ze_intersection, //0
+            ze_dummy, //1
+            new DummyNode(new Point2D.Double(SIDE_DISTANCE,0.0)), //2
+            new DummyNode(new Point2D.Double(0.0,SIDE_DISTANCE)), //3
+            new DummyNode(new Point2D.Double(0.0,-SIDE_DISTANCE)), //4
+        };
+
+        Road[] road_array = {
+            new Road(node_array[0],node_array[1],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[2],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[3],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[4],SIDE_DISTANCE,MAX_SPEED,1,false),
         };
 
 
@@ -94,25 +115,15 @@ public class MainLoop implements Runnable {
     }
 
     Random randy = new Random();
-    private Object syncObject = new Object();
+    private final Object syncObject = new Object();
 
     public void addCar() {
+        
         synchronized(syncObject) {
-            for (Road road : roads) {
-                for (Lane lane : road.getAllLanes()) {
-                    Car car = new Car();
-                    car.init(CarType.CAR, DriverType.NORMAL);
-                    lane.addCar(car);
-                }
-            }
+            Car car = new Car();
+            car.init(CarType.CAR, DriverType.NORMAL);
+            ze_dummy.getRoad(ze_intersection).getLanes(ze_intersection).get(0).addCar(car);
         }
-        /*Road road = roads.get(randy.nextInt(roads.size()));
-
-        Lane lane = road.getAllLanes().get(randy.nextInt(road.getAllLanes().size()));
-
-        Car car = new Car();
-        car.init(CarType.CAR, DriverType.NORMAL);
-        lane.addCar(car);*/
     }
 
     public void setRealtime(boolean realtime) {
@@ -156,12 +167,12 @@ public class MainLoop implements Runnable {
 
                     //System.out.println("Simulated: " + simulated_time);
 
-                    if (listener != null)
-                        new Thread(new Runnable() {
-                            public void run() {
+                    //if (listener != null)
+                    //    new Thread(new Runnable() {
+                    //        public void run() {
                                 listener.carsUpdated();
-                            }
-                        }).start();
+                    //        }
+                    //    }).start();
 
                 }
             }

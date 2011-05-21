@@ -86,6 +86,10 @@ public class Car {
 
     }
 
+    public DriverType getDriverType() {
+        return driver_type;
+    }
+
     public void switchLane(Lane lane) {
         this.current_lane = lane;
     }
@@ -179,9 +183,14 @@ public class Car {
 
     public Node getNextNode() {
         if (route != null)
-            return route.next_node;
+            return route.getNext();
         else
             return null;
+    }
+
+    public void advanceNode() {
+        if (route != null)
+            route.advance();
     }
 
     public Node getPreviousNode()

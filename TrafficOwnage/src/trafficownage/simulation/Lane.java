@@ -126,6 +126,7 @@ public class Lane {
         }
 
         public void addCar(Car c) {
+            c.putInQueue(true);
             queue.addLast(c);
             last_car = c;
         }
@@ -150,90 +151,56 @@ public class Lane {
         return queue;
     }
 
-
-    private double distance_to_leader;
-
+    
     public void update(double timestep) {
-        boolean leader = true;
-        
+        boolean first_car = true;
         Car previous = null;
+        Car remove = null;
 
         for (Car car : cars) {
 
-            if (car.isInQueue())
-                continue;
+            if (previous == null)
+                first_car = true;
 
-            //the car is not in queue, check if it is the leader
-            if (leader) {
-
-                //if the car is able to join the queue, it is not the leader
-                if (car.getDistanceToQueueEnd() < (DISTANCE_THRESHOLD + car.getDriverModel().getMinimumDistanceToLeader())) {
-
-                    //add the car to the queue
-                    queue.addCar(car);
-                    car.putInQueue(true);
-
-                //normally it is the leader
-                } else {
-                    car.update(timestep, 0.0, car.getDistanceToQueueEnd());
-                    
-                    leader = false;
-                }
-
-                previous = car;
-            } else {
-                car.update(timestep, previous.getVelocity(), Math.abs(previous.getBack() - car.getPosition()));
-
-                previous = car;
-            }
-
-        }
-    }
-
-    @Override
-    public String toString() {
-        String out = "";
-
-        int resolution = 100;
-
-        Car car;
-
-        List<Integer> car_positions = new ArrayList<Integer>();
-        int p;
-
-        for (Car c : cars)
-        {
-            p = (int)Math.floor((c.getPosition() / length) * (double)resolution);
-            car_positions.add(p);
-        }
-
-        int lowest;
-        int current;
-
-        lowest = Integer.MAX_VALUE;
-        for (int j = 0; j < car_positions.size(); j++) {
-            current = car_positions.get(j);
-            if (current < lowest) {
-                lowest = current;
-            }
-        }
-
-        for (int i = 0; i < resolution; i++) {
-            if (i == lowest) {
-                out += "*";
-                lowest = Integer.MAX_VALUE;
-                for (int j = 0; j < car_positions.size(); j++) {
-                    current = car_positions.get(j);
-                    if (current > i && current < lowest) {
-                        lowest = current;
+            if (first_car) {
+                if (car.isInQueue() || car.getDistanceToLaneEnd() < DISTANCE_THRESHOLD + car.getDriverType().getMinimumDistanceToLeader()) {
+                    if (destination_node.drivethrough(car)) { //the car may pass, let it do so
+                        remove = car;
+                        destination_node.acceptCar(car);
+                    } else if (!car.isInQueue()) { //if the car has just arrived here, it needs to added to the queue. otherwise, nothing happens
+                        queue.addCar(car);
                     }
+                } else if (destination_node.drivethrough(car)) { //if the car is not close enough, but is allowed to drive on.
+                    car.update(timestep, max_velocity, car.getDistanceToLaneEnd() +
+                            Math.max(car.getVelocity() * car.getDriverType().getDesiredTimeHeadway(),car.getDriverType().getMinimumDistanceToLeader()));
+                } else { //the car is not close enough, and not allowed to drive on.
+                    car.update(timestep, 0.0, car.getDistanceToLaneEnd());
                 }
-            } else {
-                out += "=";
+                
+                previous = car;
+
+                first_car = false;
+                
+                continue;
             }
+
+            if (car.isInQueue()) {
+                previous = car;
+                continue;
+            }
+
+            if (previous.isInQueue() && car.getDistanceToQueueEnd() < DISTANCE_THRESHOLD + car.getDriverType().getMinimumDistanceToLeader()) {
+                queue.addCar(car);
+            } else {
+                car.update(timestep, previous.getVelocity(), position_coefficient * (previous.getBack() - car.getPosition()));
+            }
+
+            previous = car;
+
         }
 
-        return out;
+        if (remove != null)
+            cars.remove(remove);
     }
 
 }

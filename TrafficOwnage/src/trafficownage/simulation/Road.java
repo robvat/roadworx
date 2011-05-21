@@ -45,8 +45,8 @@ public class Road {
 
         laneMap = new HashMap<Node,List<Lane>>();
 
-        laneMap.put(node1, lanes_from_node1);
-        laneMap.put(node2, lanes_from_node2);
+        laneMap.put(node1, lanes_from_node2);
+        laneMap.put(node2, lanes_from_node1);
 
         node1.addDestination(node2, this);
         

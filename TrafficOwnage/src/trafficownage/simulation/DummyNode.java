@@ -20,7 +20,7 @@ public class DummyNode extends Node {
     
     @Override
     boolean drivethrough(Car incoming) {
-        return true;
+        return false;
     }
 
     @Override
