@@ -151,6 +151,8 @@ public class Lane {
         return queue;
     }
 
+
+    private final static double FICTIONAL_DISTANCE = 100000.0;
     
     public void update(double timestep) {
         boolean first_car = true;
@@ -171,8 +173,9 @@ public class Lane {
                         queue.addCar(car);
                     }
                 } else if (destination_node.drivethrough(car)) { //if the car is not close enough, but is allowed to drive on.
-                    car.update(timestep, max_velocity, car.getDistanceToLaneEnd() +
-                            Math.max(car.getVelocity() * car.getDriverType().getDesiredTimeHeadway(),car.getDriverType().getMinimumDistanceToLeader()));
+                    car.update(timestep, max_velocity, FICTIONAL_DISTANCE);
+                    /*car.update(timestep, max_velocity, car.getDistanceToLaneEnd() +
+                            Math.max(2.0 * car.getVelocity() * car.getDriverType().getDesiredTimeHeadway(),car.getDriverType().getMinimumDistanceToLeader()));*/
                 } else { //the car is not close enough, and not allowed to drive on.
                     car.update(timestep, 0.0, car.getDistanceToLaneEnd());
                 }

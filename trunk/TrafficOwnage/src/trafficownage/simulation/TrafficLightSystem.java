@@ -26,7 +26,7 @@ public class TrafficLightSystem {
         setTrafficLightTimes();
     }
     public void setSequences() {
-       List<List<Lane>> sequence_list = null;//creates a list of sequences        
+       /*List<List<Lane>> sequence_list = null;//creates a list of sequences
         for (int i = 0; i < intersections.size(); i++) {//per intersection
             for (int j = 0; j < intersections.get(i).getNumberOfLights(); j++) {//gets the number of trafficlights
                 for (int k = 0; k < intersections.size() - 1; k++) {//checks all the other intersections if their destination is this node
@@ -44,7 +44,7 @@ public class TrafficLightSystem {
             if(biggestOne < sequence_list.get(i).size() || biggestOne == 0){
                 biggestOne = sequence_list.get(i).size();
             }
-        }
+        }*/
         //need to create the graph and check which are the priority roads. then set the sequences
         
         //need to get the traffic light numbers from each individual intersection and set them to the sequences.

@@ -23,7 +23,7 @@ public class MainLoop implements Runnable {
     private List<Node> nodes;
 
     private boolean run;
-    private boolean realtime = false;
+    private boolean realtime = true;
 
     private UIListener listener = null;
 
@@ -32,7 +32,7 @@ public class MainLoop implements Runnable {
 
     public void init() {
 
-        double SIDE_DISTANCE = 1000.0;
+        double SIDE_DISTANCE = 100.0;
         double SLOPE_DISTANCE = Math.sqrt(2*(SIDE_DISTANCE * SIDE_DISTANCE));
         double MAX_SPEED = 120.0 / 3.6;
 
@@ -117,11 +117,17 @@ public class MainLoop implements Runnable {
     Random randy = new Random();
     private final Object syncObject = new Object();
 
+
     public void addCar() {
         
         synchronized(syncObject) {
             Car car = new Car();
-            car.init(CarType.CAR, DriverType.NORMAL);
+
+            if (randy.nextInt(2) == 0)
+                car.init(CarType.CAR, DriverType.NORMAL);
+            else
+                car.init(CarType.LORRY, DriverType.NORMAL);
+
             ze_dummy.getRoad(ze_intersection).getLanes(ze_intersection).get(0).addCar(car);
         }
     }

@@ -7,12 +7,12 @@ package trafficownage.ui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Shape;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
@@ -20,10 +20,15 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.Area;
+import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import javax.swing.JComponent;
 import trafficownage.simulation.Car;
@@ -51,19 +56,20 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
     private boolean map_invalid = false;
 
-    private final static Color BACKGROUND_COLOR = new Color(192,192,255);
+    private final static Color BACKGROUND_COLOR = new Color(64,64,64);
 
-    private final static Color ROAD_COLOR = new Color(255,255,255);
-    private final static Color NODE_COLOR = new Color(255,192,64);
+    private final static Color ROAD_COLOR = new Color(255,255,64);
+    private final static Color NODE_COLOR = new Color(255,64,64);
 
     private final static Color CAR_QUEUE_COLOR = new Color(192,32,32);
-    private final static Color CAR_LEADER_COLOR = new Color(32,192,32);
     private final static Color CAR_DEFAULT_COLOR = new Color(0,0,0);
 
     private final static double NODE_RADIUS = 8.0;
     private final static double ROAD_WIDTH = 12.0;
-    private final static double CAR_WIDTH = 20.0;
+    private final static double CAR_WIDTH = 4.0;
 
+    private final static double LANE_WIDTH = 4.0;
+    private final static double LANE_SPACE = 6.0;
 
     private final static Color INFO_COLOR = new Color(255,255,255);
     private final static Font INFO_FONT = new Font(Font.SANS_SERIF,Font.BOLD,16);
@@ -129,6 +135,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         frame_bounds = new Rectangle2D.Double(center.x - (mpp * halfwidth), center.y - (mpp * halfheight), mpp * width, mpp * height);
 
+        road_lane_coords = new HashMap<Road,List<Line2D.Double>>();
 
         for (Road r : map_roads) {
             drawRoad(gr,r);
@@ -146,6 +153,8 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
     }
 
     private Point2D.Double start_point, end_point, point;
+
+    private HashMap<Road,List<Line2D.Double>> road_lane_coords;
     
     private void drawRoad(Graphics2D gr, Road r) {
         start_point = r.getStartNode().getLocation();
@@ -154,12 +163,57 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         gr.setColor(ROAD_COLOR);
         gr.setStroke(new BasicStroke((int)(ppm * ROAD_WIDTH)));
 
-        gr.drawLine(
+        Lane lane;
+
+        List<Line2D.Double> lanes = new ArrayList<Line2D.Double>();
+
+        double x1 = ppm * (frame_bounds.getMaxX() - start_point.x);
+        double x2 = ppm * (frame_bounds.getMaxX() - end_point.x);
+        double y1 = ppm * (frame_bounds.getMaxY() - start_point.y);
+        double y2 = ppm * (frame_bounds.getMaxY() - end_point.y);
+
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+
+        double l = Math.sqrt(Math.pow(dx, 2.0) + Math.pow(dy,2.0));
+
+        double line_dx = (LANE_SPACE * ppm) * (dy / l);
+        double line_dy = (LANE_SPACE * ppm) * (dx / l);
+
+        x1 -= ((r.getLanesPerSide() - .5) * line_dx);
+        x2 -= ((r.getLanesPerSide() - .5) * line_dx);
+
+        y1 += ((r.getLanesPerSide() - .5) * line_dy);
+        y2 += ((r.getLanesPerSide() - .5) * line_dy);
+
+        gr.setStroke(new BasicStroke((int)(ppm * LANE_WIDTH)));
+
+        Line2D.Double line;
+
+        for (int i = 0; i < r.getAllLanes().size(); i++) {
+            lane = r.getAllLanes().get(i);
+
+            line = new Line2D.Double(x1,y1,x2,y2);
+            
+            gr.draw(line);
+
+            x1 += line_dx;
+            x2 += line_dx;
+
+            y1 -= line_dy;
+            y2 -= line_dy;
+
+            lanes.add(line);
+        }
+
+        road_lane_coords.put(r, lanes);
+
+        /*gr.drawLine(
                 (int)(ppm * (frame_bounds.getMaxX() - start_point.x)),
                 (int)(ppm * (frame_bounds.getMaxY() - start_point.y)),
                 (int)(ppm * (frame_bounds.getMaxX() - end_point.x)),
                 (int)(ppm * (frame_bounds.getMaxY() - end_point.y))
-                );
+                );*/
     }
 
 
@@ -205,35 +259,62 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         gr.setStroke(new BasicStroke((int)(ppm * ROAD_WIDTH)));//r.getPriority()])));
 
-        double x1 = ppm * (frame_bounds.getMaxX() - start_point.x);
+        /*double x1 = ppm * (frame_bounds.getMaxX() - start_point.x);
         double y1 = ppm * (frame_bounds.getMaxY() - start_point.y);
         double x2 = ppm * (frame_bounds.getMaxX() - end_point.x);
         double y2 = ppm * (frame_bounds.getMaxY() - end_point.y);
-        
-        double dx = x2 - x1;
-        double dy = y2 - y1;
 
+
+        double dx = x2 - x1;
+        double dy = y2 - y1; */
+
+        double dx,dy;
 
         double length = r.getLength();
-        double pos;
+        double car_start,car_end;
 
         int carside = (int)(ppm * CAR_WIDTH);
         int carhalf = carside / 2;
 
-        for (Lane l : r.getAllLanes()) {
+        Line2D.Double line;
+
+        List<Line2D.Double> lines = road_lane_coords.get(r);
+
+        Lane l;
+
+        double car_x1,car_y1,car_x2,car_y2;
+
+        for (int i = 0; i < r.getAllLanes().size(); i++) {
+
+            l = r.getAllLanes().get(i);
+
+            line = lines.get(i);
+
+            dx = line.x2 - line.x1;
+            dy = line.y2 - line.y1;
 
             if (l.getQueue().isEmpty() && l.getCars().isEmpty())
                 continue;
             
             for (Car c : l.getCars()) {
-                pos = c.getPosition() / length;
+                car_start = c.getPosition() / length;
+                car_end = c.getBack() / length;
 
                 if (c.isInQueue())
                     gr.setColor(CAR_QUEUE_COLOR);//r.getPriority()]);
                 else
                     gr.setColor(CAR_DEFAULT_COLOR);//r.getPriority()]);
 
-                gr.fillOval((int)(x1 + (pos*dx))-carhalf, (int)(y1 + (pos*dy))-carhalf,carside,carside);
+                car_x1 = line.x1 + (car_start*dx);
+                car_y1 = line.y1 + (car_start*dy);
+                car_x2 = line.x1 + (car_end*dx);
+                car_y2 = line.y1 + (car_end*dy);
+                
+                gr.setStroke(new BasicStroke((int)(ppm * CAR_WIDTH)));
+                gr.draw(new Line2D.Double(car_x1,car_y1,car_x2,car_y2));
+
+                //gr.fillOval((int)(line.x1 + (car_start*dx))-carhalf, (int)(line.y1 + (car_start*dy))-carhalf,carside,carside);
+                //gr.fillOval((int)(x1 + (pos*dx))-carhalf, (int)(y1 + (pos*dy))-carhalf,carside,carside);
                 car_count++;
             }
         }

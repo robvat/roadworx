@@ -100,9 +100,9 @@ public class Car {
         this.position_coefficient = lane.getPositionCoefficient();
 
         if (position_coefficient < 0)
-            this.position = lane.getLength();
+            this.position = lane.getLength() - car_type.getLength();
         else
-            this.position = 0.0;
+            this.position = car_type.getLength();
 
         driver_model.setMaxVelocity(max_velocity);
     }
@@ -201,6 +201,10 @@ public class Car {
             return null;
     }
 
+    public double getPositionCoefficient() {
+        return position_coefficient;
+    }
+
     private class Route {
 
         private Node previous_node;
@@ -214,6 +218,7 @@ public class Car {
         }
 
         private void setCurrentNode() {
+            previous_node = current_lane.getSourceNode();
             current_node = current_lane.getDestinationNode();
         }
 
@@ -229,7 +234,9 @@ public class Car {
                 setCurrentNode();
 
             if (next_node == null)
-                next_node = current_node.getDestinationNodes().get(randy.nextInt(current_node.getDestinationNodes().size()));
+                while (next_node == null || next_node == previous_node)
+                    next_node = current_node.getDestinationNodes().get(randy.nextInt(current_node.getDestinationNodes().size()));
+            
 
             return next_node;
         }

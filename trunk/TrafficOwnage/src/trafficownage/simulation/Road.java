@@ -20,14 +20,17 @@ public class Road {
     
     private List<Lane> lanes, lanes_from_node1, lanes_from_node2;
 
+    private int lanes_per_side;
+
     private double length;
 
     private boolean priority;
 
-
     public Road(Node node1, Node node2, double length, double max_velocity, int lanes_per_side, boolean oneway) {
         lanes_from_node1 = new ArrayList<Lane>();
         lanes_from_node2 = new ArrayList<Lane>();
+
+        this.lanes_per_side = lanes_per_side;
 
         this.length = length;
 
@@ -53,6 +56,10 @@ public class Road {
         if (!oneway)
             node2.addDestination(node1, this);
         
+    }
+
+    public int getLanesPerSide() {
+        return lanes_per_side;
     }
 
     public Node getStartNode() {
