@@ -73,6 +73,7 @@ public class NormalJunction extends Node {
         }
     }
 
+    @Override
     public void init() {
         super.init();
 
