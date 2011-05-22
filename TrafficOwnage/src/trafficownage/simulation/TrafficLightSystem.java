@@ -53,8 +53,8 @@ public class TrafficLightSystem {
         //sets the times from the sequences. only used for intelligent traffic lights
     }
     public void scheduler() {
-        //only going to be used if we have an evolutionary algorithm to schedule need to have traffi desities per road
-        //could calculate that after the system runs for awhile and it incrementally changes
+        //only going to be used if we have an evolutionary algorithm to schedule need to have traffic densities per road
+        //could calculate that after the system runs for a while and it incrementally changes
         //or have one where it changes a few variable each time and saves the best configuration
         //problem is global max or mins will be hard to search for without proper simulation
     }

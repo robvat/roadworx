@@ -16,9 +16,9 @@ public class TrafficLight {
     public static final int YELLOW = 1;
     public static final int RED = 2;
 
-    private static final double YELLOW_DURATION = 3.0;
+    private static final double YELLOW_DURATION = 3.0; //how long a light stays yellow
 
-    private double yellow_time;
+    private double yellow_time; // how long the light has been yellow
 
     private int light;//the color of the light    
 
@@ -40,6 +40,9 @@ public class TrafficLight {
         light = GREEN;
     }
 
+    // updates the trafficlight: when the traffic light is on yellow it will
+    //update the time and if the yellow light duration has passed, turns the
+    //light to red.
     public void update(double timestep) {
         if (light == YELLOW) {
             if (yellow_time >= YELLOW_DURATION)
