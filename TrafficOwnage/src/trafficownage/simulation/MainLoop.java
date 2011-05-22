@@ -19,6 +19,8 @@ import trafficownage.ui.UIListener;
 public class MainLoop implements Runnable {
     private final static long FPS = 25;
 
+    private final static long SPEED_MULTIPLIER = 4;
+
     private List<Road> roads;
     private List<Node> nodes;
 
@@ -88,7 +90,7 @@ public class MainLoop implements Runnable {
         };
 
         Road[] road_array = {
-            new Road(node_array[0],node_array[1],SIDE_DISTANCE,MAX_SPEED,1,false),
+            new Road(node_array[0],node_array[1],SIDE_DISTANCE,MAX_SPEED,2,false),
             new Road(node_array[0],node_array[2],SIDE_DISTANCE,MAX_SPEED,1,false),
             new Road(node_array[0],node_array[3],SIDE_DISTANCE,MAX_SPEED,1,false),
             new Road(node_array[0],node_array[4],SIDE_DISTANCE,MAX_SPEED,1,false),
@@ -141,7 +143,7 @@ public class MainLoop implements Runnable {
 
         double s_step = 1.0 / (double)FPS; //Step size in seconds
 
-        long ms_step = (long)(s_step * 1000.0); //Step size in milliseconds
+        long ms_step = (long)(s_step * 1000.0) / SPEED_MULTIPLIER; //Step size in milliseconds
 
         long span,start,end,leftover;
 
@@ -171,15 +173,8 @@ public class MainLoop implements Runnable {
 
                     simulated_time += s_step;
 
-                    //System.out.println("Simulated: " + simulated_time);
-
-                    //if (listener != null)
-                    //    new Thread(new Runnable() {
-                    //        public void run() {
-                                listener.carsUpdated();
-                    //        }
-                    //    }).start();
-
+                    listener.carsUpdated();
+                    
                 }
             }
             end = System.currentTimeMillis();
