@@ -46,7 +46,7 @@ public class MainLoop implements Runnable {
                 new DrivethroughNode(new Point2D.Double(-300.0,0)),
                 new DrivethroughNode(new Point2D.Double(-200.0,0)),
                 new DrivethroughNode(new Point2D.Double(-100.0,0)),
-                new Roundabout(new Point2D.Double(0.0,0.0),20.0),
+                new NormalJunction(new Point2D.Double(0.0,0.0)),
                 new DrivethroughNode(new Point2D.Double(100.0,0.0)),
                 new DrivethroughNode(new Point2D.Double(200.0,0.0)),
                 new DrivethroughNode(new Point2D.Double(300.0,0.0)),
@@ -54,7 +54,6 @@ public class MainLoop implements Runnable {
                 new DrivethroughNode(new Point2D.Double(500.0,0.0)),
                 new DrivethroughNode(new Point2D.Double(0.0,100.0)),
                 new DrivethroughNode(new Point2D.Double(0.0,-100.0))
-
         };
 
         Road r = new Road("Mainroad");
@@ -175,6 +174,8 @@ public class MainLoop implements Runnable {
         while (run) {
 
             start = System.currentTimeMillis();
+
+            //System.out.println(simulated_time);
 
             synchronized(syncObject){
 
