@@ -7,7 +7,6 @@ package trafficownage.simulation;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -18,40 +17,105 @@ import java.util.List;
 public abstract class Node
 {
     private Point2D.Double location;
-    private HashMap<Node,Road> destination_roads;
-    private List<Road> roads;
-    private List<Node> destination_nodes;
-    private List<Lane> incoming_lanes;
+    private HashMap<Node,RoadSegment> destinationRoads;
+    private List<RoadSegment> roads;
+    private List<Node> destinationNodes;
+    private List<Lane> incomingLanes;
+    private HashMap<Lane,Lane> laneMap;
+
+
+    public double f,g,h; //pathfinding variables
+    public Node parent;
 
     public Node(Point2D.Double location) {
         this.location = location;
-        destination_roads = new HashMap<Node,Road>();
-        destination_nodes = new ArrayList<Node>();
-        incoming_lanes = new ArrayList<Lane>();
-        roads = new ArrayList<Road>();
+        destinationRoads = new HashMap<Node,RoadSegment>();
+        destinationNodes = new ArrayList<Node>();
+        incomingLanes = new ArrayList<Lane>();
+        roads = new ArrayList<RoadSegment>();
+
+        laneMap = new HashMap<Lane, Lane>();
     }
 
     public void init() {
         sortNodes();
 
         determineIncomingLanes();
+
+        determineLaneMapping();
+    }
+
+    private void determineLaneMapping() {
         
+        RoadSegment segment1;
+        RoadSegment segment2;
+
+        for (Node n1 : getDestinationNodes()) {
+
+            segment1 = getRoadSegment(n1);
+
+            for (Node n2 : getDestinationNodes()) {
+
+                if (n1 == n2)
+                    continue;
+
+                segment2 = getRoadSegment(n2);
+
+                if (segment1.getNextSegment() == segment2 || segment1.getPreviousSegment() == segment2) {
+                    mapLanes(segment1,segment2);
+                }
+            }
+            
+        }
+
+        System.out.println(laneMap.size());
+    }
+
+    private void mapLanes(RoadSegment rs1, RoadSegment rs2) {
+
+        List<Lane> lanes1,lanes2;
+
+        lanes1 = rs1.getDestinationLanes(this);
+        lanes2 = rs2.getSourceLanes(this);
+
+        for (Lane l1 : lanes1)
+            for (Lane l2 : lanes2)
+                if (l1.getLaneId() == l2.getLaneId())
+                    laneMap.put(l1, l2);
+
+        lanes1 = rs2.getDestinationLanes(this);
+        lanes2 = rs1.getSourceLanes(this);
+        for (Lane l1 : lanes1)
+            for (Lane l2 : lanes2)
+                if (l1.getLaneId() == l2.getLaneId())
+                    laneMap.put(l1, l2);
     }
 
     private void determineIncomingLanes() {
-        Road r;
+        RoadSegment r;
         
         for (Node n : getDestinationNodes()) {
-            r = this.getRoad(n);
+            r = this.getRoadSegment(n);
 
-            for (Lane l : r.getLanes(this)) {
-                incoming_lanes.add(l);
+            for (Lane l : r.getDestinationLanes(this)) {
+                incomingLanes.add(l);
             }
         }
     }
 
+    public void mapLane(Lane incoming, Lane outgoing) {
+        laneMap.put(incoming, outgoing);
+    }
+
+    public Lane getLaneMapping(Lane incoming) {
+        if (laneMap.containsKey(incoming))
+            return laneMap.get(incoming);
+        else
+            return null;
+    }
+
     public List<Lane> getIncomingLanes() {
-        return incoming_lanes;
+        return incomingLanes;
     }
 
     public double distanceTo(Node destination) {
@@ -61,14 +125,14 @@ public abstract class Node
                 );
     }
 
-    public void addDestination(Node n, Road r) {
+    public void addDestination(Node n, RoadSegment r) {
         roads.add(r);
-        destination_nodes.add(n);
-        destination_roads.put(n,r);
+        destinationNodes.add(n);
+        destinationRoads.put(n,r);
     }
 
-    public Road getRoad(Node destination) {
-        return destination_roads.get(destination);
+    public RoadSegment getRoadSegment(Node destination) {
+        return destinationRoads.get(destination);
     }
 
     public Point2D.Double getLocation() {
@@ -76,8 +140,9 @@ public abstract class Node
     }
 
     public List<Node> getDestinationNodes() {
-        return destination_nodes;
+        return destinationNodes;
     }
+    
 
     private void sortNodes() {
         double
@@ -89,13 +154,13 @@ public abstract class Node
         Node n, max_node = null;
         int i, sorted = 0;
 
-        while (sorted < destination_nodes.size()) {
+        while (sorted < destinationNodes.size()) {
             max_angle = -Double.MAX_VALUE;
             max_node = null;
 
-            for (i = sorted; i < destination_nodes.size(); i++) {
+            for (i = sorted; i < destinationNodes.size(); i++) {
 
-                n = destination_nodes.get(i);
+                n = destinationNodes.get(i);
 
                 angle = Math.atan2(
                             (y - n.getLocation().y),
@@ -110,8 +175,8 @@ public abstract class Node
 
             if (max_node != null) {
                 //move the selected node to position 0.
-                destination_nodes.remove(max_node);
-                destination_nodes.add(0,max_node);
+                destinationNodes.remove(max_node);
+                destinationNodes.add(0,max_node);
             }
             sorted++;
         }

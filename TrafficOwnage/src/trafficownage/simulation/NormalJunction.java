@@ -31,13 +31,29 @@ public class NormalJunction extends Node {
     public boolean drivethrough(Car incoming) {
         // TODO: first check if the junction is clear
         // if so return false, else continue
+        Node destination = incoming.getNextNode();
 
         Lane incomingLane = incoming.getLane();
+        
+        if (lane_passthrough.get(incomingLane)) {           
 
-        if (lane_passthrough.get(incomingLane))
-            return true;
-        else
+            Lane lane = getLaneMapping(incomingLane);
+
+            if (lane == null || !(lane.getRoadSegment().getStartNode() == this || lane.getRoadSegment().getEndNode() == this && lane.acceptsCar(incoming))) {
+                lane = getRoadSegment(incoming.getNextNode()).getSourceLanes(this).get(0);
+            }
+
+
+            if (lane != null && lane.acceptsCar(incoming))
+                return true;
+            else
+                return false;
+            
+        } else {
+
             return false;
+            
+        }
     }
 
     @Override
@@ -48,8 +64,14 @@ public class NormalJunction extends Node {
             //TODO: instead of immediate passthrough, a timer has to be built-in.
             //TODO: advance node should be in the lane class, probably.
             Node n = incoming.getNextNode();
-            List<Lane> lanes = getRoad(n).getLanes(n);
-            lanes.get(0).addCar(incoming);
+            
+            Lane mapped = getLaneMapping(incomingLane);
+            
+            if (mapped != null && mapped.getRoadSegment().getStartNode() == n || mapped.getRoadSegment().getEndNode() == n)
+                mapped.addCar(incoming);
+            else
+                getRoadSegment(n).getSourceLanes(this).get(0).addCar(incoming);
+
             incoming.advanceNode();
         }
     }
@@ -89,7 +111,6 @@ public class NormalJunction extends Node {
         List<Lane> lanes = getIncomingLanes();
 
         for (Lane l : lanes) {
-            //TODO: here we have to determine who will be first
             lane_passthrough.put(l, true);
 
             c = l.getFirstCar();
@@ -126,21 +147,21 @@ public class NormalJunction extends Node {
                 if (!arrival_times.containsKey(l2))
                     continue;
 
-                a2 = arrival_times.get(l1);
+                a2 = arrival_times.get(l2);
 
-                if (arrival_times.get(l1).intersects(arrival_times.get(l2))) {
+                if (a1.intersects(a2)) {
                     //we have an overlap
                     double arrival_time = Math.min(a1.arrival_time,a2.arrival_time);
 
                     if (overlap == null || overlap.getObject1() > arrival_time) {
 
-                        if (j == i - 1) {
+                        if (j % lanes.size() == (i - 1) % lanes.size()) {
                             //if l2 is right of l1
                             if (true) {
                                 //TODO: Change this into the intersection check!!!
                                 lane_passthrough.put(l1, false);
                             }
-                        } else if (i == j - 1) {
+                        } else if (i % lanes.size() == (j - 1) % lanes.size()) {
                             //if l1 is right of l2
                             if (true) {
                                 //TODO: Change this into the intersection check!!!

@@ -6,11 +6,11 @@
 package trafficownage.simulation;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import trafficownage.ui.UIListener;
+import trafficownage.util.MapGenerator;
+import trafficownage.ui.SimulationUpdateListener;
 
 /**
  *
@@ -19,7 +19,7 @@ import trafficownage.ui.UIListener;
 public class MainLoop implements Runnable {
     private final static long FPS = 25;
 
-    private final static long SPEED_MULTIPLIER = 4;
+    private final static long SPEED_MULTIPLIER = 16;
 
     private List<Road> roads;
     private List<Node> nodes;
@@ -27,111 +27,129 @@ public class MainLoop implements Runnable {
     private boolean run;
     private boolean realtime = true;
 
-    private UIListener listener = null;
+    private SimulationUpdateListener listener = null;
 
-    private Node ze_dummy;
-    private Node ze_intersection;
+
+    Road spawnroad = null;
 
     public void init() {
 
-        double SIDE_DISTANCE = 100.0;
-        double SLOPE_DISTANCE = Math.sqrt(2*(SIDE_DISTANCE * SIDE_DISTANCE));
-        double MAX_SPEED = 120.0 / 3.6;
-
-        /*Node[] node_array = {
-            new DummyNode(new Point2D.Double(0.0,0.0)), //0
-            new DummyNode(new Point2D.Double(-SIDE_DISTANCE,0.0)), //1
-            new DummyNode(new Point2D.Double(SIDE_DISTANCE,0.0)), //2
-            new DummyNode(new Point2D.Double(0.0,SIDE_DISTANCE)), //3
-            new DummyNode(new Point2D.Double(0.0,-SIDE_DISTANCE)), //4
-            new DummyNode(new Point2D.Double(-SIDE_DISTANCE,-SIDE_DISTANCE)), //5
-            new DummyNode(new Point2D.Double(SIDE_DISTANCE,-SIDE_DISTANCE)), //6
-            new DummyNode(new Point2D.Double(-SIDE_DISTANCE,SIDE_DISTANCE)), //7
-            new DummyNode(new Point2D.Double(SIDE_DISTANCE,SIDE_DISTANCE)), //8
-            new DummyNode(new Point2D.Double(0.0,-2 * SIDE_DISTANCE)), //9
-            new DummyNode(new Point2D.Double(0.0,2 * SIDE_DISTANCE)), //10
-            new DummyNode(new Point2D.Double(2 * SIDE_DISTANCE,0.0)), //11
-            new DummyNode(new Point2D.Double(-2 * SIDE_DISTANCE,0.0)) //12
-        };
-
-        Road[] road_array = {
-            new Road(node_array[0],node_array[1],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[0],node_array[2],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[0],node_array[3],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[0],node_array[4],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[0],node_array[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[0],node_array[6],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[0],node_array[7],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[0],node_array[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
-
-            //new Road(n[9],n[4],100.0,13.9,1,false),
-            new Road(node_array[9],node_array[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[9],node_array[6],SLOPE_DISTANCE,MAX_SPEED,1,false)
-                    ,
-            new Road(node_array[10],node_array[7],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[10],node_array[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
-
-            new Road(node_array[11],node_array[6],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[11],node_array[8],SLOPE_DISTANCE,MAX_SPEED,1,false),
-
-            new Road(node_array[12],node_array[5],SLOPE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[12],node_array[7],SLOPE_DISTANCE,MAX_SPEED,1,false)
-        };*/
-
-        ze_dummy = new DummyNode(new Point2D.Double(-SIDE_DISTANCE,0.0));
-        ze_intersection = new NormalJunction(new Point2D.Double(0.0,0.0));
-
-        Node[] node_array = {
-            ze_intersection, //0
-            ze_dummy, //1
-            new DummyNode(new Point2D.Double(SIDE_DISTANCE,0.0)), //2
-            new DummyNode(new Point2D.Double(0.0,SIDE_DISTANCE)), //3
-            new DummyNode(new Point2D.Double(0.0,-SIDE_DISTANCE)), //4
-        };
-
-        Road[] road_array = {
-            new Road(node_array[0],node_array[1],SIDE_DISTANCE,MAX_SPEED,2,false),
-            new Road(node_array[0],node_array[2],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[0],node_array[3],SIDE_DISTANCE,MAX_SPEED,1,false),
-            new Road(node_array[0],node_array[4],SIDE_DISTANCE,MAX_SPEED,1,false),
-        };
-
-
-        nodes = new ArrayList<Node>();
-        nodes.addAll(Arrays.asList(node_array));
-
-        roads = new ArrayList<Road>();
-        roads.addAll(Arrays.asList(road_array));
         
+
+        //MapGenerator gen = new MapGenerator();
+
+        //gen.generate(200.0,50);
+
+        Node[] nodeArray = new Node[] {
+                new DrivethroughNode(new Point2D.Double(-500.0,0)),
+                new DrivethroughNode(new Point2D.Double(-400.0,0)),
+                new DrivethroughNode(new Point2D.Double(-300.0,0)),
+                new DrivethroughNode(new Point2D.Double(-200.0,0)),
+                new DrivethroughNode(new Point2D.Double(-100.0,0)),
+                new Roundabout(new Point2D.Double(0.0,0.0),20.0),
+                new DrivethroughNode(new Point2D.Double(100.0,0.0)),
+                new DrivethroughNode(new Point2D.Double(200.0,0.0)),
+                new DrivethroughNode(new Point2D.Double(300.0,0.0)),
+                new DrivethroughNode(new Point2D.Double(400.0,0.0)),
+                new DrivethroughNode(new Point2D.Double(500.0,0.0)),
+                new DrivethroughNode(new Point2D.Double(0.0,100.0)),
+                new DrivethroughNode(new Point2D.Double(0.0,-100.0))
+
+        };
+
+        Road r = new Road("Mainroad");
+
+
+
+        for (int i = 0; i < 10; i++) {
+            RoadSegment rs = new RoadSegment(nodeArray[i], nodeArray[i+1]);
+
+            for (int j = 0; j < 2; j++) {
+                rs.addLeftStartLane(j, 50.0 / 3.6, false);
+                rs.addLeftEndLane(j, 50.0 / 3.6, false);
+            }
+
+            r.addLast(rs);
+        }
+
+        spawnroad = new Road ("Sideroad");
+
+        RoadSegment rs1 = new RoadSegment(nodeArray[11],nodeArray[5]);
+        RoadSegment rs2 = new RoadSegment(nodeArray[5],nodeArray[12]);
+
+        for (int j = 0; j < 2; j++) {
+            rs1.addLeftStartLane(j, 50.0 / 3.6, false);
+            rs1.addLeftEndLane(j, 50.0 / 3.6, false);
+            rs2.addLeftStartLane(j, 50.0 / 3.6, false);
+            rs2.addLeftEndLane(j, 50.0 / 3.6, false);
+        }
+
+        spawnroad.addLast(rs1);
+        spawnroad.addLast(rs2);
+
+
+          nodes = Arrays.asList(nodeArray);
+          roads = Arrays.asList(new Road[] {r,spawnroad});
+
+//        MapGenerator gen = new MapGenerator();
+//        gen.generate(500.0,25);
+//
+//        nodes = gen.getNodes();
+//        roads = gen.getRoads();
 
 
     }
 
-    public void init(UIListener listener) {
+    public void init(SimulationUpdateListener listener) {
         init();
         setUIListener(listener);
     }
 
-    public void setUIListener(UIListener listener) {
+    public void setUIListener(SimulationUpdateListener listener) {
         this.listener = listener;
     }
 
     Random randy = new Random();
+    
     private final Object syncObject = new Object();
 
+    public Object getSyncObject() {
+        return syncObject;
+    }
 
-    public void addCar() {
+
+    public Car addCar() {
         
         synchronized(syncObject) {
-            Car car = new Car();
 
-            if (randy.nextInt(2) == 0)
-                car.init(CarType.CAR, DriverType.NORMAL);
-            else
-                car.init(CarType.LORRY, DriverType.NORMAL);
+            Car car;
 
-            ze_dummy.getRoad(ze_intersection).getLanes(ze_intersection).get(0).addCar(car);
+            Road r = spawnroad;//roads.get(randy.nextInt(roads.size()));
+
+            car = generateRandomCar();
+            r.getFirstSegment().getDestinationLanes(r.getFirstSegment().getEndNode()).get(randy.nextInt(2)).addCar(car);
+            
+            car = generateRandomCar();
+            r.getLastSegment().getDestinationLanes(r.getLastSegment().getStartNode()).get(randy.nextInt(2)).addCar(car);
+            //r.getFirstSegment().getDestinationLanes(r.getFirstSegment().getStartNode()).get(1).addCar(car);
+            //ze_dummy.getRoad(ze_intersection).getLanes(ze_intersection).get(0).addCar(car);
+
+            return car;
         }
+    }
+
+    public Car generateRandomCar() {
+        Car car = new Car();
+
+            int rand = randy.nextInt(3);
+
+            if (rand == 0)
+                car.init(CarType.CAR, DriverType.NORMAL);
+            else if (rand == 1)
+                car.init(CarType.LORRY, DriverType.NORMAL);
+            else if (rand == 2)
+                car.init(CarType.MINICAR, DriverType.NORMAL);
+            return car;
     }
 
     public void setRealtime(boolean realtime) {
@@ -154,9 +172,6 @@ public class MainLoop implements Runnable {
         for (Node n : nodes)
             n.init();
 
-        for (Road r : roads)
-            r.init();
-
         while (run) {
 
             start = System.currentTimeMillis();
@@ -169,14 +184,16 @@ public class MainLoop implements Runnable {
 
                 for (Road r : roads) {
 
-                    r.update(s_step);
-
-                    simulated_time += s_step;
+                    for (RoadSegment rs : r.getSegments())
+                        rs.update(s_step);
 
                     listener.carsUpdated();
                     
                 }
             }
+
+            simulated_time += s_step;
+
             end = System.currentTimeMillis();
 
             span = end - start;

@@ -1,6 +1,7 @@
 package trafficownage.simulation;
 
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.List;
 /**
  * A roundabout found on a road near you!
@@ -29,6 +30,9 @@ public class Roundabout extends Node
         super(location);
         
         this.size = (radius * 2) * Math.PI;
+
+        cars = new ArrayList<Car>();
+        times = new ArrayList<Double>();
         // Warning, doesn't have any roads yet at this point!
     }
 
@@ -110,7 +114,7 @@ public class Roundabout extends Node
      */
     private double acceptChance()
     {
-        int defaultCar = CarType.CAR.getLength();
+        double defaultCar = CarType.CAR.getLength();
         int slots = (int)(size / defaultCar); // needs to be an approximation
         int carAm = cars.size();
         int[] rational = new int[2];
@@ -152,8 +156,8 @@ public class Roundabout extends Node
         List<Lane> possibleLanes;
         Car rem = cars.get(i);
         Node next = rem.getNextNode();
-        Road togo = super.getRoad(next);
-        possibleLanes = togo.getLanes(next);
+        RoadSegment togo = super.getRoadSegment(next);
+        possibleLanes = togo.getDestinationLanes(next);
         rem.setLane(possibleLanes.get(0));
         // FIXME Check if something is on lane 0 and put him on lane 1
         // FIXME !!! Car.advance() or not ??, time for next node

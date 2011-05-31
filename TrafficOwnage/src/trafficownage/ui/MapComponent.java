@@ -12,7 +12,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Shape;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
@@ -20,14 +19,11 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.Area;
 import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import javax.swing.JComponent;
@@ -36,6 +32,7 @@ import trafficownage.simulation.Lane;
 import trafficownage.simulation.MainLoop;
 import trafficownage.simulation.Node;
 import trafficownage.simulation.Road;
+import trafficownage.simulation.RoadSegment;
 
 /**
  *
@@ -104,16 +101,19 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         gr = (Graphics2D)g;
 
-        gr.drawImage(back_layer,0,0,null);
+        synchronized(mainLoop.getSyncObject()) {
+            gr.drawImage(back_layer,0,0,null);
 
-        car_count = 0;
+            car_count = 0;
 
-        gr.setStroke(new BasicStroke((int)(ppm * CAR_WIDTH),BasicStroke.CAP_BUTT,BasicStroke.JOIN_BEVEL));
-        for (Road r : map_roads)
-            drawRoadCars(gr,r);
+            gr.setStroke(new BasicStroke((int)(ppm * CAR_WIDTH),BasicStroke.CAP_BUTT,BasicStroke.JOIN_BEVEL));
+            for (Road r : map_roads)
+                for (RoadSegment rs : r.getSegments())
+                drawRoadSegmentCars(gr,rs);
 
 
-        drawInfo(gr);
+            drawInfo(gr);
+        }
 
     }
 
@@ -138,82 +138,116 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         gr.setStroke(new BasicStroke((int)(ppm * CAR_WIDTH),BasicStroke.CAP_BUTT,BasicStroke.JOIN_BEVEL));
         gr.setColor(ROAD_COLOR);
         
-        for (Road r : map_roads) {
-            drawRoad(gr,r);
-        }
+        for (Road r : map_roads) 
+            for (RoadSegment rs : r.getSegments())
+                drawRoadSegment(gr,rs);
+        
 
-        for (Node n : map_nodes) {
+        for (Node n : map_nodes) 
             drawNode(gr,n);
-        }
+        
     }
 
 
     private Car selected_car;
-    private void setSelectedCar(Car car) {
+    public void setSelectedCar(Car car) {
         selected_car = car;
     }
 
     private Point2D.Double start_point, end_point, point;
 
-    private HashMap<Road,Line2D.Double[]> road_lane_coords;
+    private HashMap<Lane,Line2D.Double> lane_coords;
     
-    private void drawRoad(Graphics2D gr, Road r) {
+    private void drawRoadSegment(Graphics2D gr, RoadSegment r) {
         start_point = r.getStartNode().getLocation();
         end_point = r.getEndNode().getLocation();
 
+        double x1_start = ppm * (frame_bounds.getMaxX() - start_point.x);
+        double x2_start = ppm * (frame_bounds.getMaxX() - end_point.x);
+        double y1_start = ppm * (frame_bounds.getMaxY() - start_point.y);
+        double y2_start = ppm * (frame_bounds.getMaxY() - end_point.y);
 
-        Line2D.Double[] lanes = road_lane_coords.get(r);
+        double dx = x2_start - x1_start;
+        double dy = y2_start - y1_start;
 
-        double x1 = ppm * (frame_bounds.getMaxX() - start_point.x);
-        double x2 = ppm * (frame_bounds.getMaxX() - end_point.x);
-        double y1 = ppm * (frame_bounds.getMaxY() - start_point.y);
-        double y2 = ppm * (frame_bounds.getMaxY() - end_point.y);
+        double length = Math.sqrt(Math.pow(dx, 2.0) + Math.pow(dy,2.0));
 
-        double dx = x2 - x1;
-        double dy = y2 - y1;
+        double line_dx = (LANE_SPACE * ppm) * (dy / length);
+        double line_dy = (LANE_SPACE * ppm) * (dx / length);
 
-        double l = Math.sqrt(Math.pow(dx, 2.0) + Math.pow(dy,2.0));
+        /*x1_start -= ((r.getLanesPerSide() - .5) * line_dx);
+        x2_start -= ((r.getLanesPerSide() - .5) * line_dx);
 
-        double line_dx = (LANE_SPACE * ppm) * (dy / l);
-        double line_dy = (LANE_SPACE * ppm) * (dx / l);
+        y1_start += ((r.getLanesPerSide() - .5) * line_dy);
+        y2_start += ((r.getLanesPerSide() - .5) * line_dy);*/
 
-        x1 -= ((r.getLanesPerSide() - .5) * line_dx);
-        x2 -= ((r.getLanesPerSide() - .5) * line_dx);
+        Line2D.Double line1;
+        Line2D.Double line2;
 
-        y1 += ((r.getLanesPerSide() - .5) * line_dy);
-        y2 += ((r.getLanesPerSide() - .5) * line_dy);
+        List<Lane> laneList;
 
-        Line2D.Double line;
+        laneList = r.getStartLanes();
 
-        for (int i = 0; i < r.getAllLanes().size(); i++) {
-            line = lanes[i];
+        int i = 0;
 
-            line.x1 = x1;
-            line.x2 = x2;
-            line.y1 = y1;
-            line.y2 = y2;
+        for (Lane l : laneList) {
+            
+            line1 = lane_coords.get(l);
+            line1.x1 = x1_start - (((double)(laneList.size() - i) - .5) * line_dx);
+            line1.x2 = x2_start - (((double)(laneList.size() - i) - .5) * line_dx);
+            line1.y1 = y1_start + (((double)(laneList.size() - i) - .5) * line_dy);
+            line1.y2 = y2_start + (((double)(laneList.size() - i) - .5) * line_dy);
+            gr.draw(line1);
 
-            lanes[i] = line;
+            i++;
+        }
 
-            gr.draw(line);
+        laneList = r.getEndLanes();
 
-            x1 += line_dx;
+        int j = 0;
+
+        for (Lane l : laneList) {
+
+            line2 = lane_coords.get(l);
+            line2.x1 = x2_start + (((double)(laneList.size() - j) - .5) * line_dx);
+            line2.x2 = x1_start + (((double)(laneList.size() - j) - .5) * line_dx);
+            line2.y1 = y2_start - (((double)(laneList.size() - j) - .5) * line_dy);
+            line2.y2 = y1_start - (((double)(laneList.size() - j) - .5) * line_dy);
+            gr.draw(line2);
+
+            j++;
+
+            /*x1 += line_dx;
             x2 += line_dx;
 
             y1 -= line_dy;
-            y2 -= line_dy;
+            y2 -= line_dy;*/
         }
 
-        road_lane_coords.put(r, lanes);
-
-        /*gr.drawLine(
-                (int)(ppm * (frame_bounds.getMaxX() - start_point.x)),
-                (int)(ppm * (frame_bounds.getMaxY() - start_point.y)),
-                (int)(ppm * (frame_bounds.getMaxX() - end_point.x)),
-                (int)(ppm * (frame_bounds.getMaxY() - end_point.y))
-                );*/
     }
 
+
+    public void update() {
+        /*if (selected_car != null) {
+            Road r = selected_car.getLane().getRoad();
+            start_point = r.getStartNode().getLocation();
+            end_point = r.getEndNode().getLocation();
+
+            double x1 = start_point.x;
+            double x2 = end_point.x;
+            double y1 = start_point.y;
+            double y2 = end_point.y;
+
+            double ratio = ((selected_car.getPosition() + selected_car.getBack()) / 2.0) / r.getLength();
+
+            center.x = x1 + (ratio * (x2 - x1));
+            center.y = y1 + (ratio * (y2 - y1));
+
+            map_invalid = true;
+        }*/
+
+        repaint();
+    }
 
 
     private void drawInfo(Graphics2D gr) {
@@ -246,61 +280,71 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         }
 
         gr.drawString("Rendered cars: " + Integer.toString(car_count), 12, 12 + (line_height * i) + 2);
-
-
     }
 
-    private void drawRoadCars(Graphics2D gr, Road r) {
-        
+    private int drawLaneCars(Graphics2D gr, double length, List<Lane> lanes, int i) {
+
         double dx,dy;
 
-        double length = r.getLength();
-        double car_start,car_end;
-
         int carside = (int)(ppm * CAR_WIDTH);
-        int carhalf = carside / 2;
-
-        Line2D.Double line;
-
-        Line2D.Double[] lines = road_lane_coords.get(r);
-
-        Lane l;
+        //int carhalf = carside / 2;
 
         double car_x1,car_y1,car_x2,car_y2;
 
-        for (int i = 0; i < r.getAllLanes().size(); i++) {
+        double car_start,car_end;
 
-            l = r.getAllLanes().get(i);
+        Line2D.Double line;
 
-            line = lines[i];
+        for (Lane l : lanes) {
+
+            if (l.getCars().isEmpty())
+                continue;
+
+            line = lane_coords.get(l);
+
+            i++;
 
             dx = line.x2 - line.x1;
             dy = line.y2 - line.y1;
 
             if (l.getCars().isEmpty())
                 continue;
-            
+
             for (Car c : l.getCars()) {
                 car_start = c.getPosition() / length;
                 car_end = c.getBack() / length;
 
                 if (c.isInQueue())
-                    gr.setColor(CAR_QUEUE_COLOR);//r.getPriority()]);
+                    gr.setColor(CAR_QUEUE_COLOR);
                 else
-                    gr.setColor(CAR_DEFAULT_COLOR);//r.getPriority()]);
+                    gr.setColor(CAR_DEFAULT_COLOR);
 
                 car_x1 = line.x1 + (car_start*dx);
                 car_y1 = line.y1 + (car_start*dy);
                 car_x2 = line.x1 + (car_end*dx);
                 car_y2 = line.y1 + (car_end*dy);
-                
+
                 gr.drawLine((int)car_x1,(int)car_y1,(int)car_x2,(int)car_y2);
 
-                //gr.fillOval((int)(line.x1 + (car_start*dx))-carhalf, (int)(line.y1 + (car_start*dy))-carhalf,carside,carside);
-                //gr.fillOval((int)(x1 + (pos*dx))-carhalf, (int)(y1 + (pos*dy))-carhalf,carside,carside);
                 car_count++;
             }
+
+            i++;
         }
+
+        return i;
+    }
+
+    private void drawRoadSegmentCars(Graphics2D gr, RoadSegment r) {
+        
+        double length = r.getLength();
+
+        int i = 0;
+
+        i = drawLaneCars(gr, length, r.getStartLanes(), i);
+        i = drawLaneCars(gr, length, r.getEndLanes(), i);
+
+        
     }
 
     private void drawNode(Graphics2D gr, Node n) {
@@ -367,16 +411,19 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         map_nodes = mainLoop.getNodes();
         map_roads = mainLoop.getRoads();
 
-        road_lane_coords = new HashMap<Road,Line2D.Double[]>();
-
-        Line2D.Double[] lane_array;
+        lane_coords = new HashMap<Lane,Line2D.Double>();
 
         for (Road r : map_roads) {
-            lane_array = new Line2D.Double[r.getAllLanes().size()];
-            for (int i = 0; i < lane_array.length; i++) {
-                lane_array[i] = new Line2D.Double(0,0,0,0);
+
+            for (RoadSegment rs : r.getSegments()) {
+
+                for (Lane l : rs.getStartLanes())
+                    lane_coords.put(l,new Line2D.Double(0,0,0,0));
+
+                for (Lane l : rs.getEndLanes())
+                    lane_coords.put(l,new Line2D.Double(0,0,0,0));
+                
             }
-            road_lane_coords.put(r, lane_array);
         }
 
         center = new Point2D.Double(0.0,0.0);

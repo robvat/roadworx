@@ -5,6 +5,8 @@
 
 package trafficownage.util;
 
+import trafficownage.util.Pair;
+
 /**
  *
  * @author Gerrit Drost <gerritdrost@gmail.com>
