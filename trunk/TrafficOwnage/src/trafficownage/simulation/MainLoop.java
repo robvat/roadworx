@@ -34,67 +34,11 @@ public class MainLoop implements Runnable {
 
     public void init() {
 
-        
+        MapGenerator gen = new MapGenerator();
+        gen.generate(2000.0,75,5,10.0);
 
-        //MapGenerator gen = new MapGenerator();
-
-        //gen.generate(200.0,50);
-
-        Node[] nodeArray = new Node[] {
-                new DrivethroughNode(new Point2D.Double(-500.0,0)),
-                new DrivethroughNode(new Point2D.Double(-400.0,0)),
-                new DrivethroughNode(new Point2D.Double(-300.0,0)),
-                new DrivethroughNode(new Point2D.Double(-200.0,0)),
-                new DrivethroughNode(new Point2D.Double(-100.0,0)),
-                new NormalJunction(new Point2D.Double(0.0,0.0)),
-                new DrivethroughNode(new Point2D.Double(100.0,0.0)),
-                new DrivethroughNode(new Point2D.Double(200.0,0.0)),
-                new DrivethroughNode(new Point2D.Double(300.0,0.0)),
-                new DrivethroughNode(new Point2D.Double(400.0,0.0)),
-                new DrivethroughNode(new Point2D.Double(500.0,0.0)),
-                new DrivethroughNode(new Point2D.Double(0.0,100.0)),
-                new DrivethroughNode(new Point2D.Double(0.0,-100.0))
-        };
-
-        Road r = new Road("Mainroad");
-
-
-
-        for (int i = 0; i < 10; i++) {
-            RoadSegment rs = new RoadSegment(nodeArray[i], nodeArray[i+1]);
-
-            for (int j = 0; j < 2; j++) {
-                rs.addLeftStartLane(j, 50.0 / 3.6, false);
-                rs.addLeftEndLane(j, 50.0 / 3.6, false);
-            }
-
-            r.addLast(rs);
-        }
-
-        spawnroad = new Road ("Sideroad");
-
-        RoadSegment rs1 = new RoadSegment(nodeArray[11],nodeArray[5]);
-        RoadSegment rs2 = new RoadSegment(nodeArray[5],nodeArray[12]);
-
-        for (int j = 0; j < 2; j++) {
-            rs1.addLeftStartLane(j, 50.0 / 3.6, false);
-            rs1.addLeftEndLane(j, 50.0 / 3.6, false);
-            rs2.addLeftStartLane(j, 50.0 / 3.6, false);
-            rs2.addLeftEndLane(j, 50.0 / 3.6, false);
-        }
-
-        spawnroad.addLast(rs1);
-        spawnroad.addLast(rs2);
-
-
-          nodes = Arrays.asList(nodeArray);
-          roads = Arrays.asList(new Road[] {r,spawnroad});
-
-//        MapGenerator gen = new MapGenerator();
-//        gen.generate(500.0,25);
-//
-//        nodes = gen.getNodes();
-//        roads = gen.getRoads();
+        nodes = gen.getNodes();
+        roads = gen.getRoads();
 
 
     }
@@ -114,41 +58,6 @@ public class MainLoop implements Runnable {
 
     public Object getSyncObject() {
         return syncObject;
-    }
-
-
-    public Car addCar() {
-        
-        synchronized(syncObject) {
-
-            Car car;
-
-            Road r = spawnroad;//roads.get(randy.nextInt(roads.size()));
-
-            car = generateRandomCar();
-            r.getFirstSegment().getDestinationLanes(r.getFirstSegment().getEndNode()).get(randy.nextInt(2)).addCar(car);
-            
-            car = generateRandomCar();
-            r.getLastSegment().getDestinationLanes(r.getLastSegment().getStartNode()).get(randy.nextInt(2)).addCar(car);
-            //r.getFirstSegment().getDestinationLanes(r.getFirstSegment().getStartNode()).get(1).addCar(car);
-            //ze_dummy.getRoad(ze_intersection).getLanes(ze_intersection).get(0).addCar(car);
-
-            return car;
-        }
-    }
-
-    public Car generateRandomCar() {
-        Car car = new Car();
-
-            int rand = randy.nextInt(3);
-
-            if (rand == 0)
-                car.init(CarType.CAR, DriverType.NORMAL);
-            else if (rand == 1)
-                car.init(CarType.LORRY, DriverType.NORMAL);
-            else if (rand == 2)
-                car.init(CarType.MINICAR, DriverType.NORMAL);
-            return car;
     }
 
     public void setRealtime(boolean realtime) {

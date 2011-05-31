@@ -17,9 +17,14 @@ import java.util.List;
 public abstract class Node
 {
     private Point2D.Double location;
-    private HashMap<Node,RoadSegment> destinationRoads;
     private List<RoadSegment> roads;
+
+    private List<Node> neighbourNodes;
     private List<Node> destinationNodes;
+    private List<Node> sourceNodes;
+
+    private HashMap<Node,RoadSegment> neighbourRoads;
+
     private List<Lane> incomingLanes;
     private HashMap<Lane,Lane> laneMap;
 
@@ -29,8 +34,13 @@ public abstract class Node
 
     public Node(Point2D.Double location) {
         this.location = location;
-        destinationRoads = new HashMap<Node,RoadSegment>();
+
+        neighbourNodes = new ArrayList<Node>();
+        neighbourRoads = new HashMap<Node,RoadSegment>();
+        
         destinationNodes = new ArrayList<Node>();
+        sourceNodes = new ArrayList<Node>();
+        
         incomingLanes = new ArrayList<Lane>();
         roads = new ArrayList<RoadSegment>();
 
@@ -94,7 +104,7 @@ public abstract class Node
     private void determineIncomingLanes() {
         RoadSegment r;
         
-        for (Node n : getDestinationNodes()) {
+        for (Node n : getNeighbourNodes()) {
             r = this.getRoadSegment(n);
 
             for (Lane l : r.getDestinationLanes(this)) {
@@ -125,22 +135,46 @@ public abstract class Node
                 );
     }
 
+    public void addSource(Node n, RoadSegment r) {
+        roads.add(r);
+        sourceNodes.add(n);
+
+        if (!neighbourNodes.contains(n))
+            neighbourNodes.add(n);
+
+        if (!neighbourRoads.containsKey(n))
+            neighbourRoads.put(n,r);
+    }
+    
     public void addDestination(Node n, RoadSegment r) {
         roads.add(r);
         destinationNodes.add(n);
-        destinationRoads.put(n,r);
+
+        if (!neighbourNodes.contains(n))
+            neighbourNodes.add(n);
+        
+        if (!neighbourRoads.containsKey(n))
+            neighbourRoads.put(n,r);
     }
 
     public RoadSegment getRoadSegment(Node destination) {
-        return destinationRoads.get(destination);
+        return neighbourRoads.get(destination);
     }
 
     public Point2D.Double getLocation() {
         return location;
     }
 
+    public List<Node> getNeighbourNodes() {
+        return neighbourNodes;
+    }
+
     public List<Node> getDestinationNodes() {
         return destinationNodes;
+    }
+
+    public List<Node> getSourceNodes() {
+        return sourceNodes;
     }
     
 
@@ -154,13 +188,13 @@ public abstract class Node
         Node n, max_node = null;
         int i, sorted = 0;
 
-        while (sorted < destinationNodes.size()) {
+        while (sorted < sourceNodes.size()) {
             max_angle = -Double.MAX_VALUE;
             max_node = null;
 
-            for (i = sorted; i < destinationNodes.size(); i++) {
+            for (i = sorted; i < sourceNodes.size(); i++) {
 
-                n = destinationNodes.get(i);
+                n = sourceNodes.get(i);
 
                 angle = Math.atan2(
                             (y - n.getLocation().y),
@@ -175,8 +209,8 @@ public abstract class Node
 
             if (max_node != null) {
                 //move the selected node to position 0.
-                destinationNodes.remove(max_node);
-                destinationNodes.add(0,max_node);
+                sourceNodes.remove(max_node);
+                sourceNodes.add(0,max_node);
             }
             sorted++;
         }

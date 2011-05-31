@@ -114,7 +114,7 @@ public class MainFrame extends javax.swing.JFrame implements SimulationUpdateLis
     }// </editor-fold>//GEN-END:initComponents
 
     private void addCarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addCarButtonActionPerformed
-        mapComponent2.setSelectedCar(m.addCar());
+        //mapComponent2.setSelectedCar(m.addCar());
     }//GEN-LAST:event_addCarButtonActionPerformed
 
     /**
