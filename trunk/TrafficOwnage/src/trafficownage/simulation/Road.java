@@ -5,8 +5,7 @@
 
 package trafficownage.simulation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -14,102 +13,80 @@ import java.util.List;
  * @author Gerrit Drost <gerritdrost@gmail.com>
  */
 public class Road {
-    private HashMap<Node,List<Lane>> laneMap;
+    private RoadSegment startSegment, endSegment;
 
-    private Node node1, node2;
-    
-    private List<Lane> lanes, lanes_from_node1, lanes_from_node2;
+    private LinkedList<RoadSegment> segments;
 
-    private int lanes_per_side;
+    private String roadName;
 
-    private double length;
+    public Road(String roadName) {
+        this.roadName = roadName;
 
-    private boolean priority;
+        segments = new LinkedList<RoadSegment>();
+    }
 
-    public Road(Node node1, Node node2, double length, double max_velocity, int lanes_per_side, boolean oneway) {
-        lanes_from_node1 = new ArrayList<Lane>();
-        lanes_from_node2 = new ArrayList<Lane>();
+    public String getRoadName() {
+        return roadName;
+    }
 
-        this.lanes_per_side = lanes_per_side;
+    public RoadSegment getFirstSegment() {
+        return startSegment;
+    }
 
-        this.length = length;
+    public RoadSegment getLastSegment() {
+        return endSegment;
+    }
 
-        this.node1 = node1;
-        this.node2 = node2;
+    public List<RoadSegment> getSegments() {
+        return segments;
+    }
 
-        for (int i = 0; i < lanes_per_side; i++) {
-            lanes_from_node1.add(new Lane(node1, node2, length,max_velocity,1));
-            lanes_from_node2.add(new Lane(node2, node1, length,max_velocity,-1));
+    public void addLast(RoadSegment segment) {
+
+        if (endSegment != null && startSegment != null) {
+
+            if (segment.getEndNode() == startSegment.getStartNode() && segment.getStartNode() == endSegment.getEndNode()) {
+                endSegment.setNextSegment(segment);
+                startSegment.setPreviousSegment(segment);
+                segment.setNextSegment(startSegment);
+                segment.setPreviousSegment(endSegment);
+                startSegment = segment;
+                endSegment = segment;
+            } else {
+                endSegment.setNextSegment(segment);
+                segment.setPreviousSegment(endSegment);
+                segment.setNextSegment(null);
+            }
         }
 
-        lanes = new ArrayList<Lane>();
-        lanes.addAll(lanes_from_node1);
-        lanes.addAll(lanes_from_node2);
+        if (startSegment == null) {
+            startSegment = segment;
+            startSegment.setNextSegment(null);
+            startSegment.setPreviousSegment(null);
+        }
 
-        laneMap = new HashMap<Node,List<Lane>>();
+        endSegment = segment;
 
-        laneMap.put(node1, lanes_from_node2);
-        laneMap.put(node2, lanes_from_node1);
-
-        node1.addDestination(node2, this);
-        
-        if (!oneway)
-            node2.addDestination(node1, this);
-        
+        segments.addLast(segment);
     }
 
-    public int getLanesPerSide() {
-        return lanes_per_side;
+    public void addFirst(RoadSegment segment) {
+
+        if (endSegment != null && startSegment != null) {
+            startSegment.setPreviousSegment(segment);
+            segment.setNextSegment(startSegment);
+            segment.setPreviousSegment(null);
+        }
+
+        if (endSegment == null) {
+            endSegment = segment;
+            endSegment.setNextSegment(null);
+            endSegment.setPreviousSegment(null);
+        }
+
+        startSegment = segment;
+
+        segments.addFirst(segment);
     }
 
-    public Node getStartNode() {
-        return node1;
-    }
-
-    public Node getEndNode() {
-        return node2;
-    }
-
-    public List<Lane> getLanes(Node destination) {
-        return laneMap.get(destination);
-    }
-
-    public List<Lane> getAllLanes() {
-        return lanes;
-    }
-
-    public double getLength() {
-        return length;
-    }
-
-    public boolean hasPriority(){
-        return priority;
-    }
-
-    public Lane getLeftNeighbour(Lane l) {
-        int i = lanes.indexOf(l);
-
-        if (i < 0 || i >= lanes.size() - 1)
-            return null;
-        else
-            return lanes.get(i+1);
-    }
-
-    public void update(double timestep) {
-        for (Lane l : lanes)
-            l.update(timestep);
-        
-    }
-
-    public void init() {
-        
-    }
-
-    public String toString() {
-        String out = "";
-        for (Lane l : lanes)
-            out += l.toString() + "\n";
-
-        return out;
-    }
 }

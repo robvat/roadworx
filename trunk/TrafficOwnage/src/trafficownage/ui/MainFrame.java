@@ -11,13 +11,14 @@
 
 package trafficownage.ui;
 
+import trafficownage.simulation.Car;
 import trafficownage.simulation.MainLoop;
 
 /**
  *
  * @author Gerrit
  */
-public class MainFrame extends javax.swing.JFrame implements UIListener {
+public class MainFrame extends javax.swing.JFrame implements SimulationUpdateListener {
 
     private MainLoop m;
 
@@ -45,6 +46,8 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
     private void initComponents() {
 
         mapComponent1 = new trafficownage.ui.MapComponent();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList();
         mapComponent2 = new trafficownage.ui.MapComponent();
         addCarButton = new javax.swing.JButton();
 
@@ -58,6 +61,13 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
             mapComponent1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 100, Short.MAX_VALUE)
         );
+
+        jList1.setModel(new javax.swing.AbstractListModel() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane1.setViewportView(jList1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -92,7 +102,7 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(addCarButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -104,7 +114,7 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addCarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addCarButtonActionPerformed
-        m.addCar();
+        mapComponent2.setSelectedCar(m.addCar());
     }//GEN-LAST:event_addCarButtonActionPerformed
 
     /**
@@ -120,13 +130,18 @@ public class MainFrame extends javax.swing.JFrame implements UIListener {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCarButton;
+    private javax.swing.JList jList1;
+    private javax.swing.JScrollPane jScrollPane1;
     private trafficownage.ui.MapComponent mapComponent1;
     private trafficownage.ui.MapComponent mapComponent2;
     // End of variables declaration//GEN-END:variables
 
     public void carsUpdated() {
-        //System.out.println("Update call!");
-        mapComponent2.repaint();
+        mapComponent2.update();
+    }
+
+    public void carAdded(Car car) {
+        
     }
 
 }

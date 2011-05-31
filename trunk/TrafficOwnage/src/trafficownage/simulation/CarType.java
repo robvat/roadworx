@@ -10,13 +10,13 @@ package trafficownage.simulation;
  * @author Gerrit
  */
 public enum CarType {
-    LORRY(28, 50f, 4500, 12),
-    CAR(45, 100.0f, 1000, 4);
+    LORRY(10.0, 50, 4500, 12.0),
+    CAR(45.0, 100.0, 1000, 4.5),
+    MINICAR(28.0, 75.0, 600, 2.5);
 
-    private int max_v, weight, length;
-    private float max_acc;
+    private double max_v, weight, length, max_acc;
 
-    CarType(int max_v, float max_acc, int weight, int length) {
+    CarType(double max_v, double max_acc, double weight, double length) {
         this.max_v = max_v;
         this.max_acc = max_acc;
         this.weight = weight;
@@ -26,28 +26,28 @@ public enum CarType {
     /**
      * @return the max_v
      */
-    public int getMaxV() {
+    public double getMaxV() {
         return max_v;
     }
 
     /**
      * @return the weight
      */
-    public int getWeight() {
+    public double getWeight() {
         return weight;
     }
 
     /**
      * @return the length
      */
-    public int getLength() {
+    public double getLength() {
         return length;
     }
 
     /**
      * @return the max_acc
      */
-    public float getMaxAcceleration() {
+    public double getMaxAcceleration() {
         return max_acc;
     }
 
