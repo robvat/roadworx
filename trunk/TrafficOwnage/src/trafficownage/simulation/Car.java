@@ -199,14 +199,15 @@ public class Car {
     }
 
     private class Route {
-
+        private boolean lastNode;
         private Node previous_node;
         private Node current_node;
-        private Node next_node = null;
+        private Node nextNode = null;
         private Random randy;
 
         public Route() {
             randy = new Random();
+            lastNode = false;
         }
 
         private void setCurrentNode() {
@@ -222,14 +223,23 @@ public class Car {
             return current_node;
         }
 
+        public boolean lastNode() {
+            return lastNode;
+        }
+
         public void determineNext() {
             if (current_node == null) {
                 setCurrentNode();
             }
 
-            if (next_node == null) {
-                while (next_node == null || next_node == previous_node) {
-                    next_node = current_node.getDestinationNodes().get(randy.nextInt(current_node.getDestinationNodes().size()));
+            if (nextNode == null) {
+                if (current_node.getDestinationNodes().size() > 1) {
+                    while (nextNode == null || nextNode == previous_node) {
+                        nextNode = current_node.getDestinationNodes().get(randy.nextInt(current_node.getDestinationNodes().size()));
+                    }
+                } else {
+                    nextNode = null;
+                    lastNode = true;
                 }
             }
         }
@@ -237,13 +247,13 @@ public class Car {
         public Node getNext() {
             determineNext();
 
-            return next_node;
+            return nextNode;
         }
 
         public boolean advance() {
             previous_node = current_node;
-            current_node = next_node;
-            next_node = null;
+            current_node = nextNode;
+            nextNode = null;
             return true;
         }
     }
@@ -298,7 +308,10 @@ public class Car {
         Pair<Double, Car> nextCar = findNextCar();
 
         if (carInFront == null && getDistanceToLaneEnd() + getLength() < DISTANCE_THRESHOLD) {
-            if (drivethrough) {
+            if (route.lastNode()) {
+                currentLane.removeCar(this);
+                System.out.println(this.toString() + " arrived");
+            } else if (drivethrough) {
                 in_queue = false;
                 currentLane.removeCar(this);
                 currentNode.acceptCar(this);
