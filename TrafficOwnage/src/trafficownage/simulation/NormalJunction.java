@@ -40,7 +40,7 @@ public class NormalJunction extends Node {
             Lane lane = getLaneMapping(incomingLane);
 
             if (lane == null || !(lane.getRoadSegment().getStartNode() == this || lane.getRoadSegment().getEndNode() == this && lane.acceptsCar(incoming))) {
-                lane = getRoadSegment(incoming.getNextNode()).getSourceLanes(this).get(0);
+                lane = getRoadSegment(destination).getSourceLanes(this).get(0);
             }
 
 
@@ -60,20 +60,20 @@ public class NormalJunction extends Node {
     void acceptCar(Car incoming) {
         Lane incomingLane = incoming.getLane();
 
-        if (lane_passthrough.get(incomingLane)) {
+        //if (lane_passthrough.get(incomingLane)) {
             //TODO: instead of immediate passthrough, a timer has to be built-in.
             //TODO: advance node should be in the lane class, probably.
             Node n = incoming.getNextNode();
             
             Lane mapped = getLaneMapping(incomingLane);
             
-            if (mapped != null && mapped.getRoadSegment().getStartNode() == n || mapped.getRoadSegment().getEndNode() == n)
+            if (mapped != null && (mapped.getRoadSegment().getStartNode() == n || mapped.getRoadSegment().getEndNode() == n))
                 mapped.addCar(incoming);
             else
                 getRoadSegment(n).getSourceLanes(this).get(0).addCar(incoming);
 
             incoming.advanceNode();
-        }
+        //}
     }
 
     private class ArrivalTime {

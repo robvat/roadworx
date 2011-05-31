@@ -40,6 +40,9 @@ import trafficownage.simulation.RoadSegment;
  */
 public class MapComponent extends JComponent implements MouseWheelListener, MouseMotionListener, MouseListener, ComponentListener {
 
+    //SETTINGS, WILL BE ADDED TO GUI!
+    private static final boolean FOLLOW_CAR = true;
+
     MainLoop mainLoop;
 
     BufferedImage back_layer;
@@ -157,15 +160,28 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
     private Point2D.Double start_point, end_point, point;
 
     private HashMap<Lane,Line2D.Double> lane_coords;
-    
+
+    private double xMetricToPixel(double xMetric) {
+        return ppm * (frame_bounds.getMaxX() - xMetric);
+    }
+    private double yMetricToPixel(double yMetric) {
+        return ppm * (frame_bounds.getMaxY() - yMetric);
+    }
+    private double xPixelToMetric(double xPixel) {
+        return frame_bounds.getMaxX() - (xPixel / ppm);
+    }
+    private double yPixelToMetric(double yPixel) {
+        return frame_bounds.getMaxY() - (yPixel / ppm);
+    }
+
     private void drawRoadSegment(Graphics2D gr, RoadSegment r) {
         start_point = r.getStartNode().getLocation();
         end_point = r.getEndNode().getLocation();
 
-        double x1_start = ppm * (frame_bounds.getMaxX() - start_point.x);
-        double x2_start = ppm * (frame_bounds.getMaxX() - end_point.x);
-        double y1_start = ppm * (frame_bounds.getMaxY() - start_point.y);
-        double y2_start = ppm * (frame_bounds.getMaxY() - end_point.y);
+        double x1_start = xMetricToPixel(start_point.x);//ppm * (frame_bounds.getMaxX() - start_point.x);
+        double x2_start = xMetricToPixel(end_point.x);//ppm * (frame_bounds.getMaxX() - end_point.x);
+        double y1_start = yMetricToPixel(start_point.y);//ppm * (frame_bounds.getMaxY() - start_point.y);
+        double y2_start = yMetricToPixel(end_point.y);//ppm * (frame_bounds.getMaxY() - end_point.y);
 
         double dx = x2_start - x1_start;
         double dy = y2_start - y1_start;
@@ -228,23 +244,26 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
 
     public void update() {
-        /*if (selected_car != null) {
-            Road r = selected_car.getLane().getRoad();
-            start_point = r.getStartNode().getLocation();
-            end_point = r.getEndNode().getLocation();
+        if (selected_car != null && FOLLOW_CAR) {
+            Lane l = selected_car.getLane();
 
-            double x1 = start_point.x;
-            double x2 = end_point.x;
-            double y1 = start_point.y;
-            double y2 = end_point.y;
+            Line2D.Double laneLine = lane_coords.get(l);
 
-            double ratio = ((selected_car.getPosition() + selected_car.getBack()) / 2.0) / r.getLength();
+            if (laneLine != null) {
 
-            center.x = x1 + (ratio * (x2 - x1));
-            center.y = y1 + (ratio * (y2 - y1));
+                double x1 = xPixelToMetric(laneLine.x1);
+                double x2 = xPixelToMetric(laneLine.x2);
+                double y1 = yPixelToMetric(laneLine.y1);
+                double y2 = yPixelToMetric(laneLine.y2);
 
-            map_invalid = true;
-        }*/
+                double ratio = ((selected_car.getPosition() + selected_car.getBack()) / 2.0) / l.getLength();
+
+                center.x = x1 + (ratio * (x2 - x1));
+                center.y = y1 + (ratio * (y2 - y1));
+
+                map_invalid = true;
+            }
+        }
 
         repaint();
     }

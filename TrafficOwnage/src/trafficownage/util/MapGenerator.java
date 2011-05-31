@@ -12,6 +12,9 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import trafficownage.simulation.NormalJunction;
+import trafficownage.simulation.SpawnNode;
+import trafficownage.simulation.StupidTrafficLight;
 
 /**
  *
@@ -21,17 +24,30 @@ public class MapGenerator {
 
     Random rand;
 
+    private double diameter;
+    private double radius;
+    private int maxNodeCount;
+    private int spawnNodeCount;
+    private double spawnNodeInterval;
+
     public MapGenerator() {
     }
 
-    public void generate(double diameter, int max_nodes) {
+    public void generate(double diameter, int maxNodeCount, int spawnNodeCount, double spawnNodeInterval) {
         rand = new Random();
-        generate(rand.nextLong(), diameter, max_nodes);
+        generate(rand.nextLong(), diameter, maxNodeCount, spawnNodeCount, spawnNodeInterval);
     }
 
-    public void generate(long seed, double diameter, int max_nodes) {
+    public void generate(long seed, double diameter, int maxNodeCount, int spawnNodeCount, double spawnNodeInterval) {
         rand = new Random(seed);
-        generateNodes(diameter, max_nodes);
+
+        this.diameter = diameter;
+        this.radius = diameter / 2.0;
+        this.maxNodeCount = maxNodeCount;
+        this.spawnNodeCount = spawnNodeCount;
+        this.spawnNodeInterval = spawnNodeInterval;
+
+        generateNodes();
         generateRoads();
     }
     
@@ -46,19 +62,18 @@ public class MapGenerator {
         return roads;
     }
 
-    private void generateNodes(double diameter, int max_nodes) {
+    private void generateNodes() {
         nodes = new ArrayList<Node>();
 
         Node node = null;
-        double radius = diameter / 2.0;
         double x, y;
 
-        while (nodes.size() < max_nodes) {
+        while (nodes.size() < (maxNodeCount - spawnNodeCount)) {
             x = (rand.nextDouble() * diameter) - radius;
             y = (rand.nextDouble() * diameter) - radius;
 
             if (!isOccupied(x, y, 10.0) && distance(0, 0, x, y) < radius) {
-                node = new DrivethroughNode(new Point2D.Double(x, y));
+                node = new StupidTrafficLight(new Point2D.Double(x, y),20.0);
                 nodes.add(node);
             }
 
@@ -83,19 +98,74 @@ public class MapGenerator {
 
         generateRingRoad();
 
+        generateSpawnNodes();
+
         //generateMainRoads(ring_road, 5);
 
 
     }
 
-    private List<Node> generateRingRoad() {
+    private double distanceToZero(Point2D.Double p) {
+        return distance(p.x,p.y,0.0,0.0);
+    }
+    private double distanceToZero(double x, double y) {
+        return distance(x,y,0.0,0.0);
+    }
+
+    private Node addSpawnRoad(int i, Point2D.Double spawnLocation, Node originalNode) {
+        Node spawnNode = new SpawnNode(spawnLocation, spawnNodeInterval);
+        nodes.add(spawnNode);
+
+        Road r = new Road("Spawnroad " + Integer.toString(i));
+        RoadSegment rs = new RoadSegment(spawnNode,originalNode);
+        rs.addLeftStartLane(0, 50.0 / 3.6, false);
+        r.addLast(rs);
+
+        roads.add(r);
+
+        return spawnNode;
+    }
+
+    private void generateSpawnNodes() {
+        int max = Math.min(nodes.size(),spawnNodeCount);
+
+        int i = 0;
+
+        double x,y;
+
+        List<Node> used = new ArrayList<Node>();
+        List<Node> spawnNodes = new ArrayList<Node>();
+
+        double range = radius / 10.0;
+        double diff = range * 2;
+
+        Node n, spawnNode;
+
+        while (i < max) {
+            n = nodes.get(rand.nextInt(nodes.size()));
+
+            if (!used.contains(n) && !spawnNodes.contains(n)) {
+                x = n.getLocation().x + (rand.nextDouble() * range) - diff;
+                y = n.getLocation().y + (rand.nextDouble() * range) - diff;
+
+                if (distanceToZero(x, y) > distanceToZero(n.getLocation())) {
+                    used.add(n);
+                    spawnNode = addSpawnRoad(i,new Point2D.Double(x,y), n);
+                    spawnNodes.add(spawnNode);
+                    i++;
+                }
+            }
+        }
+    }
+
+    private void generateRingRoad() {
 
         ArrayList<Node> hull = (new QuickHull()).quickHull(nodes);
 
         Node prev = null;
         Node first = null;
 
-        Road ringroad = new Road("DE SNELWEG!");
+        Road ringroad = new Road("SURROUNDING HIGHWAY");
 
         for (Node n : hull) {
             if (first == null) {
@@ -111,8 +181,6 @@ public class MapGenerator {
         nodes = hull;
 
         roads.add(ringroad);
-
-        return hull;
     }
 
     private static double distance(Node n1, Node n2) {
