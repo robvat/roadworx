@@ -4,6 +4,7 @@
  */
 package trafficownage.simulation;
 
+import java.util.List;
 import java.util.Random;
 import trafficownage.util.Pair;
 
@@ -25,6 +26,7 @@ public class Car {
     private double velocity;
     private double acceleration;
     private double position;
+    private boolean changed_lane = false; //if the car already changed lane, this is true
 
     private class IDM implements DriverModel {
 
@@ -303,6 +305,12 @@ public class Car {
      */
     public void update(double timestep) {
 
+        //if not yet changed lane, do it, if you already changed lane, reset the variable, so you can change again next time
+        if(!changed_lane)
+            changed_lane = this.laneChanging();
+        else
+            changed_lane = false;
+
         boolean drivethrough = currentNode.drivethrough(this);
 
         Pair<Double, Car> nextCar = findNextCar();
@@ -326,7 +334,7 @@ public class Car {
             follow(timestep, currentLane.getMaxSpeed(), Double.MAX_VALUE);
         } else if (nextCar == null && !drivethrough) {
             in_queue = false;
-          follow(timestep,currentLane.getMaxSpeed(), getDistanceToLaneEnd());
+            follow(timestep,currentLane.getMaxSpeed(), getDistanceToLaneEnd());
         } else if (nextCar != null) {
             in_queue = false;
             follow(timestep, nextCar.getObject2().getVelocity(), nextCar.getObject1());
@@ -384,5 +392,118 @@ public class Car {
 
     public void setCarBehind(Car previousCar) {
         this.carBehind = previousCar;
+    }
+
+    public static final int UNNECESSARY = 0, DESIRABLE = 1, ESSENTIAL = 2;
+    private boolean laneChanging(){        
+        //first check how important it is; essential, desirable or unnecessary
+        // variable importance:
+        // slot 1: turning movement/end-of-lane
+        // slot 2: speed advantage
+        // slot 3: queue advantage
+        int[] importance = new int[3];
+        for (int i: importance){
+            i = UNNECESSARY;
+        }
+
+        //turning movement and end-of-lane
+        if(!this.getLane().getAllowedDirections().contains(this.getNextNode())){
+            //we assume that position is distance from previous node; so lane length - position = distance to next node
+            //if the turn is less than 10s away
+            if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10){
+                importance[0] = ESSENTIAL;
+            } else if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 50){
+                //if the turn is between 10s and 50s away -> desirable
+                importance[0] = DESIRABLE;
+            }
+        }
+
+        //incident
+        //TODO: check if there is need for lane changing because of an incident
+
+        //transit lanes (do we have them?)
+        //TODO: check if there is need for lane changing because of transit lanes
+
+        //speed advantage
+        //we assume that findNextCar is the car in front of this car, and that the double is the distance between the cars
+
+        //first check if you want to go faster than the car in front of you is going
+        if(Math.min(Math.min(this.getLane().getMaxSpeed(), this.getDriverType().getMaxVelocity()), this.car_type.getMaxV()) > this.findNextCar().getObject2().getVelocity()){
+            //then check if you are close enough (less than 200 meters away
+            if(this.findNextCar().getObject1() < 200){
+                //TODO: overtaking on "straight/pass-through" nodes
+                if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10){
+                    importance[1] = DESIRABLE;
+                }
+            }
+        }
+        
+        //queue advantage
+        Lane right = this.getLane().getRightNeighbour();
+        Lane left = this.getLane().getLeftNeighbour();
+        
+        if(this.findNextCar().getObject2().getVelocity() < 1){
+            // there is a queue
+            // check if right and left go the right way
+            if(!right.getAllowedDirections().contains(this.getNextNode()))
+                right = null;
+            if(!left.getAllowedDirections().contains(this.getNextNode()))
+                left = null;
+            
+            //for the lane right of you
+            if(right != null){
+                Car car = right.getFirstCar();
+                while(car.getPosition() >= this.getPosition()){
+                    car = car.getCarBehind();
+                }
+
+                if(!(car.getVelocity() < 1)){
+                    if(car.getCarInFront().getPosition() - this.getCarInFront().getPosition() > 10)
+                        importance[2] = DESIRABLE;
+                }
+            }
+
+            //same for the lane left of you
+            if(left != null){
+                Car car = left.getFirstCar();
+                while(car.getPosition() >= this.getPosition()){
+                    car = car.getCarBehind();
+                }
+
+                if(!(car.getVelocity() < 1)){
+                    if(car.getCarInFront().getPosition() - this.getCarInFront().getPosition() > 10)
+                        importance[2] = DESIRABLE;
+                }
+            }
+        }
+
+        // if lane changing is unnecessary for everything: stop
+        boolean done = true;
+        A: for(int i: importance){
+            if(i != UNNECESSARY){
+                done = false;
+                break A;
+            }
+        }
+        if(done)
+            return false;
+
+        // now determine to which lane you will change
+
+        //you are driving towards the current node
+        List<Lane> allLanes = null;
+        if(this.getLane().getRoadSegment().getStartNode().equals(this.getCurrentNode())){
+            allLanes = this.getLane().getRoadSegment().getEndLanes();
+        } else {
+            allLanes = this.getLane().getRoadSegment().getStartLanes();
+        }
+
+        //only first reason can be essential (speed/queue changing is never essential)
+        if(importance[0] != UNNECESSARY){
+            
+        }
+        //NOT FINISHED YET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        return false;
     }
 }
