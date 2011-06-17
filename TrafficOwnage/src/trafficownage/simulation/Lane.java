@@ -177,6 +177,25 @@ public class Lane {
         car.setCarInFront(null);
         
     }
+    
+    public void insertCar(Car car, Car carF, Car carB){
+        int index = 0;
+        
+        //we assume carF has index +1
+        if(carF == null){
+            firstCar = car;
+            index = 0;
+        } else
+            index = cars.indexOf(carF) +1;
+
+        if(carB == null){
+            lastCar = car;
+        }
+
+        cars.add(index, car);
+        car.setCarBehind(carB);
+        car.setCarInFront(carF);
+    }
 
     public List<Car> getCars() {
         return cars;
