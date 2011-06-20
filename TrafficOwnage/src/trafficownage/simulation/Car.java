@@ -538,16 +538,20 @@ public class Car {
         //check if the lane change is physically possible
         //find the cars in front of you and behind you on the changedLane
         Car carF = changedLane.getFirstCar();
-        while(carF.getPosition() >= this.getPosition()){
-            carF = carF.getCarBehind();
+        if(carF != null){
+            while(carF.getPosition() >= this.getPosition()){
+                carF = carF.getCarBehind();
+            }
         }
         Car carB = null;
         if(carF != null){
             carB = carF.getCarBehind();
         }else{
             carB = changedLane.getLastCar();
-            while(carB.getPosition() <= this.getPosition()){
-                carB = carB.getCarInFront();
+            if(carB != null){
+                while(carB.getPosition() <= this.getPosition()){
+                    carB = carB.getCarInFront();
+                }
             }
         }
         
