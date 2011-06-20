@@ -397,6 +397,7 @@ public class Car {
     public static final int UNNECESSARY = 0, DESIRABLE = 1, ESSENTIAL = 2;
     private boolean laneChanging(){  
         Lane changedLane = null;
+        boolean done = true;    //check for later on, if everything says lane changing is unnecessary then you're done
         //first check how important it is; essential, desirable or unnecessary
         // variable importance:
         // slot 1: turning movement/end-of-lane
@@ -413,9 +414,11 @@ public class Car {
             //if the turn is less than 10s away
             if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10){
                 importance[0] = ESSENTIAL;
+                done = false;
             } else if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 50){
                 //if the turn is between 10s and 50s away -> desirable
                 importance[0] = DESIRABLE;
+                done = false;
             }
         }
 
@@ -435,6 +438,7 @@ public class Car {
                 //TODO: overtaking on "straight/pass-through" nodes
                 if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10){
                     importance[1] = DESIRABLE;
+                    done = false;
                 }
             }
         }
@@ -462,6 +466,7 @@ public class Car {
                     if(car.getCarInFront().getPosition() - this.getCarInFront().getPosition() > 10){
                         importance[2] = DESIRABLE;
                         changedLane = right;
+                        done = false;
                     }  
                 }
             }
@@ -477,19 +482,13 @@ public class Car {
                     if(car.getCarInFront().getPosition() - this.getCarInFront().getPosition() > 10){
                         importance[2] = DESIRABLE;
                         changedLane = left;
+                        done = false;
                     }
                 }
             }
         }
 
         // if lane changing is unnecessary for everything: stop
-        boolean done = true;
-        A: for(int i: importance){
-            if(i != UNNECESSARY){
-                done = false;
-                break A;
-            }
-        }
         if(done)
             return false;
 
@@ -530,41 +529,95 @@ public class Car {
         } else if(importance[1] != UNNECESSARY){
             changedLane = this.getLane().getLeftNeighbour();
         }
+        
+        if(changedLane == null){
+            System.err.println("The lane it wants to change to doesn't exist");
+            return false;
+        }
 
         //check if the lane change is physically possible
-        boolean feasible = false;
         //find the cars in front of you and behind you on the changedLane
         Car carF = changedLane.getFirstCar();
         while(carF.getPosition() >= this.getPosition()){
             carF = carF.getCarBehind();
         }
-        Car carB = carF.getCarBehind();
-
-        double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (carF.getVelocity() - this.getVelocity());
-        double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
-
-        double timeUntilCrashWithMe = (this.getBack() - carB.getFront()) / (this.getVelocity() - carB.getVelocity());
-        double decceleratedVelocity2 = timeUntilCrashWithMe * carB.getDriverType().getMaxComfortableDeceleration();
+        Car carB = null;
+        if(carF != null){
+            carB = carF.getCarBehind();
+        }else{
+            carB = changedLane.getLastCar();
+            while(carB.getPosition() <= this.getPosition()){
+                carB = carB.getCarInFront();
+            }
+        }
         
-        //check that they aren't overlapping you
-        if(carF.getBack() < this.getFront() && importance[0] != ESSENTIAL ||
-                carB.getFront() > this.getBack() && importance[0] != ESSENTIAL){
-            return false;
-        } else if(carF.getBack() < this.getFront() && importance[0] == ESSENTIAL ||
-                carB.getFront() > this.getBack() && importance[0] == ESSENTIAL){
-            return sendCourtesyRequest(carB);
-        } else if(!((carF.getVelocity() - this.getVelocity()) < decceleratedVelocity) ||
-                !((this.getVelocity() - carB.getVelocity()) < decceleratedVelocity2)){
-            //you will crash into carF or carB will crash into you
-            return false;
-        } else {
+        if(carF == null && carB == null){
             //change lane :D
             this.getLane().removeCar(this);
             changedLane.insertCar(this, carF, carB);
             this.changed_lane = true;
             return true;
+        } else if (carF == null){
+            double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (carF.getVelocity() - this.getVelocity());
+            double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
+
+            if(carF.getBack() < this.getFront() && importance[0] != ESSENTIAL)
+                return false;
+            else if(carF.getBack() < this.getFront() && importance[0] == ESSENTIAL)
+                //TODO: slow down yourself
+                return false;
+            else if(!((carF.getVelocity() - this.getVelocity()) < decceleratedVelocity))
+                return false;
+            else{
+                //change lane :D
+                this.getLane().removeCar(this);
+                changedLane.insertCar(this, carF, carB);
+                this.changed_lane = true;
+                return true;
+            }
+        } else if(carB == null){
+            double timeUntilCrashWithMe = (this.getBack() - carB.getFront()) / (this.getVelocity() - carB.getVelocity());
+            double decceleratedVelocity2 = timeUntilCrashWithMe * carB.getDriverType().getMaxComfortableDeceleration();
+
+            if(carB.getFront() > this.getBack() && importance[0] != ESSENTIAL)
+                return false;
+            else if(carB.getFront() > this.getBack() && importance[0] == ESSENTIAL)
+                return this.sendCourtesyRequest(carB);
+            else if(!((this.getVelocity() - carB.getVelocity()) < decceleratedVelocity2))
+                return false;
+            else{
+                //change lane :D
+                this.getLane().removeCar(this);
+                changedLane.insertCar(this, carF, carB);
+                this.changed_lane = true;
+                return true;
+            }
+        } else{
+            double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (carF.getVelocity() - this.getVelocity());
+            double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
+
+            double timeUntilCrashWithMe = (this.getBack() - carB.getFront()) / (this.getVelocity() - carB.getVelocity());
+            double decceleratedVelocity2 = timeUntilCrashWithMe * carB.getDriverType().getMaxComfortableDeceleration();
+        
+            //check that they aren't overlapping you
+            if(carF.getBack() < this.getFront() && importance[0] != ESSENTIAL ||
+                    carB.getFront() > this.getBack() && importance[0] != ESSENTIAL){
+                return false;
+            } else if(carF.getBack() < this.getFront() && importance[0] == ESSENTIAL ||
+                    carB.getFront() > this.getBack() && importance[0] == ESSENTIAL){
+                return sendCourtesyRequest(carB);
+            } else if(!((carF.getVelocity() - this.getVelocity()) < decceleratedVelocity) ||
+                    !((this.getVelocity() - carB.getVelocity()) < decceleratedVelocity2)){
+                //you will crash into carF or carB will crash into you
+                return false;
+            } else {
+                //change lane :D
+                this.getLane().removeCar(this);
+                changedLane.insertCar(this, carF, carB);
+                this.changed_lane = true;
+                return true;
+            }
         }
-        //TODO: carF and carB can't be null yet
     }
     
     
