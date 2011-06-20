@@ -557,7 +557,7 @@ public class Car {
             changedLane.insertCar(this, carF, carB);
             this.changed_lane = true;
             return true;
-        } else if (carF == null){
+        } else if (carB == null){
             double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (carF.getVelocity() - this.getVelocity());
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
@@ -575,7 +575,7 @@ public class Car {
                 this.changed_lane = true;
                 return true;
             }
-        } else if(carB == null){
+        } else if(carF == null){
             double timeUntilCrashWithMe = (this.getBack() - carB.getFront()) / (this.getVelocity() - carB.getVelocity());
             double decceleratedVelocity2 = timeUntilCrashWithMe * carB.getDriverType().getMaxComfortableDeceleration();
 
