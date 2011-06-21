@@ -34,11 +34,26 @@ public class MainLoop implements Runnable {
 
     public void init() {
 
-        MapGenerator gen = new MapGenerator();
-        gen.generate(2000.0,75,5,10.0);
+//        MapGenerator gen = new MapGenerator();
+//        gen.generate(2000.0,75,5,10.0);
+//
+//        nodes = gen.getNodes();
+//        roads = gen.getRoads();
 
-        nodes = gen.getNodes();
-        roads = gen.getRoads();
+        Node[] nodearray = new Node[] {
+            new StupidTrafficLight(new Point2D.Double(0.0,0.0),2.0),
+            new DrivethroughNode(new Point2D.Double(0.0,100.0)),
+            new DrivethroughNode(new Point2D.Double(0.0,200.0)),
+            new DrivethroughNode(new Point2D.Double(0.0,-100.0)),
+            new DrivethroughNode(new Point2D.Double(0.0,-200.0)),
+            new DrivethroughNode(new Point2D.Double(100.0,0.0)),
+            new DrivethroughNode(new Point2D.Double(200.0,0.0)),
+            new DrivethroughNode(new Point2D.Double(-100.0,0.0)),
+            new DrivethroughNode(new Point2D.Double(-200.0,0.0)),
+            new SpawnNode(new Point2D.Double(400.0,0.0), 5.0)
+        };
+
+        
 
 
     }
@@ -88,18 +103,16 @@ public class MainLoop implements Runnable {
 
             synchronized(syncObject){
 
-                for (Node n : nodes) {
+                for (Node n : nodes)
                     n.update(s_step);
-                }
+                
 
-                for (Road r : roads) {
+                for (Road r : roads) 
+                    r.update(s_step);
+                
 
-                    for (RoadSegment rs : r.getSegments())
-                        rs.update(s_step);
+                listener.carsUpdated();
 
-                    listener.carsUpdated();
-                    
-                }
             }
 
             simulated_time += s_step;
