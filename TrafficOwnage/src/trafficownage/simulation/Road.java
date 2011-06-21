@@ -89,4 +89,24 @@ public class Road {
         segments.addFirst(segment);
     }
 
+    public void update(double timestep) {
+
+        RoadSegment rs1 = startSegment;
+        RoadSegment rs2 = endSegment;
+
+        while (rs1 != endSegment && rs2 != startSegment) {
+            updateLanes(timestep, rs1.getEndLanes());
+            updateLanes(timestep, rs2.getStartLanes());
+
+            rs1 = rs1.getNextSegment();
+            rs2 = rs2.getPreviousSegment();
+        }
+        
+    }
+
+    private void updateLanes(double timestep, List<Lane> lanes) {
+        for (Lane l : lanes)
+            l.update(timestep);
+    }
+
 }

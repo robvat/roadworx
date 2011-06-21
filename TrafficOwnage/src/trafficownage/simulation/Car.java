@@ -26,7 +26,10 @@ public class Car {
     private double velocity;
     private double acceleration;
     private double position;
-    private boolean changed_lane = false; //if the car already changed lane, this is true
+    private boolean updated = false; //if the car already changed lane, this is true
+    
+    private boolean courtesy = false; //In courtesy mode => braking
+    private Car courtesyCar; // The car that send the request needs to be checked
 
     private class IDM implements DriverModel {
 
@@ -45,6 +48,8 @@ public class Car {
 
         public double update(double velocity_leader, double distance_to_leader) {
 
+            if(courtesy)
+                return (-b); // Brakes as hard as Comfortable :)
             desired_distance = s0 + (velocity * T) + ((velocity * Math.abs(velocity_leader - velocity)) / (2 * Math.sqrt(a * b)));
 
             return a * (1 - Math.pow((velocity / v0), 4.0) - Math.pow(desired_distance / distance_to_leader, 2.0));
@@ -306,10 +311,10 @@ public class Car {
     public void update(double timestep) {
 
         //if not yet changed lane, do it, if you already changed lane, reset the variable, so you can change again next time
-        if(!changed_lane)
-            changed_lane = this.laneChanging();
-        else
-            changed_lane = false;
+        //if(!updated)
+        //    updated = this.laneChanging();
+        //else
+        //    updated = false;
 
         boolean drivethrough = currentNode.drivethrough(this);
 
@@ -395,7 +400,18 @@ public class Car {
     }
 
     public static final int UNNECESSARY = 0, DESIRABLE = 1, ESSENTIAL = 2;
-    private boolean laneChanging(){  
+    private boolean laneChanging(){
+        Lane leftLane, rightLane;
+        // Check if there are other lanes!
+        leftLane = this.getLane().getLeftNeighbour();
+        rightLane = this.getLane().getRightNeighbour();
+
+        if(this.getNextNode() == null) //you're heading to your final destination
+            return false;
+
+        if((leftLane == null) && (rightLane == null))
+            return false; // quit! its useless, no lanes to change to
+
         Lane changedLane = null;
         boolean done = true;    //check for later on, if everything says lane changing is unnecessary then you're done
         //first check how important it is; essential, desirable or unnecessary
@@ -403,7 +419,8 @@ public class Car {
         // slot 1: turning movement/end-of-lane
         // slot 2: speed advantage
         // slot 3: queue advantage
-        int[] importance = new int[3];
+        // slot 4: go back after overtake
+        int[] importance = new int[4];
         for (int i: importance){
             i = UNNECESSARY;
         }
@@ -412,10 +429,10 @@ public class Car {
         if(!this.getLane().getAllowedDirections().contains(this.getNextNode())){
             //we assume that position is distance from previous node; so lane length - position = distance to next node
             //if the turn is less than 10s away
-            if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10){
+            if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10.0) {
                 importance[0] = ESSENTIAL;
                 done = false;
-            } else if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 50){
+            } else if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 50.0) {
                 //if the turn is between 10s and 50s away -> desirable
                 importance[0] = DESIRABLE;
                 done = false;
@@ -432,28 +449,37 @@ public class Car {
         //we assume that findNextCar is the car in front of this car, and that the double is the distance between the cars
 
         //first check if you want to go faster than the car in front of you is going
-        if(Math.min(Math.min(this.getLane().getMaxSpeed(), this.getDriverType().getMaxVelocity()), this.car_type.getMaxV()) > this.findNextCar().getObject2().getVelocity()){
-            //then check if you are close enough (less than 200 meters away
-            if(this.findNextCar().getObject1() < 200){
-                //TODO: overtaking on "straight/pass-through" nodes
-                if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10){
-                    importance[1] = DESIRABLE;
-                    done = false;
+        if(leftLane != null) // needs to be an overtaking lane
+        {
+            if(Math.min(Math.min(this.getLane().getMaxSpeed(), this.getDriverType().getMaxVelocity()), this.car_type.getMaxV()) > this.findNextCar().getObject2().getVelocity()){
+                //then check if you are close enough (less than 200 meters away
+                if(this.findNextCar().getObject1() < 200){
+                    //TODO: overtaking on "straight/pass-through" nodes
+                    if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10){
+                        importance[1] = DESIRABLE;
+                        done = false;
+                    }
                 }
             }
         }
         
         //queue advantage
-        Lane right = this.getLane().getRightNeighbour();
-        Lane left = this.getLane().getLeftNeighbour();
+        Lane right = rightLane;
+        Lane left = leftLane;
         
         if(this.findNextCar().getObject2().getVelocity() < 1){
             // there is a queue
             // check if right and left go the right way
-            if(!right.getAllowedDirections().contains(this.getNextNode()))
-                right = null;
-            if(!left.getAllowedDirections().contains(this.getNextNode()))
-                left = null;
+            if(right != null)
+            {
+                if(!right.getAllowedDirections().contains(this.getNextNode()))
+                    right = null;
+            }
+            if(left != null)
+            {
+                if(!left.getAllowedDirections().contains(this.getNextNode()))
+                    left = null;
+            }
             
             //for the lane right of you
             if(right != null){
@@ -485,6 +511,16 @@ public class Car {
                         done = false;
                     }
                 }
+            }
+        }
+
+        //going back
+        if(right != null)
+        {
+            if(rightLane.getAllowedDirections().contains(this.getNextNode()))
+            {
+                importance[3] = DESIRABLE;
+                done = false;
             }
         }
 
@@ -527,15 +563,19 @@ public class Car {
                     changedLane = this.getLane().getLeftNeighbour();
             }
         } else if(importance[1] != UNNECESSARY){
-            changedLane = this.getLane().getLeftNeighbour();
+            changedLane = leftLane;
+        }
+        else if (importance[3] != UNNECESSARY)
+        {
+            changedLane = rightLane;
         }
         
         if(changedLane == null){
-            System.err.println("The lane it wants to change to doesn't exist");
+            //System.err.println("The lane it wants to change to doesn't exist");
             return false;
         }
 
-        //check if the lane change is physically possible
+       //check if the lane change is physically possible
         //find the cars in front of you and behind you on the changedLane
         Car carF = changedLane.getFirstCar();
         if(carF != null){
@@ -557,10 +597,7 @@ public class Car {
         
         if(carF == null && carB == null){
             //change lane :D
-            this.getLane().removeCar(this);
-            changedLane.insertCar(this, carF, carB);
-            this.changed_lane = true;
-            return true;
+            return changeLane(changedLane, carF, carB);
         } else if (carB == null){
             double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (carF.getVelocity() - this.getVelocity());
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
@@ -574,10 +611,7 @@ public class Car {
                 return false;
             else{
                 //change lane :D
-                this.getLane().removeCar(this);
-                changedLane.insertCar(this, carF, carB);
-                this.changed_lane = true;
-                return true;
+                return changeLane(changedLane, carF, carB);
             }
         } else if(carF == null){
             double timeUntilCrashWithMe = (this.getBack() - carB.getFront()) / (this.getVelocity() - carB.getVelocity());
@@ -591,10 +625,7 @@ public class Car {
                 return false;
             else{
                 //change lane :D
-                this.getLane().removeCar(this);
-                changedLane.insertCar(this, carF, carB);
-                this.changed_lane = true;
-                return true;
+                return changeLane(changedLane, carF, carB);
             }
         } else{
             double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (carF.getVelocity() - this.getVelocity());
@@ -616,18 +647,77 @@ public class Car {
                 return false;
             } else {
                 //change lane :D
-                this.getLane().removeCar(this);
-                changedLane.insertCar(this, carF, carB);
-                this.changed_lane = true;
-                return true;
+                return changeLane(changedLane, carF, carB);
             }
         }
+    }
+
+    private boolean changeLane(Lane changeLane, Car carFront, Car carBack)
+    {
+        this.getLane().removeCar(this);
+        changeLane.insertCar(this, carFront, carBack);
+        this.updated = true;
+        return true;
     }
     
     
     public boolean sendCourtesyRequest(Car car){
-        //TODO: car has to slow down/stop
-        
+        boolean already;
+        already = car.startCourtesy(this);
+        // now he MUST go that way or something will go wrong!!!
+
+        return true;
+    }
+
+    /**
+     * Puts the car in Courtesy mode, braking for the car that needs to
+     * enter the lane
+     * @param car The Car requesting the courtesy
+     * @return Wether the car already was in courtesy mode or not
+     */
+    public boolean startCourtesy(Car car)
+    {
+        if(!courtesy)
+        {
+            courtesy = true;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Stops the courtesy mode
+     */
+    public void endCourtesy()
+    {
+        courtesy = false;
+    }
+
+    /**
+     * We need to check wether this car has accidentally drove passed the car
+     * who send the Courtesy Request or other eventualities
+     * @return True is it had to be changed
+     */
+    private boolean checkPassage()
+    {
+        if(courtesyCar.getPosition() < this.getPosition())
+        {
+            this.endCourtesy(); // You passed the requester
+            return true;
+        }
+        if(this.getCarInFront().equals(courtesyCar))
+        {
+            this.endCourtesy(); // The Car is already in your lane / it WORKED!
+            return true;
+        }
+        if((this.getVelocity() == 0) && (this.getFront() < courtesyCar.getBack()))
+        {
+            this.endCourtesy(); // You stand still next to the car.
+            return true;
+        }
         return false;
     }
 }
