@@ -80,14 +80,10 @@ public class SpawnNode extends Node {
 
             car = generateRandomCar();
 
-            success = false;
-            while (success == false) {
-                lane = lanes.get(rand.nextInt(lanes.size()));
-                if (lane.acceptsCar(car)) {
-                    lane.addCar(car);
-                    success = true;
-                }
-
+            lane = lanes.get(rand.nextInt(lanes.size()));
+            if (lane.acceptsCar(car)) {
+                lane.addCar(car);
+                success = true;
             }
         }
     }

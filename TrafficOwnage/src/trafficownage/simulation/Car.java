@@ -19,6 +19,8 @@ public class Car {
     private Route route;
     private boolean in_queue = false;
     private DriverModel driver_model;
+
+    private Node previousNode;
     private Lane currentLane;
     private Node currentNode;
     private int position_coefficient;
@@ -26,6 +28,9 @@ public class Car {
     private double velocity;
     private double acceleration;
     private double position;
+
+    private double position_threshold;
+
     private boolean updated = false; //if the car already changed lane, this is true
     
     private boolean courtesy = false; //In courtesy mode => braking
@@ -97,6 +102,7 @@ public class Car {
 
     public void setLane(Lane lane) {
         this.currentLane = lane;
+        this.previousNode = lane.getStartNode();
         this.currentNode = lane.getEndNode();
 
         route.determineNext();
@@ -104,6 +110,7 @@ public class Car {
         this.max_velocity = Math.min(Math.min((double) car_type.getMaxV(), (double) driver_type.getMaxVelocity()), lane.getMaxSpeed());
         
         this.position = car_type.getLength();
+        this.position_threshold = lane.getLength() - DISTANCE_THRESHOLD + getLength();
 
         driver_model.setMaxVelocity(max_velocity);
     }
@@ -171,136 +178,83 @@ public class Car {
         return in_queue;
     }
 
-    public Node getNextNode() {
-        if (route != null) {
-            return route.getNext();
-        } else {
-            return null;
-        }
+    public Node getPreviousNode() {
+        return previousNode;
+    }
+
+    public Lane getCurrentLane() {
+        return currentLane;
     }
 
     public Node getCurrentNode() {
+        return currentNode;
+    }
+
+    public Node getNextNode() {
         if (route != null) {
-            return route.getCurrent();
+            return route.getNextNode();
         } else {
             return null;
         }
     }
 
-    public void advanceNode() {
-        if (route != null) {
-            route.advance();
-        }
-    }
-
-    public Node getPreviousNode() {
-        if (route != null) {
-            return route.previous_node;
-        } else {
-            return null;
-        }
-    }
 
     public double getPositionCoefficient() {
         return position_coefficient;
     }
 
     private class Route {
-        private boolean lastNode;
-        private Node previous_node;
-        private Node current_node;
         private Node nextNode = null;
+        private Lane nextLane = null;
+        private boolean endOfRoute;
         private Random randy;
 
         public Route() {
             randy = new Random();
-            lastNode = false;
-        }
-
-        private void setCurrentNode() {
-            previous_node = currentLane.getStartNode();
-            current_node = currentLane.getEndNode();
-        }
-
-        public Node getCurrent() {
-            if (current_node == null) {
-                setCurrentNode();
-            }
-
-            return current_node;
-        }
-
-        public boolean lastNode() {
-            return lastNode;
+            endOfRoute = false;
         }
 
         public void determineNext() {
-            if (current_node == null) {
-                setCurrentNode();
-            }
 
-            if (nextNode == null) {
-                if (current_node.getDestinationNodes().size() > 1) {
-                    while (nextNode == null || nextNode == previous_node) {
-                        nextNode = current_node.getDestinationNodes().get(randy.nextInt(current_node.getDestinationNodes().size()));
-                    }
-                } else {
-                    nextNode = null;
-                    lastNode = true;
+            List<Node> destinationNodes = currentNode.getDestinationNodes();
+
+            nextNode = null;
+            nextLane = null;
+
+            if (destinationNodes.isEmpty() || (destinationNodes.size() == 1 && destinationNodes.get(0) == previousNode)) {
+                endOfRoute = true;
+
+            } else {
+                while (nextNode == null || (previousNode != null && nextNode == previousNode)) {
+                    nextNode = destinationNodes.get(randy.nextInt(destinationNodes.size()));
+                    nextLane = currentNode.getRoadSegment(nextNode).getStartLanes().get(0);
                 }
-            }
+            }   
         }
 
-        public Node getNext() {
+        public boolean isEndOfRoute() {
+            return endOfRoute;
+        }
+        
+        public Node getNextNode() {
             determineNext();
 
             return nextNode;
         }
+        public Lane getNextLane() {
+            determineNext();
 
-        public boolean advance() {
-            previous_node = current_node;
-            current_node = nextNode;
-            nextNode = null;
-            return true;
+            return nextLane;
         }
     }
 
-    /*private class Route {
-
-    private Node[] route;
-    private int current_node_index;
-    private Node current_node;
-
-    public Route(Node[] route) {
-    this.route = route;
-    this.current_node_index = 0;
-    current_node = route[current_node_index];
-    }
-
-    public Node getCurrent() {
-    return current_node;
-    }
-
-    public Node getNext() {
-    if (current_node_index < route.length - 1)
-    return route[current_node_index + 1];
-    else
-    return null;
-    }
-
-    public boolean advance() {
-    if (current_node_index < route.length - 1) {
-    current_node_index++;
-    current_node = route[current_node_index];
-    return true;
-    } else {
-    return false;
-    }
-    }
-    }*/
     public void setPosition(double position) {
         this.position = position;
     }
+
+    private static final double VIEW_DISTANCE = 100.0;
+    private static final double VERY_LONG_DISTANCE = 100000.0;
+    //TODO: change the view distance into a driver property
 
     /**
      * Updates the car position and velocity
@@ -316,7 +270,41 @@ public class Car {
         //else
         //    updated = false;
 
+
+
+        Lane nextLane = route.getNextLane();
+        Car nextCar = getCarInFront();
         boolean drivethrough = currentNode.drivethrough(this);
+        double distance = getDistanceToLaneEnd();
+
+        if (carInFront == null && position > position_threshold) {
+            if (route.isEndOfRoute()) {
+                System.out.println(this.toString() + " arrived.");
+            } else {
+                currentNode.acceptCar(this);
+            }
+        } else if(nextCar != null) {
+        //if there is a car in front, we already have a next car.
+
+            //if the distance to the lane end is farther away than the driver can look, no car is in front
+            if (distance >= VIEW_DISTANCE)
+                nextCar = null;
+            else if (drivethrough && !route.isEndOfRoute() && nextLane.hasCars() && (distance + nextLane.getLastCar().getBack()) < VIEW_DISTANCE)
+                nextCar = nextLane.getLastCar();
+           
+        }
+
+        if (nextCar != null)
+            follow(timestep,nextCar.getVelocity(),nextCar.getBack() - getPosition());
+        else if (drivethrough)
+            follow(timestep,currentLane.getMaxSpeed(), VERY_LONG_DISTANCE);
+        else
+            follow(timestep,0.0,distance);
+
+
+
+
+        /*boolean drivethrough = currentNode.drivethrough(this);
 
         Pair<Double, Car> nextCar = findNextCar();
 
@@ -343,8 +331,9 @@ public class Car {
         } else if (nextCar != null) {
             in_queue = false;
             follow(timestep, nextCar.getObject2().getVelocity(), nextCar.getObject1());
-        }
+        }*/
     }
+
     private final static double DISTANCE_THRESHOLD = 2.0;
 
     private Pair<Double, Car> findNextCar() {
@@ -377,7 +366,7 @@ public class Car {
 
     private void follow(double timestep, double leaderVelocity, double distanceToLeader) {
         acceleration = driver_model.update(leaderVelocity, distanceToLeader);
-        velocity += acceleration * timestep;
+        velocity = Math.max(0.0,velocity + (acceleration * timestep));
         position += velocity * timestep;
 
     }

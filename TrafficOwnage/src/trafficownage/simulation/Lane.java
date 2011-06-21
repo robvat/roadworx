@@ -136,10 +136,10 @@ public class Lane {
      * @param car The car that is added.
      */
     public void addCar(Car car) {
-        if (!acceptsCar(car)) {
-            return;
-        }
 
+        if (car.getCurrentLane() != null)
+            car.getCurrentLane().removeCar(car);
+        
         cars.addLast(car);
 
         if (firstCar == null) {
@@ -193,8 +193,15 @@ public class Lane {
         }
 
         cars.add(index, car);
+        carB.setCarInFront(car);
         car.setCarBehind(carB);
+
+        carF.setCarBehind(car);
         car.setCarInFront(carF);
+    }
+
+    public boolean hasCars() {
+        return !cars.isEmpty();
     }
 
     public List<Car> getCars() {
@@ -202,12 +209,27 @@ public class Lane {
     }
 
     public void update(double timestep) {
-        Car car = firstCar;
 
-        while (car != null) {
+        //Car car = firstCar;
+
+        Car car = null;
+
+        int size = cars.size();
+
+        for (int i = 0; i < size; i++) {
+            
+            car = cars.get(i);
+            car.update(timestep);
+            
+            if (size > cars.size()) {
+                size--;
+                i--;
+            }
+        }
+        /*while (car != null) {
             car.update(timestep);
             car = car.getCarBehind();
-        }
+        }*/
 
     }
 }

@@ -94,12 +94,25 @@ public class Road {
         RoadSegment rs1 = startSegment;
         RoadSegment rs2 = endSegment;
 
-        while (rs1 != endSegment && rs2 != startSegment) {
+
+        if (startSegment == endSegment && segments.size() > 1) {
+            rs1 = rs1.getNextSegment();
+            rs2 = rs2.getPreviousSegment();
+        }
+
+
+        boolean done = false;
+
+        while(!done) {
             updateLanes(timestep, rs1.getEndLanes());
             updateLanes(timestep, rs2.getStartLanes());
 
-            rs1 = rs1.getNextSegment();
-            rs2 = rs2.getPreviousSegment();
+            if (rs1 == endSegment && rs2 == startSegment) {
+                done = true;
+            } else {
+                rs1 = rs1.getNextSegment();
+                rs2 = rs2.getPreviousSegment();
+            }
         }
         
     }

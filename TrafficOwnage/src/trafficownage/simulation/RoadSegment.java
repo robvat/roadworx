@@ -19,11 +19,13 @@ public class RoadSegment {
     private LinkedList<Lane> startLanes; //lanes originating from the startNode
     private LinkedList<Lane> endLanes; //lanes originating from the endNode
 
-    private RoadSegment nextSegment,previousSegment;
+    private RoadSegment nextSegment, previousSegment;
+
+    private Road parent;
 
     private double length;
 
-    public RoadSegment(Node startNode, Node endNode) {
+    public RoadSegment(Road parent, Node startNode, Node endNode) {
         this.startNode = startNode;
         this.endNode = endNode;
 
@@ -31,6 +33,12 @@ public class RoadSegment {
         this.endLanes = new LinkedList<Lane>();
 
         this.length = startNode.distanceTo(endNode);
+
+        this.parent = parent;
+    }
+
+    public Road getRoad() {
+        return parent;
     }
 
     public Node getStartNode() {

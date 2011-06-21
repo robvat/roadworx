@@ -19,7 +19,7 @@ import trafficownage.ui.SimulationUpdateListener;
 public class MainLoop implements Runnable {
     private final static long FPS = 25;
 
-    private final static long SPEED_MULTIPLIER = 16;
+    private final static long SPEED_MULTIPLIER = 8;
 
     private List<Road> roads;
     private List<Node> nodes;
@@ -34,27 +34,59 @@ public class MainLoop implements Runnable {
 
     public void init() {
 
-//        MapGenerator gen = new MapGenerator();
-//        gen.generate(2000.0,75,5,10.0);
+        MapGenerator gen = new MapGenerator();
+        gen.generate(2000.0,75,5,10.0);
+
+        nodes = gen.getNodes();
+        roads = gen.getRoads();
+
+//        Node[] nodearray = new Node[] {
+//            new DrivethroughNode(new Point2D.Double(-200.0,0.0)),
+//            new DrivethroughNode(new Point2D.Double(-100.0,0.0)),
+//            new StupidTrafficLight(new Point2D.Double(0.0,0.0),5.0),
+//            new DrivethroughNode(new Point2D.Double(100.0,0.0)),
+//            new SpawnNode(new Point2D.Double(200.0,0.0), 5.0),
+//            new DrivethroughNode(new Point2D.Double(0.0,-100.0)),
+//            new DrivethroughNode(new Point2D.Double(0.0, 100.0))
+//        };
 //
-//        nodes = gen.getNodes();
-//        roads = gen.getRoads();
-
-        Node[] nodearray = new Node[] {
-            new StupidTrafficLight(new Point2D.Double(0.0,0.0),2.0),
-            new DrivethroughNode(new Point2D.Double(0.0,100.0)),
-            new DrivethroughNode(new Point2D.Double(0.0,200.0)),
-            new DrivethroughNode(new Point2D.Double(0.0,-100.0)),
-            new DrivethroughNode(new Point2D.Double(0.0,-200.0)),
-            new DrivethroughNode(new Point2D.Double(100.0,0.0)),
-            new DrivethroughNode(new Point2D.Double(200.0,0.0)),
-            new DrivethroughNode(new Point2D.Double(-100.0,0.0)),
-            new DrivethroughNode(new Point2D.Double(-200.0,0.0)),
-            new SpawnNode(new Point2D.Double(400.0,0.0), 5.0)
-        };
-
-        
-
+//        Road r1 = new Road("Hoofdweggetje");
+//
+//        RoadSegment[] segments1 = new RoadSegment[] {
+//            new RoadSegment(r1,nodearray[0],nodearray[1]),
+//            new RoadSegment(r1,nodearray[1],nodearray[2]),
+//            new RoadSegment(r1,nodearray[2],nodearray[3])
+//        };
+//
+//        RoadSegment endsegment = new RoadSegment(r1,nodearray[3],nodearray[4]);
+//
+//        int i = 0;
+//
+//        for (RoadSegment segment : segments1) {
+//            segment.addLeftStartLane(i,50.0/3.6,false);
+//            segment.addLeftEndLane(i,50.0/3.6,false);
+//            r1.addLast(segment);
+//        }
+//
+//        endsegment.addLeftEndLane(i, 50.0/3.6, false);
+//        endsegment.addLeftStartLane(i, 50.0/3.6, false);
+//        r1.addLast(endsegment);
+//
+//        Road r2 = new Road("Zijweggetje");
+//
+//        RoadSegment[] segments2 = new RoadSegment[] {
+//            new RoadSegment(r1,nodearray[5],nodearray[2]),
+//            new RoadSegment(r1,nodearray[2],nodearray[6])
+//        };
+//
+//        for (RoadSegment segment : segments2) {
+//            segment.addLeftStartLane(i,50.0/3.6,false);
+//            segment.addLeftEndLane(i,50.0/3.6,false);
+//            r2.addLast(segment);
+//        }
+//
+//        nodes = Arrays.asList(nodearray);
+//        roads = Arrays.asList(new Road[] {r1,r2});
 
     }
 

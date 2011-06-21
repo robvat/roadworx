@@ -82,7 +82,7 @@ public class MapGenerator {
 
     private void addSegment(Road r, Node n1, Node n2, double max_velocity, int lanes_per_side) {
 
-        RoadSegment s = new RoadSegment(n1,n2);
+        RoadSegment s = new RoadSegment(r,n1,n2);
 
         for (int i = 0; i < lanes_per_side; i++) {
             s.addRightStartLane(i, max_velocity, false);
@@ -117,7 +117,7 @@ public class MapGenerator {
         nodes.add(spawnNode);
 
         Road r = new Road("Spawnroad " + Integer.toString(i));
-        RoadSegment rs = new RoadSegment(spawnNode,originalNode);
+        RoadSegment rs = new RoadSegment(r,spawnNode,originalNode);
         rs.addLeftStartLane(0, 50.0 / 3.6, false);
         r.addLast(rs);
 
@@ -136,7 +136,7 @@ public class MapGenerator {
         List<Node> used = new ArrayList<Node>();
         List<Node> spawnNodes = new ArrayList<Node>();
 
-        double range = radius / 10.0;
+        double range = radius / 20.0;
         double diff = range * 2;
 
         Node n, spawnNode;

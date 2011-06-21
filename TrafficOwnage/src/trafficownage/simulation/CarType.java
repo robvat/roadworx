@@ -10,7 +10,7 @@ package trafficownage.simulation;
  * @author Gerrit
  */
 public enum CarType {
-    LORRY(10.0, 50, 4500, 12.0),
+    LORRY(20.0, 50, 4500, 12.0),
     CAR(45.0, 100.0, 1000, 4.5),
     MINICAR(28.0, 75.0, 600, 2.5);
 
