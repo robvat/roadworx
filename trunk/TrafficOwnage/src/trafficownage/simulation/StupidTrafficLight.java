@@ -63,8 +63,6 @@ public class StupidTrafficLight extends Node {
             mapped.addCar(incoming);
         else
             getRoadSegment(n).getSourceLanes(this).get(0).addCar(incoming);
-
-        incoming.advanceNode();
     }
 
 
