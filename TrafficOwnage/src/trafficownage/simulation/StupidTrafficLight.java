@@ -51,10 +51,12 @@ public class StupidTrafficLight extends Node {
         RoadSegment rs = incoming.getLane().getRoadSegment();
 
         return trafficLights.get(rs) && l.acceptsCar(incoming);
+        
     }
 
     @Override
     void acceptCar(Car incoming) {
+
         Node n = incoming.getNextNode();
 
         Lane mapped = getLaneMapping(incoming.getLane());
@@ -63,6 +65,7 @@ public class StupidTrafficLight extends Node {
             mapped.addCar(incoming);
         else
             getRoadSegment(n).getSourceLanes(this).get(0).addCar(incoming);
+
     }
 
 
