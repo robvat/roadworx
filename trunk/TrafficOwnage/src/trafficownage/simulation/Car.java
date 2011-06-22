@@ -270,8 +270,6 @@ public class Car {
         //else
         //    updated = false;
 
-
-
         Lane nextLane = route.getNextLane();
         Car nextCar = getCarInFront();
         boolean drivethrough = currentNode.drivethrough(this);
@@ -283,7 +281,8 @@ public class Car {
             } else {
                 currentNode.acceptCar(this);
             }
-        } else if(nextCar != null) {
+
+        } else if (nextCar == null) {
         //if there is a car in front, we already have a next car.
 
             //if the distance to the lane end is farther away than the driver can look, no car is in front
