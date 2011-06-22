@@ -19,13 +19,13 @@ import trafficownage.ui.SimulationUpdateListener;
 public class MainLoop implements Runnable {
     private final static long FPS = 25;
 
-    private final static long SPEED_MULTIPLIER = 8;
+    private final static long SPEED_MULTIPLIER = 16;
 
     private List<Road> roads;
     private List<Node> nodes;
 
     private boolean run;
-    private boolean realtime = true;
+    private boolean realtime = false;
 
     private SimulationUpdateListener listener = null;
 
@@ -35,7 +35,7 @@ public class MainLoop implements Runnable {
     public void init() {
 
         MapGenerator gen = new MapGenerator();
-        gen.generate(2000.0,75,5,10.0);
+        gen.generate(10000.0,250,20,35,5.0);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();

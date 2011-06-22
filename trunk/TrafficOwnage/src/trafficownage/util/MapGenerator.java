@@ -6,13 +6,11 @@ package trafficownage.util;
 
 import trafficownage.simulation.RoadSegment;
 import trafficownage.simulation.Road;
-import trafficownage.simulation.DrivethroughNode;
 import trafficownage.simulation.Node;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import trafficownage.simulation.NormalJunction;
 import trafficownage.simulation.SpawnNode;
 import trafficownage.simulation.StupidTrafficLight;
 
@@ -28,22 +26,26 @@ public class MapGenerator {
     private double radius;
     private int maxNodeCount;
     private int spawnNodeCount;
+    private int maxMainRoads;
     private double spawnNodeInterval;
+
+    private List<Node> ringroad;
 
     public MapGenerator() {
     }
 
-    public void generate(double diameter, int maxNodeCount, int spawnNodeCount, double spawnNodeInterval) {
+    public void generate(double diameter, int maxNodeCount, int maxMainRoads, int spawnNodeCount, double spawnNodeInterval) {
         rand = new Random();
-        generate(rand.nextLong(), diameter, maxNodeCount, spawnNodeCount, spawnNodeInterval);
+        generate(rand.nextLong(), diameter, maxNodeCount, maxMainRoads, spawnNodeCount, spawnNodeInterval);
     }
 
-    public void generate(long seed, double diameter, int maxNodeCount, int spawnNodeCount, double spawnNodeInterval) {
+    public void generate(long seed, double diameter, int maxNodeCount, int maxMainRoads, int spawnNodeCount, double spawnNodeInterval) {
         rand = new Random(seed);
 
         this.diameter = diameter;
         this.radius = diameter / 2.0;
         this.maxNodeCount = maxNodeCount;
+        this.maxMainRoads = maxMainRoads;
         this.spawnNodeCount = spawnNodeCount;
         this.spawnNodeInterval = spawnNodeInterval;
 
@@ -72,9 +74,79 @@ public class MapGenerator {
             x = (rand.nextDouble() * diameter) - radius;
             y = (rand.nextDouble() * diameter) - radius;
 
-            if (!isOccupied(x, y, 10.0) && distance(0, 0, x, y) < radius) {
+            if (getOccupant(x, y, 10.0) == null && distance(0, 0, x, y) < radius) {
                 node = new StupidTrafficLight(new Point2D.Double(x, y),20.0);
                 nodes.add(node);
+            }
+
+        }
+    }
+
+    private void generateMainRoad(int n, Node n1, Node n2) {
+        int steps = 8;
+
+        double dx = n2.getLocation().x - n1.getLocation().x;
+        double dy = n2.getLocation().y - n1.getLocation().y;
+
+        double xStep = dx / steps;
+        double yStep = dy / steps;
+
+        double x = n1.getLocation().x,
+                y = n1.getLocation().y;
+
+        double xDiff = dx / 10;
+        double yDiff = dy / 10;
+
+        Road r = new Road("Mainroad " + Integer.toString(n));
+
+        RoadSegment rs;
+        Node previous = n1;
+        Node current;
+
+        for (int i = 0; i < steps - 1; i++) {
+            x += xStep;
+            y += yStep;
+
+            x += (rand.nextDouble() * xDiff) - (xDiff / 2);
+            y += (rand.nextDouble() * yDiff) - (yDiff / 2);
+
+            current = getOccupant(x,y, diameter / 25.0);
+
+            if (current == null)
+                current = new StupidTrafficLight(new Point2D.Double(x,y), 5.0);
+            
+            nodes.add(current);
+            
+            rs = new RoadSegment(r,previous,current);
+
+            rs.addLeftStartLane(0, 50.0 / 3.6, false);
+            rs.addLeftEndLane(1, 50.0 / 3.6, false);
+
+            r.addLast(rs);
+
+            previous = current;
+        }
+
+        rs = new RoadSegment(r,previous,n2);
+
+        rs.addLeftStartLane(0, 50.0 / 3.6, false);
+        rs.addLeftEndLane(1, 50.0 / 3.6, false);
+
+        r.addLast(rs);
+
+        roads.add(r);
+    }
+
+    private void generateMainRoads() {
+        int roads = 0;
+
+        while (roads < maxMainRoads) {
+            Node n1 = nodes.get(rand.nextInt(nodes.size()));
+            Node n2 = nodes.get(rand.nextInt(nodes.size()));
+
+            if (distance(n1,n2) > .5 * diameter && n1 instanceof StupidTrafficLight && n2 instanceof StupidTrafficLight) {
+                roads++;
+                generateMainRoad(roads, n1,n2);
             }
 
         }
@@ -99,6 +171,8 @@ public class MapGenerator {
         generateRingRoad();
 
         generateSpawnNodes();
+
+        generateMainRoads();
 
         //generateMainRoads(ring_road, 5);
 
@@ -136,8 +210,8 @@ public class MapGenerator {
         List<Node> used = new ArrayList<Node>();
         List<Node> spawnNodes = new ArrayList<Node>();
 
-        double range = radius / 20.0;
-        double diff = range * 2;
+        double range = diameter / 3.0;
+        double diff = range / 2.0;
 
         Node n, spawnNode;
 
@@ -180,6 +254,8 @@ public class MapGenerator {
 
         nodes = hull;
 
+        this.ringroad = nodes;
+
         roads.add(ringroad);
     }
 
@@ -191,15 +267,17 @@ public class MapGenerator {
         return Math.sqrt(Math.pow(x2 - x1, 2.0) + Math.pow(y2 - y1, 2.0));
     }
 
-    private boolean isOccupied(double x, double y, double distance_threshold) {
+    private Node getOccupant(double x, double y, double distance_threshold) {
+
+        Node occupant = null;
 
         for (Node n : nodes) {
             if (distance(n.getLocation().x, n.getLocation().y, x, y) <= distance_threshold) {
-                return true;
+                occupant = n;
             }
         }
 
 
-        return false;
+        return occupant;
     }
 }

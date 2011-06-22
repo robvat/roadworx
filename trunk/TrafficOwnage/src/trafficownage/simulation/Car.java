@@ -237,12 +237,12 @@ public class Car {
         }
         
         public Node getNextNode() {
-            determineNext();
+            //determineNext();
 
             return nextNode;
         }
         public Lane getNextLane() {
-            determineNext();
+            //determineNext();
 
             return nextLane;
         }
@@ -294,7 +294,7 @@ public class Car {
         }
 
         if (nextCar != null)
-            follow(timestep,nextCar.getVelocity(),nextCar.getBack() - getPosition());
+            follow(timestep,nextCar.getVelocity(),Math.max(0.0,nextCar.getBack() - getPosition()));
         else if (drivethrough)
             follow(timestep,currentLane.getMaxSpeed(), VERY_LONG_DISTANCE);
         else
@@ -302,35 +302,6 @@ public class Car {
 
 
 
-
-        /*boolean drivethrough = currentNode.drivethrough(this);
-
-        Pair<Double, Car> nextCar = findNextCar();
-
-        if (carInFront == null && getDistanceToLaneEnd() + getLength() < DISTANCE_THRESHOLD) {
-            if (route.lastNode()) {
-                currentLane.removeCar(this);
-                System.out.println(this.toString() + " arrived");
-            } else if (drivethrough) {
-                in_queue = false;
-                currentLane.removeCar(this);
-                currentNode.acceptCar(this);
-                route.advance();
-            } else {
-                in_queue = true;
-                acceleration = 0.0;
-                velocity = 0.0;
-            }
-        } else if (nextCar == null && drivethrough) {
-            in_queue = false;
-            follow(timestep, currentLane.getMaxSpeed(), Double.MAX_VALUE);
-        } else if (nextCar == null && !drivethrough) {
-            in_queue = false;
-            follow(timestep,currentLane.getMaxSpeed(), getDistanceToLaneEnd());
-        } else if (nextCar != null) {
-            in_queue = false;
-            follow(timestep, nextCar.getObject2().getVelocity(), nextCar.getObject1());
-        }*/
     }
 
     private final static double DISTANCE_THRESHOLD = 2.0;
