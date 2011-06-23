@@ -170,29 +170,62 @@ public class Lane {
     }
     
     public void insertCar(Car car, Car carF, Car carB){
+
+        if (car.getCurrentLane() != null)
+            car.getCurrentLane().removeCar(car);
+
         int index = 0;
-        
-        //we assume carF has index +1
-        if(carF == null){
-            firstCar = car;
-            index = 0;
-        } else
-            index = cars.indexOf(carF) +1;
 
-        if(carB == null){
-            lastCar = car;
-        }
-
-        cars.add(index, car);
-        if(carB != null){
-            carB.setCarInFront(car);
+        if (carF != null && carB != null) {
+            index = cars.indexOf(carF) + 1;
+            cars.add(index,car);
             car.setCarBehind(carB);
+            car.setCarInFront(carF);
+            carF.setCarBehind(car);
+            carB.setCarInFront(car);
+        } else if (carF == null && carB == null) {
+            firstCar = car;
+            lastCar = car;
+            car.setCarInFront(null);
+            car.setCarBehind(null);
+        } else { // thus carF == null and carB != null because carB can never be null without carF being null;
+            index = cars.indexOf(carF) + 1;
+            cars.add(index,car);
+            firstCar.setCarInFront(car);
+            car.setCarBehind(firstCar);
+            firstCar = car;
         }
 
-        if(carF != null){
-            carF.setCarBehind(car);
-            car.setCarInFront(carF);
-        }
+
+//        //we assume carF has index +1
+//        if(carF == null) {
+//            firstCar = car;
+//            lastCar = car;
+//            car.setCarInFront(null);
+//            car.setCarBehind(null);
+//            index = 0;
+//            return;
+//        } else {
+//            index = cars.indexOf(carF) + 1;
+//        }
+//
+//        if(carB == null) {
+//            carF.setCarBehind(car);
+//            car.setCarBehind(null);
+//            lastCar = car;
+//        }
+//
+//        cars.add(index, car);
+//
+//        if(carB != null){
+//            carB.setCarInFront(car);
+//            car.setCarBehind(carB);
+//        }
+//
+//        if(carF != null){
+//            carF.setCarBehind(car);
+//            car.setCarInFront(carF);
+//        }
     }
 
     public boolean hasCars() {
