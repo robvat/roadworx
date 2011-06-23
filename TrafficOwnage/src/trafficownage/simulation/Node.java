@@ -78,7 +78,28 @@ public abstract class Node
             
         }
 
+        for (Node n : getSourceNodes()) {
+            RoadSegment rs = getRoadSegment(n);
+            for (Lane l : rs.getDestinationLanes(this)) {
+                if (l.getAllowedDirections() == null) {
+                    l.setAllowedDirections(getAllowedDirections(n));
+                }
+            }
+        }
+
         System.out.println(laneMap.size());
+    }
+
+    private List<Node> getAllowedDirections(Node sourceNode) {
+        List<Node> directionList = new ArrayList<Node>();
+
+        for (Node n : getDestinationNodes()) {
+            if (n != sourceNode) {
+                directionList.add(n);
+            }
+        }
+
+        return directionList;
     }
 
     private void mapLanes(RoadSegment rs1, RoadSegment rs2) {
