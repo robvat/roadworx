@@ -264,8 +264,7 @@ public class Car {
      */
     public void update(double timestep) {
 
-        //if not yet changed lane, do it, if you already changed lane, reset the variable, so you can change again next time
-        
+        in_queue = false; //every time we look if this is still the case. Normally, this is turned off.
 
         Lane nextLane = route.getNextLane();
         Car nextCar = getCarInFront();
@@ -309,19 +308,26 @@ public class Car {
         else if (drivethrough)
             follow(timestep,currentLane.getMaxSpeed(), VERY_LONG_DISTANCE);
         else
-            follow(timestep,0.0,distance);
+            queue(timestep,distance);
 
 
 
     }
 
-    private final static double DISTANCE_THRESHOLD = 2.0;
+    private void queue(double timestep, double distance) {
+        follow(timestep,0.0,distance);
+    }
 
+    private final static double DISTANCE_THRESHOLD = 2.0;
+    private final static double VELOCITY_THRESHOLD = 0.1;
 
     private void follow(double timestep, double leaderVelocity, double distanceToLeader) {
         acceleration = driver_model.update(leaderVelocity, distanceToLeader);
         velocity = Math.max(0.0,velocity + (acceleration * timestep));
         position += velocity * timestep;
+
+        if (velocity < VELOCITY_THRESHOLD)
+            in_queue = true;
 
     }
     private Car carInFront, carBehind;
@@ -540,22 +546,6 @@ public class Car {
                 }
             }
         }
-        
-//        if(carF != null){
-//            if(carF.getPosition() < this.getPosition()){
-//                carB = carF;
-//                carF = null;
-//            }else {
-//                while(carF.getPosition() >= this.getPosition()){
-//                    if(carF.getCarBehind() == null){
-//                        break;
-//                    }else{
-//                        carF = carF.getCarBehind();
-//                    }
-//                }
-//                carB = carF.getCarBehind();
-//            }
-//        }
         
         if(carF == null && carB == null){
             //change lane :D

@@ -107,6 +107,10 @@ public class Lane {
         return allowedDirections;
     }
 
+    public void setAllowedDirections(List<Node> allowedDirections) {
+        this.allowedDirections = allowedDirections;
+    }
+
     private Car firstCar, lastCar;
 
 
