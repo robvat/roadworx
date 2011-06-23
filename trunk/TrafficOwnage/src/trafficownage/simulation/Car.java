@@ -265,17 +265,20 @@ public class Car {
     public void update(double timestep) {
 
         //if not yet changed lane, do it, if you already changed lane, reset the variable, so you can change again next time
-        if(!updated)
-            updated = this.laneChanging();
-        else
-            updated = false;
+        
 
         Lane nextLane = route.getNextLane();
         Car nextCar = getCarInFront();
         boolean drivethrough = currentNode.drivethrough(this);
         double distance = getDistanceToLaneEnd();
 
-        if (carInFront == null && position > position_threshold) {
+        double distanceToNextCar = 0.0;
+
+        if (nextCar != null) {
+            
+            distanceToNextCar = nextCar.getBack() - getPosition();
+            
+        } else if(nextCar == null && position > position_threshold) {
             if (route.isEndOfRoute()) {
                 System.out.println(this.toString() + " arrived.");
             } else {
@@ -290,11 +293,19 @@ public class Car {
                 nextCar = null;
             else if (drivethrough && !route.isEndOfRoute() && nextLane.hasCars() && (distance + nextLane.getLastCar().getBack()) < VIEW_DISTANCE)
                 nextCar = nextLane.getLastCar();
+
+            if (nextCar != null)
+                distanceToNextCar = distance + nextLane.getLastCar().getBack();
            
         }
 
+        if(!updated)
+            updated = this.laneChanging(nextCar, distanceToNextCar);
+        else
+            updated = false;
+
         if (nextCar != null)
-            follow(timestep,nextCar.getVelocity(),Math.max(0.0,nextCar.getBack() - getPosition()));
+            follow(timestep,nextCar.getVelocity(),Math.max(0.0,distanceToNextCar));
         else if (drivethrough)
             follow(timestep,currentLane.getMaxSpeed(), VERY_LONG_DISTANCE);
         else
@@ -332,13 +343,13 @@ public class Car {
     }
 
     public static final int UNNECESSARY = 0, DESIRABLE = 1, ESSENTIAL = 2;
-    private boolean laneChanging(){
+    private boolean laneChanging(Car nextCar, double distanceToNextCar){
         Lane leftLane, rightLane;
         // Check if there are other lanes!
         leftLane = this.getLane().getLeftNeighbour();
         rightLane = this.getLane().getRightNeighbour();
 
-        if(this.getNextNode() == null) //you're heading to your final destination
+        if(this.route.isEndOfRoute()) //you're heading to your final destination
             return false;
 
         if((leftLane == null) && (rightLane == null))
@@ -385,7 +396,7 @@ public class Car {
         {
             if(Math.min(Math.min(this.getLane().getMaxSpeed(), this.getDriverType().getMaxVelocity()), this.car_type.getMaxV()) > this.getCarInFront().getVelocity()){
                 //then check if you are close enough (less than 200 meters away
-                if(this.findNextCar().getObject1() < 200) {
+                if(nextCar != null && distanceToNextCar < 200) {
                     //TODO: overtaking on "straight/pass-through" nodes
                     if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10){
                         importance[1] = DESIRABLE;
