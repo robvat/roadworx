@@ -5,6 +5,8 @@
 
 package trafficownage.simulation;
 
+import java.awt.geom.Point2D;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import trafficownage.util.BigMapGenerator;
@@ -16,9 +18,9 @@ import trafficownage.util.ManhattanMapGenerator;
  * @author Gerrit
  */
 public class MainLoop implements Runnable {
-    private final static long FPS = 15;
+    private final static long FPS = 20;
 
-    private final static long SPEED_MULTIPLIER = 48;
+    private final static long SPEED_MULTIPLIER = 1;
 
     private List<Road> roads;
     private List<Node> nodes;
@@ -36,39 +38,44 @@ public class MainLoop implements Runnable {
 //        BigMapGenerator gen = new BigMapGenerator();
 //        gen.generate(10000.0,250,20,35,5.0);
 
-        ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(4,8,80.0,2,5,5);
+//        ManhattanMapGenerator gen = new ManhattanMapGenerator();
+//        gen.generate(4,8,80.0,2,5,5);
+//
+//        nodes = gen.getNodes();
+//        roads = gen.getRoads();
 
-        nodes = gen.getNodes();
-        roads = gen.getRoads();
-
-//        Node[] nodearray = new Node[] {
+        Node[] nodearray = new Node[] {
 //            new DrivethroughNode(new Point2D.Double(-200.0,0.0)),
-//            new DrivethroughNode(new Point2D.Double(-100.0,0.0)),
+//            new SpawnNode(new Point2D.Double(200.0,0.0), 5.0),
 //            new StupidTrafficLight(new Point2D.Double(0.0,0.0),5.0),
 //            new DrivethroughNode(new Point2D.Double(100.0,0.0)),
 //            new SpawnNode(new Point2D.Double(200.0,0.0), 5.0),
 //            new DrivethroughNode(new Point2D.Double(0.0,-100.0)),
-//            new DrivethroughNode(new Point2D.Double(0.0, 100.0))
-//        };
-//
-//        Road r1 = new Road("Hoofdweggetje");
-//
-//        RoadSegment[] segments1 = new RoadSegment[] {
-//            new RoadSegment(r1,nodearray[0],nodearray[1]),
-//            new RoadSegment(r1,nodearray[1],nodearray[2]),
-//            new RoadSegment(r1,nodearray[2],nodearray[3])
-//        };
+//            new DrivethroughNode(new Point2D.Double(0.0, 100.0)),
+            new SpawnNode(new Point2D.Double(-1000.0,0.0), 5.0),
+            new DrivethroughNode(new Point2D.Double(0.0,0.0)),
+            new DrivethroughNode(new Point2D.Double(1000.0,0.0))
+
+        };
+
+        Road r1 = new Road("Hoofdweggetje");
+
+        RoadSegment[] segments1 = new RoadSegment[] {
+            new RoadSegment(r1,200.0 / 3.6, nodearray[0],nodearray[1]),
+            new RoadSegment(r1,200.0 / 3.6, nodearray[1],nodearray[2])
+        };
 //
 //        RoadSegment endsegment = new RoadSegment(r1,nodearray[3],nodearray[4]);
 //
-//        int i = 0;
-//
-//        for (RoadSegment segment : segments1) {
-//            segment.addLeftStartLane(i,50.0/3.6,false);
-//            segment.addLeftEndLane(i,50.0/3.6,false);
-//            r1.addLast(segment);
-//        }
+        int i = 0;
+
+        for (RoadSegment segment : segments1) {
+            segment.addLeftStartLane(i,false);
+            i++;
+            segment.addLeftStartLane(i,false);
+            i++;
+            r1.addLast(segment);
+        }
 //
 //        endsegment.addLeftEndLane(i, 50.0/3.6, false);
 //        endsegment.addLeftStartLane(i, 50.0/3.6, false);
@@ -87,8 +94,8 @@ public class MainLoop implements Runnable {
 //            r2.addLast(segment);
 //        }
 //
-//        nodes = Arrays.asList(nodearray);
-//        roads = Arrays.asList(new Road[] {r1,r2});
+        nodes = Arrays.asList(nodearray);
+        roads = Arrays.asList(new Road[] {r1});
 
     }
 

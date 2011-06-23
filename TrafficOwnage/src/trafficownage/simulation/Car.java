@@ -522,25 +522,40 @@ public class Car {
             return false;
         }
 
+
        //check if the lane change is physically possible
         //find the cars in front of you and behind you on the changedLane
         Car carF = changedLane.getFirstCar();
         Car carB = null;
-        if(carF != null){
-            if(carF.getPosition() < this.getPosition()){
-                carB = carF;
-                carF = null;
-            }else {
-                while(carF.getPosition() >= this.getPosition()){
-                    if(carF.getCarBehind() == null){
-                        break;
-                    }else{
-                        carF = carF.getCarBehind();
-                    }
+        if (changedLane.hasCars())
+        {
+            List<Car> cars = changedLane.getCars();
+            Car otherCar;
+            for (int i = 0; i < cars.size(); i++) {
+                otherCar = cars.get(i);
+
+                if (this.getPosition() < otherCar.getBack() && (otherCar.getCarBehind() == null || (otherCar.getCarBehind().getPosition() < this.getBack()))) {
+                    carF = otherCar;
+                    carB = otherCar.getCarBehind();
                 }
-                carB = carF.getCarBehind();
             }
         }
+        
+//        if(carF != null){
+//            if(carF.getPosition() < this.getPosition()){
+//                carB = carF;
+//                carF = null;
+//            }else {
+//                while(carF.getPosition() >= this.getPosition()){
+//                    if(carF.getCarBehind() == null){
+//                        break;
+//                    }else{
+//                        carF = carF.getCarBehind();
+//                    }
+//                }
+//                carB = carF.getCarBehind();
+//            }
+//        }
         
         if(carF == null && carB == null){
             //change lane :D
@@ -601,7 +616,6 @@ public class Car {
 
     private boolean changeLane(Lane changeLane, Car carFront, Car carBack)
     {
-        this.getLane().removeCar(this);
         changeLane.insertCar(this, carFront, carBack);
         this.updated = true;
         return true;
