@@ -5,27 +5,26 @@
 
 package trafficownage.simulation;
 
-import java.awt.geom.Point2D;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import trafficownage.util.MapGenerator;
+import trafficownage.util.BigMapGenerator;
 import trafficownage.ui.SimulationUpdateListener;
+import trafficownage.util.ManhattanMapGenerator;
 
 /**
  *
  * @author Gerrit
  */
 public class MainLoop implements Runnable {
-    private final static long FPS = 25;
+    private final static long FPS = 15;
 
-    private final static long SPEED_MULTIPLIER = 16;
+    private final static long SPEED_MULTIPLIER = 48;
 
     private List<Road> roads;
     private List<Node> nodes;
 
     private boolean run;
-    private boolean realtime = false;
+    private boolean realtime = true;
 
     private SimulationUpdateListener listener = null;
 
@@ -33,9 +32,12 @@ public class MainLoop implements Runnable {
     Road spawnroad = null;
 
     public void init() {
+//
+//        BigMapGenerator gen = new BigMapGenerator();
+//        gen.generate(10000.0,250,20,35,5.0);
 
-        MapGenerator gen = new MapGenerator();
-        gen.generate(10000.0,250,20,35,5.0);
+        ManhattanMapGenerator gen = new ManhattanMapGenerator();
+        gen.generate(4,8,80.0,2,5,5);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();

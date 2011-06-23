@@ -305,9 +305,6 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         double dx,dy;
 
-        int carside = (int)(ppm * CAR_WIDTH);
-        //int carhalf = carside / 2;
-
         double car_x1,car_y1,car_x2,car_y2;
 
         double car_start,car_end;
