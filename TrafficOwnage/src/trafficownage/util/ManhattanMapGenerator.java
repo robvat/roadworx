@@ -1,0 +1,242 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package trafficownage.util;
+
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import trafficownage.simulation.*;
+
+/**
+ *
+ * @author Gerrit Drost <gerritdrost@gmail.com>
+ */
+public class ManhattanMapGenerator {
+    private int variation;
+    private int diagonals;
+    private int width,height;
+    private double blockSize;
+    private int mainRoadInterval;
+    private long seed;
+
+    private Node[][] grid;
+    private List<Node> nodes;
+    private List<Road> roads;
+    private Road[] horizontalRoads;
+    private Road[] verticalRoads;
+    private List<Pair<Node,Node>>[] horizontalAvenues;
+    private List<Pair<Node,Node>>[] verticalAvenues;
+
+    private Random rand;
+
+    public ManhattanMapGenerator() {
+    }
+
+    public void generate(int width, int height, double blockSize, int mainRoadInterval, int diagonals, int variation) {
+        rand = new Random();
+        generate(rand.nextLong(),width,height,blockSize,mainRoadInterval,diagonals,variation);
+    }
+
+    public void generate(long seed, int width, int height, double blockSize, int mainRoadInterval, int diagonals, int variation) {
+        this.seed = seed;
+        this.width = width;
+        this.height = height;
+        this.blockSize = blockSize;
+        this.mainRoadInterval = mainRoadInterval;
+        this.diagonals = diagonals;
+        this.variation = variation;
+
+        rand = new Random(seed);
+
+        nodes = new ArrayList<Node>();
+        roads = new ArrayList<Road>();
+
+        generateNodes();
+
+        generateRoads();
+    }
+
+    public List<Node> getNodes() {
+        return nodes;
+    }
+
+    public List<Road> getRoads() {
+        return roads;
+    }
+    
+    private void generateNodes() {
+        double x_start = -(((double)width / 2.0) * blockSize);
+        double y_start = -(((double)height / 2.0) * blockSize);
+
+        double x_loc = x_start;
+
+        double y_loc;
+
+
+        grid = new Node[width+1][height+1];
+
+        Node n;
+
+        for (int x = 0; x <= width; x++) {
+
+            y_loc = y_start;
+
+            for (int y = 0; y <= height; y++) {
+                n = new StupidTrafficLight(new Point2D.Double(x_loc,y_loc),5.0);
+                grid[x][y] = n;
+                nodes.add(n);
+                y_loc += blockSize;
+            }
+            
+            x_loc += blockSize;
+        }
+
+
+    }
+
+    private void addSpawnNodes() {
+        Node n;
+        double x_loc,y_loc;
+
+
+        for (int x = 0; x <= width; x += mainRoadInterval) {
+            x_loc = grid[x][0].getLocation().getX();
+
+
+            y_loc = grid[x][0].getLocation().getY() - blockSize;
+            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
+            nodes.add(n);
+            verticalAvenues[x].add(0,new Pair<Node,Node>(grid[x][0],n));
+
+
+            y_loc = grid[x][height].getLocation().getY() + blockSize;
+            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
+            nodes.add(n);
+            verticalAvenues[x].add(verticalAvenues[x].size(),new Pair<Node,Node>(grid[x][height],n));
+
+        }
+
+
+        for (int y = 0; y <= height; y += mainRoadInterval) {
+            y_loc = grid[0][y].getLocation().getY();
+
+
+            x_loc = grid[0][y].getLocation().getX() - blockSize;
+            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
+            nodes.add(n);
+            horizontalAvenues[y].add(0,new Pair<Node,Node>(grid[0][y],n));
+
+
+            x_loc = grid[width][y].getLocation().getX() + blockSize;
+            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
+            nodes.add(n);
+            horizontalAvenues[y].add(horizontalAvenues[y].size(),new Pair<Node,Node>(grid[width][y],n));
+
+        }
+    }
+
+    private void generateRoads() {
+        generateRoadPairs();
+
+        addSpawnNodes();
+
+        int c = 0;
+
+        int x,y;
+
+        Node vNeighbor,hNeighbor;
+
+        while (c < variation) {
+            x = rand.nextInt(width);
+            y = rand.nextInt(height);
+            
+            //TODO: IMPLEMENT THIS
+            c++;
+        }
+
+        int v = 0;
+        for (List<Pair<Node,Node>> verticalAvenue : verticalAvenues) {
+            Road r = new Road("Vertical " + Integer.toString(v + 1));
+            for (Pair<Node,Node> pair : verticalAvenue) {
+                RoadSegment rs = new RoadSegment(r, 50.0 / 3.6, pair.getObject1(), pair.getObject2());
+
+                if (v % mainRoadInterval == 0) {
+                    rs.addLeftStartLane(0, false);
+                    rs.addLeftStartLane(1, false);
+                    rs.addLeftEndLane(2, false);
+                    rs.addLeftEndLane(3, false);
+                } else {
+                    rs.addLeftStartLane(0, false);
+                    rs.addLeftEndLane(1, false);
+                }
+                
+                r.addLast(rs);
+            }
+            roads.add(r);
+            v++;
+        }
+        
+        int h = 0;
+        for (List<Pair<Node,Node>> horizontalAvenue : horizontalAvenues) {
+            Road r = new Road("Horizontal " + Integer.toString(h + 1));
+            for (Pair<Node,Node> pair : horizontalAvenue) {
+                RoadSegment rs = new RoadSegment(r, 50.0 / 3.6, pair.getObject1(), pair.getObject2());
+
+                if (h % mainRoadInterval == 0) {
+                    rs.addLeftStartLane(0, false);
+                    rs.addLeftStartLane(1, false);
+                    rs.addLeftEndLane(2, false);
+                    rs.addLeftEndLane(3, false);
+                } else {
+                    rs.addLeftStartLane(0, false);
+                    rs.addLeftEndLane(1, false);
+                }
+
+                r.addLast(rs);
+            }
+            if (r.getSegments().size() < 10)
+                System.out.println("WUT?");
+
+            roads.add(r);
+            h++;
+        }
+    }
+
+    private void generateRoadPairs() {
+        verticalAvenues = new List[width+1];
+        horizontalAvenues = new List[height+1];
+
+        List<Pair<Node,Node>> roadList;
+        int x,y;
+
+        for (x = 0; x <= width; x++) {
+
+            roadList = new ArrayList<Pair<Node,Node>>();
+
+            verticalAvenues[x] = roadList;
+
+            for (y = 0; y < height; y++)
+                roadList.add(new Pair<Node,Node>(grid[x][y],grid[x][y+1]));
+            
+        }
+
+        for (y = 0; y <= height; y++) {
+
+            roadList = new ArrayList<Pair<Node,Node>>();
+
+            horizontalAvenues[y] = roadList;
+
+            for (x = 0; x < width; x++)
+                roadList.add(new Pair<Node,Node>(grid[x][y],grid[x+1][y]));
+
+        }
+    }
+
+
+
+
+}

@@ -23,11 +23,14 @@ public class RoadSegment {
 
     private Road parent;
 
+    private double maxSpeed;
     private double length;
 
-    public RoadSegment(Road parent, Node startNode, Node endNode) {
+    public RoadSegment(Road parent, double maxSpeed, Node startNode, Node endNode) {
         this.startNode = startNode;
         this.endNode = endNode;
+
+        this.maxSpeed = maxSpeed;
 
         this.startLanes = new LinkedList<Lane>();
         this.endLanes = new LinkedList<Lane>();
@@ -35,6 +38,10 @@ public class RoadSegment {
         this.length = startNode.distanceTo(endNode);
 
         this.parent = parent;
+    }
+
+    public double getMaxSpeed() {
+        return maxSpeed;
     }
 
     public Road getRoad() {
@@ -57,12 +64,12 @@ public class RoadSegment {
         return source == startNode ? startLanes : endLanes;
     }
 
-    public void addLeftStartLane(int laneId, double maxSpeed, boolean ending) {
-        addLeftStartLane(laneId, maxSpeed, null, ending);
+    public void addLeftStartLane(int laneId, boolean ending) {
+        addLeftStartLane(laneId, null, ending);
     }
 
-    public void addLeftStartLane(int laneId, double maxSpeed, List<Node> allowedDirections, boolean ending) {
-        addLeftLane(startLanes, laneId, startNode, endNode, allowedDirections, maxSpeed, ending);
+    public void addLeftStartLane(int laneId, List<Node> allowedDirections, boolean ending) {
+        addLeftLane(startLanes, laneId, startNode, endNode, allowedDirections, ending);
 
         if (!startNode.getDestinationNodes().contains(endNode))
             startNode.addDestination(endNode, this);
@@ -71,12 +78,12 @@ public class RoadSegment {
             endNode.addSource(startNode, this);
     }
 
-    public void addLeftEndLane(int laneId, double maxSpeed, boolean ending) {
-        addLeftEndLane(laneId, maxSpeed, null, ending);
+    public void addLeftEndLane(int laneId, boolean ending) {
+        addLeftEndLane(laneId, null, ending);
     }
     
-    public void addLeftEndLane(int laneId, double maxSpeed, List<Node> allowedDirections, boolean ending) {
-        addLeftLane(endLanes, laneId, endNode, startNode, allowedDirections, maxSpeed, ending);
+    public void addLeftEndLane(int laneId, List<Node> allowedDirections, boolean ending) {
+        addLeftLane(endLanes, laneId, endNode, startNode, allowedDirections, ending);
 
         if (!endNode.getDestinationNodes().contains(startNode))
             endNode.addDestination(startNode, this);
@@ -85,8 +92,8 @@ public class RoadSegment {
             startNode.addSource(endNode, this);
     }
 
-    private void addLeftLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections, double maxSpeed, boolean ending) {
-        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxSpeed, ending);
+    private void addLeftLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections, boolean ending) {
+        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxSpeed);
 
         if (laneList.size() > 0) {
             newLane.setRightNeighbour(laneList.getLast());
@@ -104,12 +111,12 @@ public class RoadSegment {
         return endLanes;
     }
 
-    public void addRightStartLane(int laneId, double maxSpeed, boolean ending) {
-        addRightStartLane(laneId, maxSpeed, null, ending);
+    public void addRightStartLane(int laneId, boolean ending) {
+        addRightStartLane(laneId, null, ending);
     }
 
-    public void addRightStartLane(int laneId, double maxSpeed, List<Node> allowedDirections, boolean ending) {
-        addRightLane(startLanes, laneId, startNode, endNode, allowedDirections, maxSpeed, ending);
+    public void addRightStartLane(int laneId, List<Node> allowedDirections, boolean ending) {
+        addRightLane(startLanes, laneId, startNode, endNode, allowedDirections);
 
         if (!startNode.getDestinationNodes().contains(endNode))
             startNode.addDestination(endNode, this);
@@ -118,12 +125,12 @@ public class RoadSegment {
             endNode.addSource(startNode, this);
     }
 
-    public void addRightEndLane(int laneId, double maxSpeed, boolean ending) {
-        addRightEndLane(laneId, maxSpeed, null, ending);
+    public void addRightEndLane(int laneId, boolean ending) {
+        addRightEndLane(laneId, null, ending);
     }
 
-    public void addRightEndLane(int laneId, double maxSpeed, List<Node> allowedDirections, boolean ending) {
-        addRightLane(endLanes, laneId, endNode, startNode, allowedDirections, maxSpeed, ending);
+    public void addRightEndLane(int laneId, List<Node> allowedDirections, boolean ending) {
+        addRightLane(endLanes, laneId, endNode, startNode, allowedDirections);
 
         if (!endNode.getDestinationNodes().contains(startNode))
             endNode.addDestination(startNode, this);
@@ -132,8 +139,8 @@ public class RoadSegment {
             startNode.addSource(endNode, this);
     }
 
-    private void addRightLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections, double maxSpeed, boolean ending) {
-        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxSpeed, ending);
+    private void addRightLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections) {
+        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxSpeed);
 
         if (laneList.size() > 0) {
             newLane.setLeftNeighbour(laneList.getFirst());

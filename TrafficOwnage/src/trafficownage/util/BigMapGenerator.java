@@ -18,7 +18,7 @@ import trafficownage.simulation.StupidTrafficLight;
  *
  * @author Gerrit Drost <gerritdrost@gmail.com>
  */
-public class MapGenerator {
+public class BigMapGenerator {
 
     Random rand;
 
@@ -31,7 +31,7 @@ public class MapGenerator {
 
     private List<Node> ringroad;
 
-    public MapGenerator() {
+    public BigMapGenerator() {
     }
 
     public void generate(double diameter, int maxNodeCount, int maxMainRoads, int spawnNodeCount, double spawnNodeInterval) {
@@ -117,20 +117,20 @@ public class MapGenerator {
             
             nodes.add(current);
             
-            rs = new RoadSegment(r,previous,current);
+            rs = new RoadSegment(r,50.0 / 3.6,previous,current);
 
-            rs.addLeftStartLane(0, 50.0 / 3.6, false);
-            rs.addLeftEndLane(1, 50.0 / 3.6, false);
+            rs.addLeftStartLane(0, false);
+            rs.addLeftEndLane(1, false);
 
             r.addLast(rs);
 
             previous = current;
         }
 
-        rs = new RoadSegment(r,previous,n2);
+        rs = new RoadSegment(r, 50.0 / 3.6, previous, n2);
 
-        rs.addLeftStartLane(0, 50.0 / 3.6, false);
-        rs.addLeftEndLane(1, 50.0 / 3.6, false);
+        rs.addLeftStartLane(0, false);
+        rs.addLeftEndLane(1, false);
 
         r.addLast(rs);
 
@@ -154,11 +154,11 @@ public class MapGenerator {
 
     private void addSegment(Road r, Node n1, Node n2, double max_velocity, int lanes_per_side) {
 
-        RoadSegment s = new RoadSegment(r,n1,n2);
+        RoadSegment s = new RoadSegment(r, max_velocity, n1, n2);
 
         for (int i = 0; i < lanes_per_side; i++) {
-            s.addRightStartLane(i, max_velocity, false);
-            s.addRightEndLane(i, max_velocity, false);
+            s.addRightStartLane(i, false);
+            s.addRightEndLane(i, false);
         }
 
         r.addLast(s);
@@ -191,8 +191,8 @@ public class MapGenerator {
         nodes.add(spawnNode);
 
         Road r = new Road("Spawnroad " + Integer.toString(i));
-        RoadSegment rs = new RoadSegment(r,spawnNode,originalNode);
-        rs.addLeftStartLane(0, 50.0 / 3.6, false);
+        RoadSegment rs = new RoadSegment(r, 50.0 / 3.6, spawnNode,originalNode);
+        rs.addLeftStartLane(0, false);
         r.addLast(rs);
 
         roads.add(r);

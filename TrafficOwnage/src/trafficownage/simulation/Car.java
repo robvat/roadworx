@@ -225,7 +225,7 @@ public class Car {
                 endOfRoute = true;
 
             } else {
-                while (nextNode == null || (previousNode != null && nextNode == previousNode)) {
+                while (nextNode == null || (previousNode != null && nextNode == previousNode) && !(nextNode instanceof SpawnNode)) {
                     nextNode = destinationNodes.get(randy.nextInt(destinationNodes.size()));
                     nextLane = currentNode.getRoadSegment(nextNode).getStartLanes().get(0);
                 }
@@ -306,33 +306,6 @@ public class Car {
 
     private final static double DISTANCE_THRESHOLD = 2.0;
 
-    private Pair<Double, Car> findNextCar() {
-
-        if (carInFront != null)
-            return new Pair<Double, Car>(carInFront.getBack() - this.getPosition(),carInFront);
-
-        Lane lane = currentNode.getLaneMapping(currentLane);
-        Car car = null;
-
-        double distance = getDistanceToLaneEnd();
-
-        while (lane != null && distance < 500) {
-            car = lane.getLastCar();
-
-            if (car != null && (distance + car.getBack()) < 500) {
-                return new Pair<Double, Car>(distance + car.getBack(), car);
-            }
-
-            distance += lane.getLength();
-
-            if (car == null)
-                lane = lane.getEndNode().getLaneMapping(lane);
-            else
-                lane = null;
-        }
-
-        return null;
-    }
 
     private void follow(double timestep, double leaderVelocity, double distanceToLeader) {
         acceleration = driver_model.update(leaderVelocity, distanceToLeader);
@@ -412,7 +385,7 @@ public class Car {
         {
             if(Math.min(Math.min(this.getLane().getMaxSpeed(), this.getDriverType().getMaxVelocity()), this.car_type.getMaxV()) > this.getCarInFront().getVelocity()){
                 //then check if you are close enough (less than 200 meters away
-                if(this.findNextCar().getObject1() < 200){
+                if(this.findNextCar().getObject1() < 200) {
                     //TODO: overtaking on "straight/pass-through" nodes
                     if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10){
                         importance[1] = DESIRABLE;

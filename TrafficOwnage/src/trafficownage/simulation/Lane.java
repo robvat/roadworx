@@ -14,7 +14,6 @@ import java.util.List;
  */
 public class Lane {
     private int laneId;
-    private boolean ending;
     private RoadSegment roadSegment;
     private Lane rightNeighbour;
     private Lane leftNeighbour;
@@ -25,14 +24,13 @@ public class Lane {
 
     private LinkedList<Car> cars;
 
-    public Lane(int laneId, RoadSegment roadSegment, Node startNode, Node endNode, List<Node> allowedDirections, double maxSpeed, boolean ending) {
+    public Lane(int laneId, RoadSegment roadSegment, Node startNode, Node endNode, List<Node> allowedDirections, double maxSpeed) {
         this.laneId = laneId;
         this.roadSegment = roadSegment;
         this.startNode = startNode;
         this.endNode = endNode;
         this.maxSpeed = maxSpeed;
         this.allowedDirections = allowedDirections;
-        this.ending = ending;
 
         this.cars = new LinkedList<Car>();
     }
@@ -51,13 +49,6 @@ public class Lane {
      */
     public int getLaneId() {
         return laneId;
-    }
-
-    /**
-     * @return the ending
-     */
-    public boolean isEnding() {
-        return ending;
     }
 
     /**
