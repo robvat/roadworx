@@ -265,10 +265,10 @@ public class Car {
     public void update(double timestep) {
 
         //if not yet changed lane, do it, if you already changed lane, reset the variable, so you can change again next time
-        //if(!updated)
-        //    updated = this.laneChanging();
-        //else
-        //    updated = false;
+        if(!updated)
+            updated = this.laneChanging();
+        else
+            updated = false;
 
         Lane nextLane = route.getNextLane();
         Car nextCar = getCarInFront();
@@ -385,7 +385,7 @@ public class Car {
         }
 
         //turning movement and end-of-lane
-        if(!this.getLane().getAllowedDirections().contains(this.getNextNode())){
+        if(this.getLane().getAllowedDirections() == null || !this.getLane().getAllowedDirections().contains(this.getNextNode())){
             //we assume that position is distance from previous node; so lane length - position = distance to next node
             //if the turn is less than 10s away
             if((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10.0) {
@@ -408,9 +408,9 @@ public class Car {
         //we assume that findNextCar is the car in front of this car, and that the double is the distance between the cars
 
         //first check if you want to go faster than the car in front of you is going
-        if(leftLane != null) // needs to be an overtaking lane
+        if(leftLane != null && this.getCarInFront() != null) // needs to be an overtaking lane and there must be a car in front of you
         {
-            if(Math.min(Math.min(this.getLane().getMaxSpeed(), this.getDriverType().getMaxVelocity()), this.car_type.getMaxV()) > this.findNextCar().getObject2().getVelocity()){
+            if(Math.min(Math.min(this.getLane().getMaxSpeed(), this.getDriverType().getMaxVelocity()), this.car_type.getMaxV()) > this.getCarInFront().getVelocity()){
                 //then check if you are close enough (less than 200 meters away
                 if(this.findNextCar().getObject1() < 200){
                     //TODO: overtaking on "straight/pass-through" nodes
@@ -425,49 +425,52 @@ public class Car {
         //queue advantage
         Lane right = rightLane;
         Lane left = leftLane;
-        
-        if(this.findNextCar().getObject2().getVelocity() < 1){
-            // there is a queue
-            // check if right and left go the right way
-            if(right != null)
-            {
-                if(!right.getAllowedDirections().contains(this.getNextNode()))
-                    right = null;
-            }
-            if(left != null)
-            {
-                if(!left.getAllowedDirections().contains(this.getNextNode()))
-                    left = null;
-            }
-            
-            //for the lane right of you
-            if(right != null){
-                Car car = right.getFirstCar();
-                while(car.getPosition() >= this.getPosition()){
-                    car = car.getCarBehind();
+
+        if(this.getCarInFront() != null)
+        {
+            if(this.getCarInFront().getVelocity() < 1){
+                // there is a queue
+                // check if right and left go the right way
+                if(right != null)
+                {
+                    if(right.getAllowedDirections() == null || !right.getAllowedDirections().contains(this.getNextNode()))
+                        right = null;
+                }
+                if(left != null)
+                {
+                    if(left.getAllowedDirections() == null || !left.getAllowedDirections().contains(this.getNextNode()))
+                        left = null;
                 }
 
-                if(!(car.getVelocity() < 1)){
-                    if(car.getCarInFront().getPosition() - this.getCarInFront().getPosition() > 10){
-                        importance[2] = DESIRABLE;
-                        changedLane = right;
-                        done = false;
-                    }  
-                }
-            }
+                //for the lane right of you
+                if(right != null){
+                    Car car = right.getFirstCar();
+                    while(car.getPosition() >= this.getPosition()){
+                        car = car.getCarBehind();
+                    }
 
-            //same for the lane left of you
-            if(left != null){
-                Car car = left.getFirstCar();
-                while(car.getPosition() >= this.getPosition()){
-                    car = car.getCarBehind();
+                    if(!(car.getVelocity() < 1)){
+                        if(car.getCarInFront().getPosition() - this.getCarInFront().getPosition() > 10){
+                            importance[2] = DESIRABLE;
+                            changedLane = right;
+                            done = false;
+                        }
+                    }
                 }
 
-                if(!(car.getVelocity() < 1)){
-                    if(car.getCarInFront().getPosition() - this.getCarInFront().getPosition() > 10){
-                        importance[2] = DESIRABLE;
-                        changedLane = left;
-                        done = false;
+                //same for the lane left of you
+                if(left != null){
+                    Car car = left.getFirstCar();
+                    while(car.getPosition() >= this.getPosition()){
+                        car = car.getCarBehind();
+                    }
+
+                    if(!(car.getVelocity() < 1)){
+                        if(car.getCarInFront().getPosition() - this.getCarInFront().getPosition() > 10){
+                            importance[2] = DESIRABLE;
+                            changedLane = left;
+                            done = false;
+                        }
                     }
                 }
             }
@@ -510,11 +513,12 @@ public class Car {
         if(importance[0] != UNNECESSARY){
             int targetIndex = 0;
             loop: for(int j = 0; j < allLanes.size(); j++){
-                if(allLanes.get(j).getAllowedDirections().contains(this.getNextNode())){
-                    targetIndex = j;
-                    break loop;
+                if(allLanes.get(j).getAllowedDirections() != null){
+                    if(allLanes.get(j).getAllowedDirections().contains(this.getNextNode())){
+                        targetIndex = j;
+                        break loop;
+                    }
                 }
-                
                 //TODO: we assume that if targetIndex > you,  you go right
                 if(targetIndex > currentIndex){
                     changedLane = this.getLane().getRightNeighbour();
@@ -537,20 +541,20 @@ public class Car {
        //check if the lane change is physically possible
         //find the cars in front of you and behind you on the changedLane
         Car carF = changedLane.getFirstCar();
-        if(carF != null){
-            while(carF.getPosition() >= this.getPosition()){
-                carF = carF.getCarBehind();
-            }
-        }
         Car carB = null;
         if(carF != null){
-            carB = carF.getCarBehind();
-        }else{
-            carB = changedLane.getLastCar();
-            if(carB != null){
-                while(carB.getPosition() <= this.getPosition()){
-                    carB = carB.getCarInFront();
+            if(carF.getPosition() < this.getPosition()){
+                carB = carF;
+                carF = null;
+            }else {
+                while(carF.getPosition() >= this.getPosition()){
+                    if(carF.getCarBehind() == null){
+                        break;
+                    }else{
+                        carF = carF.getCarBehind();
+                    }
                 }
+                carB = carF.getCarBehind();
             }
         }
         

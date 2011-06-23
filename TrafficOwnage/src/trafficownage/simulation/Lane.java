@@ -193,11 +193,15 @@ public class Lane {
         }
 
         cars.add(index, car);
-        carB.setCarInFront(car);
-        car.setCarBehind(carB);
+        if(carB != null){
+            carB.setCarInFront(car);
+            car.setCarBehind(carB);
+        }
 
-        carF.setCarBehind(car);
-        car.setCarInFront(carF);
+        if(carF != null){
+            carF.setCarBehind(car);
+            car.setCarInFront(carF);
+        }
     }
 
     public boolean hasCars() {
