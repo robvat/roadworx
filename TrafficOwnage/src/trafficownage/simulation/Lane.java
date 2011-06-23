@@ -22,6 +22,9 @@ public class Lane {
     private double maxSpeed;
     private List<Node> allowedDirections;
 
+    private double queueLength;
+    private int queueCount;
+
     private LinkedList<Car> cars;
 
     public Lane(int laneId, RoadSegment roadSegment, Node startNode, Node endNode, List<Node> allowedDirections, double maxSpeed) {
@@ -195,37 +198,14 @@ public class Lane {
             car.setCarBehind(firstCar);
             firstCar = car;
         }
+    }
 
+    public double getQueueLength() {
+        return queueLength;
+    }
 
-//        //we assume carF has index +1
-//        if(carF == null) {
-//            firstCar = car;
-//            lastCar = car;
-//            car.setCarInFront(null);
-//            car.setCarBehind(null);
-//            index = 0;
-//            return;
-//        } else {
-//            index = cars.indexOf(carF) + 1;
-//        }
-//
-//        if(carB == null) {
-//            carF.setCarBehind(car);
-//            car.setCarBehind(null);
-//            lastCar = car;
-//        }
-//
-//        cars.add(index, car);
-//
-//        if(carB != null){
-//            carB.setCarInFront(car);
-//            car.setCarBehind(carB);
-//        }
-//
-//        if(carF != null){
-//            carF.setCarBehind(car);
-//            car.setCarInFront(carF);
-//        }
+    public int getQueueCount() {
+        return queueCount;
     }
 
     public boolean hasCars() {
@@ -244,16 +224,26 @@ public class Lane {
 
         int size = cars.size();
 
+        boolean queue = true;
+
         for (int i = 0; i < size; i++) {
             
             car = cars.get(i);
             car.update(timestep);
+
+            if (queue && car.isInQueue()) {
+                queueLength = car.getBack();
+                queueCount = i;
+            } else {
+                queue = false;
+            }
             
             if (size > cars.size()) {
                 size--;
                 i--;
             }
         }
+        
         /*while (car != null) {
             car.update(timestep);
             car = car.getCarBehind();
