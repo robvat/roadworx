@@ -313,7 +313,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         for (Lane l : lanes) {
 
-            if (l.getCars().isEmpty())
+            if (!l.hasCars())
                 continue;
 
             line = lane_coords.get(l);
@@ -323,10 +323,9 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             dx = line.x2 - line.x1;
             dy = line.y2 - line.y1;
 
-            if (l.getCars().isEmpty())
-                continue;
 
-            for (Car c : l.getCars()) {
+            Car c = l.getFirstCar();
+            while (c != null) {
                 car_start = c.getPosition() / length;
                 car_end = c.getBack() / length;
 
@@ -343,6 +342,8 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
                 gr.drawLine((int)car_x1,(int)car_y1,(int)car_x2,(int)car_y2);
 
                 car_count++;
+
+                c = c.getCarBehind();
             }
 
             i++;

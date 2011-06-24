@@ -82,7 +82,7 @@ public class SpawnNode extends Node {
             car = generateRandomCar();
 
             lane = lanes.get(0);//rand.nextInt(lanes.size()));
-            if (lane.acceptsCar(car)) {
+            if (lane.acceptsCarAdd(car)) {
                 lane.addCar(car);
             }
         }

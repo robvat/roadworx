@@ -20,7 +20,7 @@ import trafficownage.util.ManhattanMapGenerator;
 public class MainLoop implements Runnable {
     private final static long FPS = 20;
 
-    private final static long SPEED_MULTIPLIER = 4;
+    private final static long SPEED_MULTIPLIER = 16;
 
     private List<Road> roads;
     private List<Node> nodes;
@@ -37,58 +37,58 @@ public class MainLoop implements Runnable {
 //
 //        BigMapGenerator gen = new BigMapGenerator();
 //        gen.generate(10000.0,250,20,35,5.0);
-
-//        ManhattanMapGenerator gen = new ManhattanMapGenerator();
-//        gen.generate(64,16,80.0,8,5,5);
 //
-//        nodes = gen.getNodes();
-//        roads = gen.getRoads();
-
-        Node[] nodearray = new Node[] {
-            new SpawnNode(new Point2D.Double(-400.0,0.0), 5.0),
-            new DrivethroughNode(new Point2D.Double(0.0,0.0)),
-            new DrivethroughNode(new Point2D.Double(400.0,0.0))
-
-        };
-
-        Road r1 = new Road("Hoofdweggetje");
-
-        RoadSegment[] segments1 = new RoadSegment[] {
-            new RoadSegment(r1,200.0 / 3.6, nodearray[0],nodearray[1]),
-            new RoadSegment(r1,200.0 / 3.6, nodearray[1],nodearray[2])
-        };
+        ManhattanMapGenerator gen = new ManhattanMapGenerator();
+        gen.generate(32,16,120.0,4,5,15);
 //
-//        RoadSegment endsegment = new RoadSegment(r1,nodearray[3],nodearray[4]);
-//
-        int i = 0;
+        nodes = gen.getNodes();
+        roads = gen.getRoads();
 
-        for (RoadSegment segment : segments1) {
-            segment.addLeftStartLane(i,false);
-            i++;
-            segment.addLeftStartLane(i,false);
-            i++;
-            r1.addLast(segment);
-        }
+//        Node[] nodearray = new Node[] {
+//            new SpawnNode(new Point2D.Double(-400.0,0.0), 5.0),
+//            new DrivethroughNode(new Point2D.Double(0.0,0.0)),
+//            new DrivethroughNode(new Point2D.Double(400.0,0.0))
 //
-//        endsegment.addLeftEndLane(i, 50.0/3.6, false);
-//        endsegment.addLeftStartLane(i, 50.0/3.6, false);
-//        r1.addLast(endsegment);
-//
-//        Road r2 = new Road("Zijweggetje");
-//
-//        RoadSegment[] segments2 = new RoadSegment[] {
-//            new RoadSegment(r1,nodearray[5],nodearray[2]),
-//            new RoadSegment(r1,nodearray[2],nodearray[6])
 //        };
 //
-//        for (RoadSegment segment : segments2) {
-//            segment.addLeftStartLane(i,50.0/3.6,false);
-//            segment.addLeftEndLane(i,50.0/3.6,false);
-//            r2.addLast(segment);
-//        }
+//        Road r1 = new Road("Hoofdweggetje");
 //
-        nodes = Arrays.asList(nodearray);
-        roads = Arrays.asList(new Road[] {r1});
+//        RoadSegment[] segments1 = new RoadSegment[] {
+//            new RoadSegment(r1,200.0 / 3.6, nodearray[0],nodearray[1]),
+//            new RoadSegment(r1,200.0 / 3.6, nodearray[1],nodearray[2])
+//        };
+////
+////        RoadSegment endsegment = new RoadSegment(r1,nodearray[3],nodearray[4]);
+////
+//        int i = 0;
+//
+//        for (RoadSegment segment : segments1) {
+//            segment.addLeftStartLane(i,false);
+//            i++;
+//            segment.addLeftStartLane(i,false);
+//            i++;
+//            r1.addLast(segment);
+//        }
+////
+////        endsegment.addLeftEndLane(i, 50.0/3.6, false);
+////        endsegment.addLeftStartLane(i, 50.0/3.6, false);
+////        r1.addLast(endsegment);
+////
+////        Road r2 = new Road("Zijweggetje");
+////
+////        RoadSegment[] segments2 = new RoadSegment[] {
+////            new RoadSegment(r1,nodearray[5],nodearray[2]),
+////            new RoadSegment(r1,nodearray[2],nodearray[6])
+////        };
+////
+////        for (RoadSegment segment : segments2) {
+////            segment.addLeftStartLane(i,50.0/3.6,false);
+////            segment.addLeftEndLane(i,50.0/3.6,false);
+////            r2.addLast(segment);
+////        }
+////
+//        nodes = Arrays.asList(nodearray);
+//        roads = Arrays.asList(new Road[] {r1});
 
     }
 
