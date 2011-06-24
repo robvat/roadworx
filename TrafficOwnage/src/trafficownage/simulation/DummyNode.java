@@ -27,8 +27,5 @@ public class DummyNode extends Node {
     void acceptCar(Car incoming) {
     }
 
-    @Override
-    void update(double timestep) {
-    }
 
 }

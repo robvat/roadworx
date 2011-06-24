@@ -20,7 +20,7 @@ import trafficownage.util.ManhattanMapGenerator;
 public class MainLoop implements Runnable {
     private final static long FPS = 20;
 
-    private final static long SPEED_MULTIPLIER = 16;
+    private final static long SPEED_MULTIPLIER = 4;
 
     private List<Road> roads;
     private List<Node> nodes;
@@ -39,22 +39,15 @@ public class MainLoop implements Runnable {
 //        gen.generate(10000.0,250,20,35,5.0);
 
 //        ManhattanMapGenerator gen = new ManhattanMapGenerator();
-//        gen.generate(4,8,80.0,2,5,5);
+//        gen.generate(64,16,80.0,8,5,5);
 //
 //        nodes = gen.getNodes();
 //        roads = gen.getRoads();
 
         Node[] nodearray = new Node[] {
-//            new DrivethroughNode(new Point2D.Double(-200.0,0.0)),
-//            new SpawnNode(new Point2D.Double(200.0,0.0), 5.0),
-//            new StupidTrafficLight(new Point2D.Double(0.0,0.0),5.0),
-//            new DrivethroughNode(new Point2D.Double(100.0,0.0)),
-//            new SpawnNode(new Point2D.Double(200.0,0.0), 5.0),
-//            new DrivethroughNode(new Point2D.Double(0.0,-100.0)),
-//            new DrivethroughNode(new Point2D.Double(0.0, 100.0)),
-            new SpawnNode(new Point2D.Double(-1000.0,0.0), 5.0),
+            new SpawnNode(new Point2D.Double(-400.0,0.0), 5.0),
             new DrivethroughNode(new Point2D.Double(0.0,0.0)),
-            new DrivethroughNode(new Point2D.Double(1000.0,0.0))
+            new DrivethroughNode(new Point2D.Double(400.0,0.0))
 
         };
 

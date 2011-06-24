@@ -71,7 +71,9 @@ public class StupidTrafficLight extends Node {
 
 
     @Override
-    void update(double timestep) {
+    public void update(double timestep) {
+        super.update(timestep);
+
         timePassed += timestep;
 
         if (timePassed > trafficLightInterval) {

@@ -81,7 +81,8 @@ public class TrafficLightIntersection extends Node{
     }
 
     @Override
-    void update(double timestep) {
+    public void update(double timestep) {
+        super.update(timestep);
         // TODO Auto-generated method stub
         time += timestep;
         if (time >= NUMBER){

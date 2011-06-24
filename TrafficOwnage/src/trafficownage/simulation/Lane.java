@@ -191,17 +191,19 @@ public class Lane {
             carF.setCarBehind(car);
             carB.setCarInFront(car);
         } else if (carF == null && carB == null) {
+            cars.addLast(car);
             firstCar = car;
             lastCar = car;
             car.setCarInFront(null);
             car.setCarBehind(null);
         } else { // thus carF == null and carB != null because carB can never be null without carF being null;
-            index = cars.indexOf(carF) + 1;
-            cars.add(index,car);
-            firstCar.setCarInFront(car);
-            car.setCarBehind(firstCar);
-            firstCar = car;
+            cars.addLast(car);
+            lastCar.setCarBehind(car);
+            car.setCarInFront(lastCar);
+            lastCar = car;
         }
+        
+        car.switchLane(this);
     }
 
     public double getQueueLength() {
@@ -236,7 +238,7 @@ public class Lane {
             car.update(timestep);
 
             if (queue && car.isInQueue()) {
-                queueLength = car.getBack();
+                queueLength = getLength() - car.getBack();
                 queueCount = i;
             } else {
                 queue = false;

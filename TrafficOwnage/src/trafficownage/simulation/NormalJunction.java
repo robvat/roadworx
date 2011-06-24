@@ -101,7 +101,9 @@ public class NormalJunction extends Node {
     }
 
     @Override
-    void update(double timestep) {
+    public void update(double timestep) {
+        super.update(timestep);
+
         Car c;
 
         HashMap<Lane,ArrivalTime> arrival_times = new HashMap<Lane,ArrivalTime>();
