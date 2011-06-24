@@ -32,6 +32,8 @@ public abstract class Node
     public double f,g,h; //pathfinding variables
     public Node parent;
 
+    public List<Car> spawnCars;
+
     public Node(Point2D.Double location) {
         this.location = location;
 
@@ -43,6 +45,8 @@ public abstract class Node
         
         incomingLanes = new ArrayList<Lane>();
         roads = new ArrayList<RoadSegment>();
+
+        spawnCars = new ArrayList<Car>();
 
         laneMap = new HashMap<Lane, Lane>();
     }
@@ -100,6 +104,10 @@ public abstract class Node
         }
 
         return directionList;
+    }
+
+    private void addSpawnCar(Car car) {
+        spawnCars.add(car);
     }
 
     private void mapLanes(RoadSegment rs1, RoadSegment rs2) {
@@ -251,7 +259,27 @@ public abstract class Node
     /* Cars can be on a node for a longer time so nodes need to be
      updated aswell (if a car has to be 40 sec on a node then the node needs to
      know the time */
-    abstract void update(double timestep);
+    public void update(double timestep) {
+        int i = 0;
+        Car car;
+        for (i = 0; i < spawnCars.size(); i++) {
+            car = spawnCars.get(i);
+            Node n = car.getFirstNode();
+            
+            RoadSegment rs = getRoadSegment(n);
+
+            List<Lane> lanes = rs.getSourceLanes(this);
+
+            for (Lane l : lanes) {
+                if (l.acceptsCar(car)) {
+                    l.addCar(car);
+                    spawnCars.remove(car);
+                    i--;
+                }
+            }
+        }
+    }
+
 
     @Override
     public String toString() {

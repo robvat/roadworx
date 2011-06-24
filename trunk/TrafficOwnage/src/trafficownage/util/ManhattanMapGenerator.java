@@ -158,18 +158,21 @@ public class ManhattanMapGenerator {
             c++;
         }
 
+        RoadSegment rs;
+
         int v = 0;
         for (List<Pair<Node,Node>> verticalAvenue : verticalAvenues) {
             Road r = new Road("Vertical " + Integer.toString(v + 1));
             for (Pair<Node,Node> pair : verticalAvenue) {
-                RoadSegment rs = new RoadSegment(r, 50.0 / 3.6, pair.getObject1(), pair.getObject2());
 
                 if (v % mainRoadInterval == 0) {
+                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(2, false);
                     rs.addLeftEndLane(3, false);
                 } else {
+                    rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftEndLane(1, false);
                 }
@@ -184,14 +187,15 @@ public class ManhattanMapGenerator {
         for (List<Pair<Node,Node>> horizontalAvenue : horizontalAvenues) {
             Road r = new Road("Horizontal " + Integer.toString(h + 1));
             for (Pair<Node,Node> pair : horizontalAvenue) {
-                RoadSegment rs = new RoadSegment(r, 50.0 / 3.6, pair.getObject1(), pair.getObject2());
 
                 if (h % mainRoadInterval == 0) {
+                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(2, false);
                     rs.addLeftEndLane(3, false);
                 } else {
+                    rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftEndLane(1, false);
                 }

@@ -68,11 +68,12 @@ public class SpawnNode extends Node {
     }
 
     private Lane lane;
-    private boolean success;
     private Car car;
 
     @Override
-    void update(double timestep) {
+    public void update(double timestep) {
+        super.update(timestep);
+        
         timePassed += timestep;
 
         while (timePassed > spawnInterval) {
@@ -83,7 +84,6 @@ public class SpawnNode extends Node {
             lane = lanes.get(0);//rand.nextInt(lanes.size()));
             if (lane.acceptsCar(car)) {
                 lane.addCar(car);
-                success = true;
             }
         }
     }

@@ -33,7 +33,8 @@ public class DrivethroughNode extends Node {
     }
 
     @Override
-    void update(double timestep) {
+    public void update(double timestep) {
+        super.update(timestep);
 
     }
 }

@@ -209,8 +209,11 @@ public class Car
         return currentLane;
     }
 
-    public Node getCurrentNode()
-    {
+    public Node getFirstNode() {
+        return route.getFirstNode();
+    }
+
+    public Node getCurrentNode() {
         return currentNode;
     }
 
@@ -235,6 +238,7 @@ public class Car
 
         private Node nextNode = null;
         private Lane nextLane = null;
+        private Node firstNode = null;
         private boolean endOfRoute;
         private Random randy;
 
@@ -244,8 +248,11 @@ public class Car
             endOfRoute = false;
         }
 
-        public void determineNext()
-        {
+        public Node getFirstNode() {
+            return firstNode;
+        }
+
+        public void determineNext() {
 
             List<Node> destinationNodes = currentNode.getDestinationNodes();
 
@@ -256,10 +263,8 @@ public class Car
             {
                 endOfRoute = true;
 
-            } else
-            {
-                while (nextNode == null || (previousNode != null && nextNode == previousNode) && !(nextNode instanceof SpawnNode))
-                {
+            } else {
+                while (nextNode == null || (previousNode != null && nextNode == previousNode) || nextNode instanceof SpawnNode) {
                     nextNode = destinationNodes.get(randy.nextInt(destinationNodes.size()));
                     nextLane = currentNode.getRoadSegment(nextNode).getStartLanes().get(0);
                 }
@@ -347,13 +352,10 @@ public class Car
 
         }
 
-//        if (!updated)
-//        {
-//            updated = this.laneChanging(nextCar, distanceToNextCar);
-//        } else
-//        {
-//            updated = false;
-//        }
+        if(!updated)
+            updated = this.laneChanging(nextCar, distanceToNextCar);
+        else
+            updated = false;
 
         if (nextCar != null)
         {
@@ -363,17 +365,15 @@ public class Car
             follow(timestep, currentLane.getMaxSpeed(), VERY_LONG_DISTANCE);
         } else
         {
-            queue(timestep, distance);
+            follow(timestep, 0.0, distance);
         }
 
-
-
+        if (((getCarInFront() != null && getCarInFront().isInQueue()) || getCarInFront() == null) && velocity < VELOCITY_THRESHOLD)
+        {
+            in_queue = true;
+        }
     }
 
-    private void queue(double timestep, double distance)
-    {
-        follow(timestep, 0.0, distance);
-    }
     private final static double DISTANCE_THRESHOLD = 2.0;
     private final static double VELOCITY_THRESHOLD = 0.1;
 
@@ -382,13 +382,8 @@ public class Car
         acceleration = driver_model.update(leaderVelocity, distanceToLeader);
         velocity = Math.max(0.0, velocity + (acceleration * timestep));
         position += velocity * timestep;
-
-        if (velocity < VELOCITY_THRESHOLD)
-        {
-            in_queue = true;
-        }
-
     }
+
     private Car carInFront, carBehind;
 
     public Car getCarInFront()
@@ -469,30 +464,30 @@ public class Car
         //we assume that findNextCar is the car in front of this car, and that the double is the distance between the cars
 
         //first check if you want to go faster than the car in front of you is going
-        if (leftLane != null && this.getCarInFront() != null) // needs to be an overtaking lane and there must be a car in front of you
-        {
-            if (Math.min(Math.min(this.getLane().getMaxSpeed(), this.getDriverType().getMaxVelocity()), this.car_type.getMaxV()) > this.getCarInFront().getVelocity())
-            {
-                //then check if you are close enough (less than 200 meters away
-                if (nextCar != null && distanceToNextCar < 200)
-                {
-                    //TODO: overtaking on "straight/pass-through" nodes
-                    if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10)
-                    {
-                        importance[1] = DESIRABLE;
-                        done = false;
-                    }
-                }
-            }
-        }
+//        if (leftLane != null && this.getCarInFront() != null) // needs to be an overtaking lane and there must be a car in front of you
+//        {
+//            if (Math.min(Math.min(this.getLane().getMaxSpeed(), this.getDriverType().getMaxVelocity()), this.car_type.getMaxV()) > this.getCarInFront().getVelocity())
+//            {
+//                //then check if you are close enough (less than 200 meters away
+//                if (nextCar != null && distanceToNextCar < 200)
+//                {
+//                    //TODO: overtaking on "straight/pass-through" nodes
+//                    if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10)
+//                    {
+//                        importance[1] = DESIRABLE;
+//                        done = false;
+//                    }
+//                }
+//            }
+//        }
 
         //queue advantage
         Lane right = rightLane;
         Lane left = leftLane;
 
-        if (this.getCarInFront() != null)
+        if (getCarInFront() != null)
         {
-            if (this.getCarInFront().getVelocity() < 1)
+            if (getCarInFront().getVelocity() < 1)
             {
                 // there is a queue
                 // check if right and left go the right way
@@ -511,38 +506,16 @@ public class Car
                     }
                 }
 
-                Car car;
                 //for the lane right of you
                 if (right != null)
                 {
                     if (right.getQueueLength() + getLength() + 2 < currentLane.getQueueLength())
                     {
+                        System.out.println("Right: " + Double.toString(right.getQueueLength() + getLength() + 2) + " < " + "Current: " + Double.toString(currentLane.getQueueLength()));
                         importance[2] = DESIRABLE;
                         changedLane = right;
                         done = false;
                     }
-//                    if (right.hasCars())
-//                    {
-//                        car = right.getFirstCar();
-//                        while (car.getBack() >= this.getPosition() && car.getCarBehind() != null)
-//                        {
-//                                car = car.getCarBehind();
-//                        }
-//                        if (!(car.isInQueue()))
-//                        {
-//                            if (car.getCarInFront().getBack() - this.getCarInFront().getBack() > 10)
-//                            {
-//                                importance[2] = DESIRABLE;
-//                                changedLane = right;
-//                                done = false;
-//                            }
-//                        }
-//                    } else
-//                    {
-//                        importance[2] = DESIRABLE;
-//                        changedLane = right;
-//                        done = false;
-//                    }
                 }
 
                 //same for the lane left of you
@@ -550,50 +523,24 @@ public class Car
                 {
                     if ((left.getQueueLength() + getLength() + 2) < currentLane.getQueueLength())
                     {
+                        System.out.println("Left: " + Double.toString(left.getQueueLength() + getLength() + 2) + " < " + "Current: " + Double.toString(currentLane.getQueueLength()));
                         importance[2] = DESIRABLE;
                         changedLane = left;
                         done = false;
                     }
-//                    if (left.hasCars())
-//                    {
-//                        car = left.getFirstCar();
-//
-//                        while (car.getBack() >= this.getPosition() && car.getCarBehind() != null)
-//                        {
-//                            car = car.getCarBehind();
-//                        }
-//
-//                        if (!(car.getVelocity() < 1))
-//                        {
-//
-//
-//                            if (car.getCarInFront().getBack() - this.getCarInFront().getBack() > 10)
-//                            {
-//                                importance[2] = DESIRABLE;
-//                                changedLane = left;
-//                                done = false;
-//                            }
-//                        }
-//                    }
-//                    else
-//                    {
-//                        importance[2] = DESIRABLE;
-//                        changedLane = left;
-//                        done = false;
-//                    }
                 }
             }
         }
 
         //going back
-        if (right != null)
-        {
-            if (rightLane.getAllowedDirections().contains(this.getNextNode()))
-            {
-                importance[3] = DESIRABLE;
-                done = false;
-            }
-        }
+//        if (right != null)
+//        {
+//            if (rightLane.getAllowedDirections().contains(this.getNextNode()))
+//            {
+//                importance[3] = DESIRABLE;
+//                done = false;
+//            }
+//        }
 
         // if lane changing is unnecessary for everything: stop
         if (done)
@@ -689,7 +636,7 @@ public class Car
             return changeLane(changedLane, carF, carB);
         } else if (carB == null)
         {
-            double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (carF.getVelocity() - this.getVelocity());
+            double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (this.getVelocity() - carF.getVelocity());
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
             if (carF.getBack() < this.getFront() && importance[0] != ESSENTIAL)
@@ -708,7 +655,7 @@ public class Car
             }
         } else if (carF == null)
         {
-            double timeUntilCrashWithMe = (this.getBack() - carB.getFront()) / (this.getVelocity() - carB.getVelocity());
+            double timeUntilCrashWithMe = (this.getBack() - carB.getFront()) / (carB.getVelocity() - this.getVelocity());
             double decceleratedVelocity2 = timeUntilCrashWithMe * carB.getDriverType().getMaxComfortableDeceleration();
 
             if (carB.getFront() > this.getBack() && importance[0] != ESSENTIAL)
@@ -727,10 +674,10 @@ public class Car
             }
         } else
         {
-            double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (carF.getVelocity() - this.getVelocity());
+            double timeUntilCrashWithCarF = (carF.getBack() - this.getFront()) / (this.getVelocity() - carF.getVelocity());
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
-            double timeUntilCrashWithMe = (this.getBack() - carB.getFront()) / (this.getVelocity() - carB.getVelocity());
+            double timeUntilCrashWithMe = (this.getBack() - carB.getFront()) / (carB.getVelocity() - this.getVelocity());
             double decceleratedVelocity2 = timeUntilCrashWithMe * carB.getDriverType().getMaxComfortableDeceleration();
 
             //check that they aren't overlapping you
