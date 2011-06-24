@@ -23,6 +23,7 @@ public class Lane {
     private List<Node> allowedDirections;
 
     private double queueLength;
+    private double carsLength;
     private int queueCount;
 
     private LinkedList<Car> cars;
@@ -135,6 +136,8 @@ public class Lane {
      */
     public void addCar(Car car) {
 
+        carsLength += car.getLength();
+
         if (car.getCurrentLane() != null)
             car.getCurrentLane().removeCar(car);
         
@@ -155,6 +158,8 @@ public class Lane {
     }
 
     public void removeCar(Car car) {
+
+        carsLength -= car.getLength();
 
         cars.remove(car);
 
@@ -178,6 +183,8 @@ public class Lane {
     
     public void insertCar(Car car, Car carF, Car carB){
 
+        carsLength += car.getLength();
+        
         if (car.getCurrentLane() != null)
             car.getCurrentLane().removeCar(car);
 
@@ -214,6 +221,10 @@ public class Lane {
         return queueCount;
     }
 
+    public double getCombinedCarLength() {
+        return carsLength;
+    }
+
     public boolean hasCars() {
         return !cars.isEmpty();
     }
@@ -221,6 +232,8 @@ public class Lane {
     public List<Car> getCars() {
         return cars;
     }
+
+
 
     public void update(double timestep) {
 
