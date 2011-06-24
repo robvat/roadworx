@@ -32,7 +32,12 @@ public abstract class Node
     public double f,g,h; //pathfinding variables
     public Node parent;
 
+    public int nodeType;
+
     public List<Car> spawnCars;
+
+    public static int DEFAULT_NODE = 0;
+    public static int TRAFFICLIGHT_NODE = 1;
 
     public Node(Point2D.Double location) {
         this.location = location;
@@ -49,6 +54,16 @@ public abstract class Node
         spawnCars = new ArrayList<Car>();
 
         laneMap = new HashMap<Lane, Lane>();
+
+        nodeType = 0;
+    }
+
+    public void setNodeType(int nodeType) {
+        this.nodeType = nodeType;
+    }
+
+    public int getNodeType() {
+        return nodeType;
     }
 
     public void init() {
@@ -90,8 +105,6 @@ public abstract class Node
                 }
             }
         }
-
-        System.out.println(laneMap.size());
     }
 
     private List<Node> getAllowedDirections(Node sourceNode) {

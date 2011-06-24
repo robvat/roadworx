@@ -33,6 +33,7 @@ import trafficownage.simulation.MainLoop;
 import trafficownage.simulation.Node;
 import trafficownage.simulation.Road;
 import trafficownage.simulation.RoadSegment;
+import trafficownage.simulation.StupidTrafficLight;
 
 /**
  *
@@ -59,15 +60,18 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
     private final static Color BACKGROUND_COLOR = new Color(64,64,64);
 
     private final static Color ROAD_COLOR = new Color(255,255,64);
+
+    private final static Color RED_LIGHT_COLOR = new Color(255,64,64);
+    private final static Color GREEN_LIGHT_COLOR = new Color(0,192,0);
+
     private final static Color NODE_COLOR = new Color(255,64,64);
 
     private final static Color CAR_QUEUE_COLOR = new Color(192,32,32);
     private final static Color CAR_DEFAULT_COLOR = new Color(0,0,0);
 
-    private final static double NODE_RADIUS = 10.0;
-    private final static double CAR_WIDTH = 3.0;
+    private final static double NODE_STROKE_WIDTH = 6.0;
 
-    private final static double LANE_WIDTH = 3.0;
+    private final static double CAR_WIDTH = 3.0;
     private final static double LANE_SPACE = 4.0;
 
     private final static Color INFO_COLOR = new Color(255,255,255);
@@ -115,9 +119,19 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
                 drawRoadSegmentCars(gr,rs);
 
 
+
             drawInfo(gr);
         }
 
+    }
+
+    private void drawLaneLight(Graphics2D gr, Lane l) {
+        Line2D.Double line = lane_coords.get(l);
+        gr.drawOval(
+                (int)(line.x2 - (CAR_WIDTH / 2)),
+                (int)(line.y2 - (CAR_WIDTH / 2)),
+                (int)CAR_WIDTH,
+                (int)CAR_WIDTH);
     }
 
     private int car_count;
@@ -146,7 +160,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
                 drawRoadSegment(gr,rs);
         
 
-        for (Node n : map_nodes) 
+        for (Node n : map_nodes)
             drawNode(gr,n);
         
     }
@@ -301,20 +315,21 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         gr.drawString("Rendered cars: " + Integer.toString(car_count), 12, 12 + (line_height * i) + 2);
     }
 
-    private int drawLaneCars(Graphics2D gr, double length, List<Lane> lanes, int i) {
+    private int drawLaneContent(Graphics2D gr, double length, List<Lane> lanes, int i) {
 
         double dx,dy;
 
         double car_x1,car_y1,car_x2,car_y2;
+
+        double light_x1,light_y1,light_x2,light_y2;
+
+        double lightLength = Math.min(length,15.0);
 
         double car_start,car_end;
 
         Line2D.Double line;
 
         for (Lane l : lanes) {
-
-            if (!l.hasCars())
-                continue;
 
             line = lane_coords.get(l);
 
@@ -323,6 +338,22 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             dx = line.x2 - line.x1;
             dy = line.y2 - line.y1;
 
+
+            if (l.getEndNode().getNodeType() == Node.TRAFFICLIGHT_NODE && ((StupidTrafficLight)l.getEndNode()).getGreenLanes().contains(l)) {
+                gr.setColor(GREEN_LIGHT_COLOR);
+
+                light_x1 = line.x2 - ((lightLength / length) * dx);
+                light_x2 = line.x2;
+                light_y1 = line.y2 - ((lightLength / length) * dy);
+                light_y2 = line.y2;
+
+                gr.drawLine((int)light_x1,(int)light_y1,(int)light_x2,(int)light_y2);
+
+
+            }
+
+            if (!l.hasCars())
+                continue;
 
             Car c = l.getFirstCar();
             while (c != null) {
@@ -358,8 +389,8 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         int i = 0;
 
-        i = drawLaneCars(gr, length, r.getStartLanes(), i);
-        i = drawLaneCars(gr, length, r.getEndLanes(), i);
+        i = drawLaneContent(gr, length, r.getStartLanes(), i);
+        i = drawLaneContent(gr, length, r.getEndLanes(), i);
 
         
     }
@@ -370,13 +401,13 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         int x = (int)(ppm * (frame_bounds.getMaxX() - point.x));
         int y = (int)(ppm * (frame_bounds.getMaxY() - point.y));
 
-        int r = (int)(ppm * NODE_RADIUS);//n.getPriority()]);
+        int r = (int)(ppm * ((double)n.getIncomingLanes().size() * 2));//TODO: Fix this to have proper sizes
         
         int d = r*2;
 
         gr.setColor(NODE_COLOR);//n.getPriority()]);
-        gr.setStroke(new BasicStroke((int)(ppm * 1.0)));
-        gr.fillOval(x-r, y-r, d, d);
+        gr.setStroke(new BasicStroke((int)(ppm * NODE_STROKE_WIDTH)));
+        gr.drawOval(x-r, y-r, d, d);
     }
 
     public void mouseWheelMoved(MouseWheelEvent e) {
