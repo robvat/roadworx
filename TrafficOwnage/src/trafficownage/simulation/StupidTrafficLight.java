@@ -43,6 +43,12 @@ public class StupidTrafficLight extends Node {
             roadSegments.add(rs);
             trafficLights.put(rs, false);
         }
+
+        setNodeType(Node.TRAFFICLIGHT_NODE);
+    }
+
+    public List<Lane> getGreenLanes() {
+        return roadSegments.get(currentLight).getDestinationLanes(this);
     }
 
     @Override
@@ -52,7 +58,7 @@ public class StupidTrafficLight extends Node {
         if (l == null)
             return false;
         
-        RoadSegment rs = l.getRoadSegment();
+        RoadSegment rs = incoming.getLane().getRoadSegment();
 
         return trafficLights.get(rs) && l.acceptsCarAdd(incoming);
     }
