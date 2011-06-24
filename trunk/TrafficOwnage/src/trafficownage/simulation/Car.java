@@ -6,7 +6,9 @@ package trafficownage.simulation;
 
 import java.util.List;
 import java.util.Random;
+import trafficownage.util.Container;
 import trafficownage.util.Pair;
+import trafficownage.util.Triplet;
 
 /**
  *
@@ -32,6 +34,8 @@ public class Car
     private boolean updated = false; //if the car already changed lane, this is true
     private boolean courtesy = false; //In courtesy mode => braking
     private Car courtesyCar; // The car that send the request needs to be checked
+
+    private Container container;
 
     private class IDM implements DriverModel
     {
@@ -103,9 +107,18 @@ public class Car
         return driver_type;
     }
 
+    public void setContainer(Container container) {
+        this.container = container;
+    }
+
+    public Container getContainer() {
+        return container;
+    }
+
     public void switchLane(Lane lane)
     {
         this.currentLane = lane;
+        nextLane = null;
     }
 
     public void setLane(Lane lane)
@@ -116,12 +129,12 @@ public class Car
 
         route.determineNext();
 
-        this.max_velocity = Math.min(Math.min((double) car_type.getMaxV(), (double) driver_type.getMaxVelocity()), lane.getMaxSpeed());
+        setMaxVelocity(Math.min(Math.min((double) car_type.getMaxV(), (double) driver_type.getMaxVelocity()), lane.getMaxSpeed()));
 
-        this.position = car_type.getLength();
-        this.position_threshold = lane.getLength() - DISTANCE_THRESHOLD + getLength();
-
-        driver_model.setMaxVelocity(max_velocity);
+        this.position = 0.0;//car_type.getLength();
+        this.position_threshold = lane.getLength() - DISTANCE_THRESHOLD;// + getLength();
+        
+        nextLane = null;
     }
 
     public double getDistanceToLaneEnd()
@@ -237,7 +250,6 @@ public class Car
     {
 
         private Node nextNode = null;
-        private Lane nextLane = null;
         private Node firstNode = null;
         private boolean endOfRoute;
         private Random randy;
@@ -257,7 +269,6 @@ public class Car
             List<Node> destinationNodes = currentNode.getDestinationNodes();
 
             nextNode = null;
-            nextLane = null;
 
             if (destinationNodes.isEmpty() || (destinationNodes.size() == 1 && destinationNodes.get(0) == previousNode))
             {
@@ -266,7 +277,6 @@ public class Car
             } else {
                 while (nextNode == null || (previousNode != null && nextNode == previousNode) || nextNode instanceof SpawnNode) {
                     nextNode = destinationNodes.get(randy.nextInt(destinationNodes.size()));
-                    nextLane = currentNode.getRoadSegment(nextNode).getStartLanes().get(0);
                 }
             }
         }
@@ -283,13 +293,8 @@ public class Car
             return nextNode;
         }
 
-        public Lane getNextLane()
-        {
-            //determineNext();
-
-            return nextLane;
-        }
     }
+
 
     public void setPosition(double position)
     {
@@ -299,6 +304,30 @@ public class Car
     private static final double VERY_LONG_DISTANCE = 100000.0;
     //TODO: change the view distance into a driver property
 
+    public Lane getNextLane() {
+        return nextLane;
+    }
+
+    private Lane nextLane;
+    private void determineNextLane() {
+        nextLane = null;
+
+        List<Lane> lanes = currentNode.getRoadSegment(route.getNextNode()).getSourceLanes(currentNode);
+
+        Lane mapped = currentNode.getLaneMapping(currentLane);
+
+        if (mapped != null && lanes.contains(mapped) && mapped.acceptsCarAdd(this)) {
+            nextLane = mapped;
+            return;
+        }
+        
+        for (Lane l : lanes) {
+            if (l.acceptsCarAdd(this)) {
+                nextLane = l;
+                return;
+            }
+        }        
+    }
     /**
      * Updates the car position and velocity
      * @param dT
@@ -310,58 +339,61 @@ public class Car
 
         in_queue = false; //every time we look if this is still the case. Normally, this is turned off.
 
-        Lane nextLane = route.getNextLane();
+        //find out where, so which lane, we are intending to join
+        if (!route.isEndOfRoute() && (nextLane == null || !nextLane.acceptsCarAdd(this)))
+            determineNextLane();
+        
+
         Car nextCar = getCarInFront();
+        
         boolean drivethrough = currentNode.drivethrough(this);
-        double distance = getDistanceToLaneEnd();
+
+        double distance = Math.max(0.0, getDistanceToLaneEnd());
 
         double distanceToNextCar = 0.0;
 
+
         if (nextCar != null)
         {
+            distanceToNextCar = nextCar.getBack() - getFront();
 
-            distanceToNextCar = nextCar.getBack() - getPosition();
+            if (distanceToNextCar < 0.0) {
+                distanceToNextCar = 0.0;
+                System.err.println("SAY WHAT?!?!?");
+            }
 
-        } else if (nextCar == null && position > position_threshold)
+        } else if (
+                nextCar == null &&
+                distance < VIEW_DISTANCE &&
+                drivethrough &&
+                !route.isEndOfRoute() &&
+                nextLane != null &&
+                nextLane.hasCars() &&
+                (distance + nextLane.getLastCar().getBack()) < VIEW_DISTANCE
+                )
         {
-            if (route.isEndOfRoute())
-            {
-                System.out.println(this.toString() + " arrived.");
-            } else
-            {
-                currentNode.acceptCar(this);
-            }
-
-        } else if (nextCar == null)
-        {
-            //if there is a car in front, we already have a next car.
-
-            //if the distance to the lane end is farther away than the driver can look, no car is in front
-            if (distance >= VIEW_DISTANCE)
-            {
-                nextCar = null;
-            } else if (drivethrough && !route.isEndOfRoute() && nextLane.hasCars() && (distance + nextLane.getLastCar().getBack()) < VIEW_DISTANCE)
-            {
-                nextCar = nextLane.getLastCar();
-            }
-
-            if (nextCar != null)
-            {
-                distanceToNextCar = distance + nextLane.getLastCar().getBack();
-            }
-
+            nextCar = nextLane.getLastCar();
+            distanceToNextCar = distance + nextCar.getBack();            
         }
+
+
+        int method = -1;
+        double p_before = position;
+        
         if (!this.laneChanging(nextCar, distanceToNextCar)) {
 
             if (nextCar != null)
             {
-                follow(timestep, nextCar.getVelocity(), Math.max(0.0, distanceToNextCar));
+                follow(timestep, nextCar.getVelocity(), distanceToNextCar);
+                method = 0;
             } else if (drivethrough)
             {
                 follow(timestep, currentLane.getMaxSpeed(), VERY_LONG_DISTANCE);
+                method = 1;
             } else
             {
                 follow(timestep, 0.0, distance);
+                method = 2;
             }
 
             if (((getCarInFront() != null && getCarInFront().isInQueue()) || getCarInFront() == null) && velocity < VELOCITY_THRESHOLD)
@@ -370,10 +402,28 @@ public class Car
             }
         }
 
+        if (position > position_threshold)
+        {
+            if (getCarInFront() != null)
+                System.err.println("Car is over the line but not first. What is wrong?");
+            
+            if (route.isEndOfRoute())
+            {
+                currentLane.removeCar(this);
+                System.out.println(this.toString() + " arrived.");
+            } else
+            {
+                currentNode.acceptCar(this);
+            }
+
+        } else if (nextCar != null && position > position_threshold) {
+            System.err.println("The car in front of this car should not be there.");
+        }
+
         updated = true;
     }
 
-    private final static double DISTANCE_THRESHOLD = 2.0;
+    private final static double DISTANCE_THRESHOLD = 0.0;
     private final static double VELOCITY_THRESHOLD = 0.1;
 
     private void follow(double timestep, double leaderVelocity, double distanceToLeader)
@@ -383,27 +433,16 @@ public class Car
         position += velocity * timestep;
     }
 
-    private Car carInFront, carBehind;
+    public Car getCarBehind()
+    {
+        return container.getNext().getCar();
+    }
 
     public Car getCarInFront()
     {
-        return carInFront;
+        return container.getPrevious().getCar();
     }
 
-    public Car getCarBehind()
-    {
-        return carBehind;
-    }
-
-    public void setCarInFront(Car nextCar)
-    {
-        this.carInFront = nextCar;
-    }
-
-    public void setCarBehind(Car previousCar)
-    {
-        this.carBehind = previousCar;
-    }
     public static final int UNNECESSARY = 0, DESIRABLE = 1, ESSENTIAL = 2;
 
     private boolean laneChanging(Car nextCar, double distanceToNextCar)
@@ -485,7 +524,7 @@ public class Car
         //queue advantage
         Lane left = leftLane;
 
-        if (!isInQueue() && getCarInFront() != null && getCarInFront().getVelocity() < .5 && (getCarInFront().getBack() - getFront()) < 10)
+        if (!isInQueue() && getCarInFront() != null && getCarInFront().getVelocity() < 2.0 && (getCarInFront().getBack() - getFront()) < 6.0)
         {
 //            System.out.println("ME!: " + this.toString() + " FRONT: " + getCarInFront().toString());
             // there is a queue
@@ -494,9 +533,9 @@ public class Car
                 left = null;
 
             //same for the lane left of you
-            if (left != null && (left.getQueueLength() + getLength() + 2) < currentLane.getQueueLength())
+            if (left != null && (left.getQueueLength() + getLength()) < currentLane.getQueueLength())
             {
-                System.out.println("Left: " + Double.toString(left.getQueueLength() + getLength() + 2) + " < " + "Current: " + Double.toString(currentLane.getQueueLength()));
+                //System.out.println("Left: " + Double.toString(left.getQueueLength() + getLength() + 2) + " < " + "Current: " + Double.toString(currentLane.getQueueLength()));
                 importance[2] = DESIRABLE;
                 desiredLane = left;
                 done = false;
@@ -504,14 +543,14 @@ public class Car
         }
 
         //going back
-//        if (right != null)
-//        {
-//            if (rightLane.getAllowedDirections().contains(this.getNextNode()))
-//            {
-//                importance[3] = DESIRABLE;
-//                done = false;
-//            }
-//        }
+        if (rightLane != null)
+        {
+            if (rightLane.getAllowedDirections().contains(this.getNextNode()))
+            {
+                importance[3] = DESIRABLE;
+                done = false;
+            }
+        }
 
         // if lane changing is unnecessary for everything: stop
         if (done)
@@ -564,42 +603,54 @@ public class Car
         }
 
 
-        //check if the lane change is physically possible
+        Triplet<Boolean,Car,Car> laneChangeParameters = desiredLane.acceptsCarInsert(this);
+
+        //check if the l ane change is physically possible
         //find the cars in front of you and behind you on the changedLane
-        Car carInFront = null;
-        double carInFrontDistance = Double.MAX_VALUE;
-        Car carBehind = null;
-        double carBehindDistance = Double.MAX_VALUE;
+//        Car carInFront = null;
+//        double carInFrontDistance = Double.MAX_VALUE;
+//        Car carBehind = null;
+//        double carBehindDistance = Double.MAX_VALUE;
+//
+//        double tmp;
+//
+//        if (desiredLane.hasCars())
+//        {
+//            Car otherCar = desiredLane.getFirstCar();
+//
+//            while (otherCar != null) {
+//                 tmp = otherCar.getBack() - getFront();
+//
+//                if (tmp > 0.0 && tmp < carInFrontDistance) {
+//                    carInFront = otherCar;
+//                    carInFrontDistance = tmp;
+//                }
+//
+//                tmp = getBack() - otherCar.getFront();
+//
+//                if (tmp > 0.0 && tmp < carBehindDistance) {
+//                    carBehind = otherCar;
+//                    carBehindDistance = tmp;
+//                }
+//
+//                otherCar = otherCar.getCarBehind();
+//            }
+//        }
 
-        double tmp;
-        if (desiredLane.hasCars())
-        {
-            List<Car> cars = desiredLane.getCars();
+        Car carInFront = laneChangeParameters.getObject2();
+        Car carBehind = laneChangeParameters.getObject3();
 
-            for (Car otherCar : cars) {
-                 tmp = otherCar.getBack() - getFront();
-
-                if (tmp > 0.0 && tmp < carInFrontDistance) {
-                    carInFront = otherCar;
-                    carInFrontDistance = tmp;
-                }
-
-                tmp = getBack() - otherCar.getFront();
-
-                if (tmp > 0.0 && tmp < carBehindDistance) {
-                    carBehind = otherCar;
-                    carBehindDistance = tmp;
-                }
-            }
-        }
+        if (!laneChangeParameters.getObject1())
+            return false;
 
         if (carInFront == null && carBehind == null)
         {
             //change lane :D
+
             return changeLane(desiredLane, carInFront, carBehind);
         } else if (carBehind == null)
         {
-            double timeUntilCrashWithCarF = ((carInFront.getBack() - this.getFront()) + 2) / (this.getVelocity() - carInFront.getVelocity());
+            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront()) / (this.getVelocity() - carInFront.getVelocity());
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
             if (carInFront.getBack() < this.getFront() && importance[0] != ESSENTIAL)
@@ -618,7 +669,7 @@ public class Car
             }
         } else if (carInFront == null)
         {
-            double timeUntilCrashWithMe = ((this.getBack() - carBehind.getFront()) + 2) / (carBehind.getVelocity() - this.getVelocity());
+            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront()) / (carBehind.getVelocity() - this.getVelocity());
             double decceleratedVelocity2 = timeUntilCrashWithMe * carBehind.getDriverType().getMaxComfortableDeceleration();
 
             if (carBehind.getFront() > this.getBack() && importance[0] != ESSENTIAL)
@@ -637,10 +688,10 @@ public class Car
             }
         } else
         {
-            double timeUntilCrashWithCarF = ((carInFront.getBack() - this.getFront()) + 2) / (this.getVelocity() - carInFront.getVelocity());
+            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront()) / (this.getVelocity() - carInFront.getVelocity());
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
-            double timeUntilCrashWithMe = ((this.getBack() - carBehind.getFront()) + 2) / (carBehind.getVelocity() - this.getVelocity());
+            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront()) / (carBehind.getVelocity() - this.getVelocity());
             double decceleratedVelocity2 = timeUntilCrashWithMe * carBehind.getDriverType().getMaxComfortableDeceleration();
 
             //check that they aren't overlapping you
@@ -665,12 +716,19 @@ public class Car
         }
     }
 
-    private boolean changeLane(Lane changeLane, Car carFront, Car carBack)
-    {        
-        changeLane.insertCar(this, carFront, carBack);
-        this.updated = true;
+    private boolean changeLane(Lane changeLane, Car carInFront, Car carBehind)
+    {
+        if (carInFront != null)
+            changeLane.insertCarAfter(carInFront, this);
+        else if (carBehind != null)
+            changeLane.insertCarBefore(carBehind, this);
+        else
+            changeLane.insertCar(this);
+
         return true;
     }
+
+    
 
     public boolean sendCourtesyRequest(Car car)
     {

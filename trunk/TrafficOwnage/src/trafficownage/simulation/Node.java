@@ -64,11 +64,11 @@ public abstract class Node
         RoadSegment segment1;
         RoadSegment segment2;
 
-        for (Node n1 : getDestinationNodes()) {
+        for (Node n1 : getNeighbourNodes()) {
 
             segment1 = getRoadSegment(n1);
 
-            for (Node n2 : getDestinationNodes()) {
+            for (Node n2 : getNeighbourNodes()) {
 
                 if (n1 == n2)
                     continue;
@@ -246,6 +246,7 @@ public abstract class Node
 
     }
 
+
     /* incoming cars need to know wether to brake or continue driving */
     abstract boolean drivethrough(Car incoming);
     /* TODO: crossroads without lights need drivers to check so drivers
@@ -271,7 +272,7 @@ public abstract class Node
             List<Lane> lanes = rs.getSourceLanes(this);
 
             for (Lane l : lanes) {
-                if (l.acceptsCar(car)) {
+                if (l.acceptsCarAdd(car)) {
                     l.addCar(car);
                     spawnCars.remove(car);
                     i--;

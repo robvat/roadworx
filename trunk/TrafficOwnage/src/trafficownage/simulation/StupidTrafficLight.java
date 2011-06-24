@@ -29,6 +29,8 @@ public class StupidTrafficLight extends Node {
 
     @Override
     public void init() {
+        super.init();
+
         trafficLights = new HashMap<RoadSegment,Boolean>();
         roadSegments = new ArrayList<RoadSegment>();
         currentLight = 0;
@@ -45,26 +47,22 @@ public class StupidTrafficLight extends Node {
 
     @Override
     boolean drivethrough(Car incoming) {
-
-        Lane l = getRoadSegment(incoming.getNextNode()).getSourceLanes(this).get(0);
-
-        RoadSegment rs = incoming.getLane().getRoadSegment();
-
-        return trafficLights.get(rs) && l.acceptsCar(incoming);
+        Lane l = incoming.getNextLane();
         
+        if (l == null)
+            return false;
+        
+        RoadSegment rs = l.getRoadSegment();
+
+        return trafficLights.get(rs) && l.acceptsCarAdd(incoming);
     }
 
     @Override
     void acceptCar(Car incoming) {
+        if (incoming.getNextLane() == null || !incoming.getNextLane().acceptsCarAdd(incoming))
+            System.err.println("Car did not check correctly if it could join a lane.");
 
-        Node n = incoming.getNextNode();
-
-        Lane mapped = getLaneMapping(incoming.getLane());
-
-        if (mapped != null && (mapped.getRoadSegment().getStartNode() == n || mapped.getRoadSegment().getEndNode() == n))
-            mapped.addCar(incoming);
-        else
-            getRoadSegment(n).getSourceLanes(this).get(0).addCar(incoming);
+        incoming.getNextLane().addCar(incoming);
 
     }
 

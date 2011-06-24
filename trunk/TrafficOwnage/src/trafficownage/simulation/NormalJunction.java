@@ -39,12 +39,12 @@ public class NormalJunction extends Node {
 
             Lane lane = getLaneMapping(incomingLane);
 
-            if (lane == null || !(lane.getRoadSegment().getStartNode() == this || lane.getRoadSegment().getEndNode() == this && lane.acceptsCar(incoming))) {
+            if (lane == null || !(lane.getRoadSegment().getStartNode() == this || lane.getRoadSegment().getEndNode() == this && lane.acceptsCarAdd(incoming))) {
                 lane = getRoadSegment(destination).getSourceLanes(this).get(0);
             }
 
 
-            if (lane != null && lane.acceptsCar(incoming))
+            if (lane != null && lane.acceptsCarAdd(incoming))
                 return true;
             else
                 return false;
