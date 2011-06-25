@@ -35,6 +35,7 @@ import trafficownage.simulation.Node;
 import trafficownage.simulation.Road;
 import trafficownage.simulation.RoadSegment;
 import trafficownage.simulation.StupidTrafficLight;
+import trafficownage.simulation.TrafficLightInterface;
 
 /**
  *
@@ -346,7 +347,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             dy = line.y2 - line.y1;
 
 
-            if (l.getEndNode().getNodeType() == Node.TRAFFICLIGHT_NODE && ((StupidTrafficLight)l.getEndNode()).getGreenLanes().contains(l)) {
+            if (l.getEndNode().getNodeType() == Node.TRAFFICLIGHT_NODE && ((TrafficLightInterface)l.getEndNode()).getGreenLanes().contains(l)) {
                 gr.setColor(GREEN_LIGHT_COLOR);
 
                 light_x1 = line.x2 - (lightLength * dx);

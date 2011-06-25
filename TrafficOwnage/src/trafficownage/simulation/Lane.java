@@ -42,8 +42,8 @@ public class Lane {
         this.leftNeighbour = leftNeighbour;
     }
 
-    public void setRightNeighbour(Lane leftNeighbour) {
-        this.leftNeighbour = leftNeighbour;
+    public void setRightNeighbour(Lane rightNeighbour) {
+        this.rightNeighbour = rightNeighbour;
     }
 
     /**

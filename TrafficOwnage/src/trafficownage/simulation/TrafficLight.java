@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author Gerrit
  */
-public class TrafficLight extends Node {
+public class TrafficLight extends Node implements TrafficLightInterface {
 
     private HashMap<RoadSegment,Boolean> trafficLights;
     private List<RoadSegment> roadSegments;
@@ -27,6 +27,8 @@ public class TrafficLight extends Node {
 
     @Override
     public void init() {
+        super.init();
+
         trafficLights = new HashMap<RoadSegment,Boolean>();
         roadSegments = new ArrayList<RoadSegment>();
         currentLight = 0;
@@ -39,12 +41,20 @@ public class TrafficLight extends Node {
             roadSegments.add(rs);
             trafficLights.put(rs, false);
         }
+
+        setNodeType(Node.TRAFFICLIGHT_NODE);
+    }
+    
+    public List<Lane> getGreenLanes() {
+        return roadSegments.get(currentLight).getDestinationLanes(this);
     }
 
     @Override
     boolean drivethrough(Car incoming) {
+        Lane l = incoming.getNextLane();
 
-        Lane l = getRoadSegment(incoming.getNextNode()).getSourceLanes(this).get(0);
+        if (l == null)
+            return false;
 
         RoadSegment rs = incoming.getLane().getRoadSegment();
 
@@ -54,15 +64,10 @@ public class TrafficLight extends Node {
 
     @Override
     void acceptCar(Car incoming) {
-        Node n = incoming.getNextNode();
+        if (incoming.getNextLane() == null || !incoming.getNextLane().acceptsCarAdd(incoming))
+            System.err.println("Car did not check correctly if it could join a lane.");
 
-        Lane mapped = getLaneMapping(incoming.getLane());
-
-        if (mapped != null && (mapped.getRoadSegment().getStartNode() == n || mapped.getRoadSegment().getEndNode() == n))
-            mapped.addCar(incoming);
-        else
-            getRoadSegment(n).getSourceLanes(this).get(0).addCar(incoming);
-
+        incoming.getNextLane().addCar(incoming);
     }
 
     private int getLongestQueueCount(RoadSegment rs) {
@@ -82,7 +87,7 @@ public class TrafficLight extends Node {
         if (timePassed > trafficLightInterval) {
         	
         	//gets the lane with the longest Qcount in the next avtive road segment.
-            int tmp,max = 0;
+            int tmp,max = -1;
             
             int newLight = currentLight;
             
@@ -99,7 +104,7 @@ public class TrafficLight extends Node {
             	}
             	
             	i = (i + 1) % roadSegments.size();
-            }              
+            }            
 
             trafficLightInterval = 3 * max;//3 seconds for each car can change after with physics formulas..            
         	
