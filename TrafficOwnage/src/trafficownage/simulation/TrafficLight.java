@@ -19,6 +19,7 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     private List<RoadSegment> roadSegments;
     private double trafficLightInterval;
     private int activeLight = 0;
+
     private double timePassed;
 
     public TrafficLight(Point2D.Double location) {
@@ -32,6 +33,7 @@ public class TrafficLight extends Node implements TrafficLightInterface {
         trafficLights = new HashMap<RoadSegment,Boolean>();
         roadSegments = new ArrayList<RoadSegment>();
         activeLight = 0;
+        accepted = 0;
         timePassed = 0.0;
 
         RoadSegment rs;
@@ -62,12 +64,22 @@ public class TrafficLight extends Node implements TrafficLightInterface {
         
     }
 
+    private int accepted;
+
     @Override
     void acceptCar(Car incoming) {
+        accepted++;
+
         if (incoming.getNextLane() == null || !incoming.getNextLane().acceptsCarAdd(incoming))
             System.err.println("Car did not check correctly if it could join a lane.");
 
         incoming.getNextLane().addCar(incoming);
+    }
+
+    public int pollAcceptedCars() {
+        int temp = accepted;
+        accepted = 0;
+        return temp;
     }
 
     private int getLongestQueueCount(RoadSegment rs) {

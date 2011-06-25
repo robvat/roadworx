@@ -26,7 +26,6 @@ import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javax.swing.JComponent;
 import trafficownage.simulation.Car;
 import trafficownage.simulation.Lane;
@@ -34,7 +33,6 @@ import trafficownage.simulation.MainLoop;
 import trafficownage.simulation.Node;
 import trafficownage.simulation.Road;
 import trafficownage.simulation.RoadSegment;
-import trafficownage.simulation.StupidTrafficLight;
 import trafficownage.simulation.TrafficLightInterface;
 
 /**
@@ -115,8 +113,6 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         synchronized(mainLoop.getSyncObject()) {
             gr.drawImage(back_layer,0,0,null);
 
-            car_count = 0;
-
             gr.setStroke(new BasicStroke((int)(ppm * CAR_WIDTH),BasicStroke.CAP_BUTT,BasicStroke.JOIN_BEVEL));
 
             for (Road r : map_roads)
@@ -142,8 +138,6 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
                 (int)CAR_WIDTH,
                 (int)CAR_WIDTH);
     }
-
-    private int car_count;
 
     private void drawMap() {
         map_invalid = false;
@@ -298,16 +292,11 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         int i = 0;
 
-        String cars = "Rendered cars: " + Integer.toString(car_count);
-
         if (selected_car != null) {
             String acc = "a: " + twoDForm.format(selected_car.getAcceleration()) + " m/s^2";
             String vel_kph = "v(km/h): " + twoDForm.format(selected_car.getVelocity() * 3.6) + " km/h";
             String vel_ms = "v(m/s): " + twoDForm.format(selected_car.getVelocity()) + " m/s";
             String pos = "p: " + twoDForm.format(selected_car.getPosition()) + "m";
-            drawText(gr,acc,vel_kph,vel_ms,pos,cars);
-        } else {
-            drawText(gr,cars);
         } 
     }
 
@@ -354,8 +343,6 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
             dx = line.x2 - line.x1;
             dy = line.y2 - line.y1;
-
-            car_count += l.getCarCount();
 
             if (drawMode == DRAW_CARS) {
 
