@@ -32,7 +32,7 @@ public class Car
     private double position;
     private double position_threshold;
     private boolean updated = false; //if the car already changed lane, this is true
-    private boolean courtesy = false; //In courtesy mode => braking
+    private boolean courtesy = false; // In courtesy mode => braking
     private Car courtesyCar; // The car that send the request needs to be checked
 
     private Container container;
@@ -56,11 +56,6 @@ public class Car
 
         public double update(double velocity_leader, double distance_to_leader)
         {
-
-            if (courtesy)
-            {
-                return (-b); // Brakes as hard as Comfortable :)
-            }
             desired_distance = s0 + (velocity * T) + ((velocity * Math.abs(velocity_leader - velocity)) / (2 * Math.sqrt(a * b)));
 
             return a * (1 - Math.pow((velocity / v0), 4.0) - Math.pow(desired_distance / distance_to_leader, 2.0));
@@ -336,6 +331,8 @@ public class Car
      */
     public void update(double timestep)
     {
+        if(courtesy)
+            checkPassage();
 
         in_queue = false; //every time we look if this is still the case. Normally, this is turned off.
 
@@ -428,7 +425,17 @@ public class Car
 
     private void follow(double timestep, double leaderVelocity, double distanceToLeader)
     {
-        acceleration = driver_model.update(leaderVelocity, distanceToLeader);
+        if(courtesy)
+        {
+            if(this.getVelocity() > 0.05)
+                acceleration = (-driver_type.getMaxComfortableDeceleration());
+            else
+                acceleration = 0;
+        }
+        else
+        {
+            acceleration = driver_model.update(leaderVelocity, distanceToLeader);
+        }
         velocity = Math.max(0.0, velocity + (acceleration * timestep));
         position += velocity * timestep;
     }
@@ -703,6 +710,8 @@ public class Car
         already = car.startCourtesy(this);
         // now he MUST go that way or something will go wrong!!!
         System.out.println("Courtesy, gimme some room plox");
+        if(already)
+            System.out.println("HondeLULLEN! He was already givvin sum!");
         return true;
     }
 
@@ -739,6 +748,8 @@ public class Car
      */
     private boolean checkPassage()
     {
+        if(courtesyCar == null)
+            System.err.println("No car here to provide this courtesy for");
         if (courtesyCar.getPosition() < this.getPosition())
         {
             this.endCourtesy(); // You passed the requester
