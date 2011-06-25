@@ -94,8 +94,8 @@ public class NormalJunction extends Node {
     }
 
     @Override
-    public void init() {
-        super.init();
+    public void init(NodeListener listener) {
+        super.init(listener);
 
         lane_passthrough = new HashMap<Lane,Boolean>();
     }

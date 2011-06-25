@@ -28,8 +28,8 @@ public class SpawnNode extends Node {
     }
 
     @Override
-    public void init() {
-        super.init();
+    public void init(NodeListener listener) {
+        super.init(listener);
 
         RoadSegment rs;
 
