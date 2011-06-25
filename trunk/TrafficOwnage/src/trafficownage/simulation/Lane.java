@@ -252,6 +252,8 @@ public class Lane {
 
         boolean queue = true;
 
+        queueLength = 0.0;
+        queueCount = 0;
 
         while (car != null) {
             nextCar = car.getCarBehind();
