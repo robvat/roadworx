@@ -20,13 +20,15 @@ public class Car
     private CarType car_type;
     private DriverType driver_type;
     private Route route;
-    private boolean in_queue = false;
-    private DriverModel driver_model;
+    private boolean inQueue = false;
+    private DriverModel driverModel;
     private Node previousNode;
     private Lane currentLane;
     private Node currentNode;
     private int position_coefficient;
-    private double max_velocity;
+    private double maxCarVelocity;
+    private double maxLaneVelocity;
+    private double currentMaxVelocity;
     private double velocity;
     private double acceleration;
     private double position;
@@ -37,20 +39,19 @@ public class Car
 
     private Container container;
 
-    private class IDM implements DriverModel
+    private class DriverModel
     {
 
         private double a, b, v0, s0, T;
 
-        public void init(DriverType driver, CarType car, double initial_max_velocity)
+        public void init(DriverType driver, CarType car)
         {
             a = Math.min(driver.getMaxAcceleration(), car.getMaxAcceleration());
             b = driver.getMaxComfortableDeceleration();
-            v0 = initial_max_velocity;
             s0 = driver.getMinimumDistanceToLeader();
             T = driver.getDesiredTimeHeadway();
 
-            in_queue = false;
+            inQueue = false;
         }
         private double desired_distance;
 
@@ -62,9 +63,9 @@ public class Car
 
         }
 
-        public void setMaxVelocity(double max_velocity)
+        public void setMaxVelocity(double maxVelocity)
         {
-            v0 = max_velocity;
+            v0 = maxVelocity;
         }
 
         public double getMinimumDistanceToLeader()
@@ -80,7 +81,7 @@ public class Car
      */
     public Car()
     {
-        driver_model = new IDM();
+        driverModel = new DriverModel();
     }
 
     /**
@@ -90,12 +91,20 @@ public class Car
      */
     public void init(CarType carType, DriverType driverType)
     {
+        maxCarVelocity = Math.min(carType.getMaxVelocity(), driverType.getMaxVelocity());
+
         this.car_type = carType;
         this.driver_type = driverType;
-        driver_model.init(driverType, carType, max_velocity);
-        route = new Route();
+        driverModel.init(driverType, carType);
+        //route = new Route();
 
     }
+    
+    public void setRoute(Route route) {
+        this.route = route;
+    }
+
+
 
     public DriverType getDriverType()
     {
@@ -122,9 +131,9 @@ public class Car
         this.previousNode = lane.getStartNode();
         this.currentNode = lane.getEndNode();
 
-        route.determineNext();
+        route.determineNext(currentNode);
 
-        setMaxVelocity(Math.min(Math.min((double) car_type.getMaxV(), (double) driver_type.getMaxVelocity()), lane.getMaxSpeed()));
+        setMaxLaneVelocity(lane.getMaxVelocity());
 
         this.position = 0.0;//car_type.getLength();
         this.position_threshold = lane.getLength() - DISTANCE_THRESHOLD;// + getLength();
@@ -137,20 +146,25 @@ public class Car
         return currentLane.getLength() - position;
     }
 
+    public double getMaxVelocity() {
+        return maxCarVelocity;
+    }
+
     /**
      * Sets the maximum allowed velocity.
      * @param max_velocity
      */
-    public void setMaxVelocity(double max_velocity)
+    public void setMaxLaneVelocity(double maxLaneVelocity)
     {
-        this.max_velocity = max_velocity;
+        this.maxLaneVelocity = maxLaneVelocity;
+        this.currentMaxVelocity = Math.min(maxLaneVelocity,maxCarVelocity);
 
-        driver_model.setMaxVelocity(max_velocity);
+        driverModel.setMaxVelocity(currentMaxVelocity);
     }
 
     public DriverModel getDriverModel()
     {
-        return driver_model;
+        return driverModel;
     }
 
     /**
@@ -199,12 +213,12 @@ public class Car
 
     public void putInQueue(boolean in_queue)
     {
-        this.in_queue = in_queue;
+        this.inQueue = in_queue;
     }
 
     public boolean isInQueue()
     {
-        return in_queue;
+        return inQueue;
     }
 
     public Node getPreviousNode()
@@ -217,9 +231,9 @@ public class Car
         return currentLane;
     }
 
-    public Node getFirstNode() {
-        return route.getFirstNode();
-    }
+//    public Node getFirstNode() {
+//        return route.getFirstNode();
+//    }
 
     public Node getCurrentNode() {
         return currentNode;
@@ -241,54 +255,7 @@ public class Car
         return position_coefficient;
     }
 
-    private class Route
-    {
-
-        private Node nextNode = null;
-        private Node firstNode = null;
-        private boolean endOfRoute;
-        private Random randy;
-
-        public Route()
-        {
-            randy = new Random();
-            endOfRoute = false;
-        }
-
-        public Node getFirstNode() {
-            return firstNode;
-        }
-
-        public void determineNext() {
-
-            List<Node> destinationNodes = currentNode.getDestinationNodes();
-
-            nextNode = null;
-
-            if (destinationNodes.isEmpty() || (destinationNodes.size() == 1 && destinationNodes.get(0) == previousNode))
-            {
-                endOfRoute = true;
-
-            } else {
-                while (nextNode == null || (previousNode != null && nextNode == previousNode) || nextNode instanceof SpawnNode) {
-                    nextNode = destinationNodes.get(randy.nextInt(destinationNodes.size()));
-                }
-            }
-        }
-
-        public boolean isEndOfRoute()
-        {
-            return endOfRoute;
-        }
-
-        public Node getNextNode()
-        {
-            //determineNext();
-
-            return nextNode;
-        }
-
-    }
+    
 
 
     public void setPosition(double position)
@@ -334,7 +301,7 @@ public class Car
         if(courtesy)
             checkPassage();
 
-        in_queue = false; //every time we look if this is still the case. Normally, this is turned off.
+        inQueue = false; //every time we look if this is still the case. Normally, this is turned off.
 
         //find out where, so which lane, we are intending to join
         if (!route.isEndOfRoute() && (nextLane == null || !nextLane.acceptsCarAdd(this)))
@@ -353,11 +320,6 @@ public class Car
         if (nextCar != null)
         {
             distanceToNextCar = nextCar.getBack() - getFront();
-
-            if (distanceToNextCar < 0.0) {
-                distanceToNextCar = 0.0;
-                System.err.println("SAY WHAT?!?!?");
-            }
 
         } else if (
                 nextCar == null &&
@@ -385,7 +347,7 @@ public class Car
                 method = 0;
             } else if (drivethrough)
             {
-                follow(timestep, currentLane.getMaxSpeed(), VERY_LONG_DISTANCE);
+                follow(timestep, currentLane.getMaxVelocity(), VERY_LONG_DISTANCE);
                 method = 1;
             } else
             {
@@ -395,24 +357,18 @@ public class Car
 
             if (((getCarInFront() != null && getCarInFront().isInQueue()) || getCarInFront() == null) && velocity < VELOCITY_THRESHOLD)
             {
-                in_queue = true;
+                if (route.isEndOfRoute()) {
+                    System.out.println("Car arrived at its destination.");
+                    currentLane.removeCar(this);
+                } else {
+                    inQueue = true;
+                }
             }
         }
 
         if (position > position_threshold)
         {
-            if (getCarInFront() != null)
-                System.err.println("Car is over the line but not first. What is wrong?");
-            
-            if (route.isEndOfRoute())
-            {
-                currentLane.removeCar(this);
-                System.out.println(this.toString() + " arrived.");
-            } else
-            {
-                currentNode.acceptCar(this);
-            }
-
+            currentNode.acceptCar(this);
         } else if (nextCar != null && position > position_threshold) {
             System.err.println("The car in front of this car should not be there.");
         }
@@ -434,7 +390,7 @@ public class Car
         }
         else
         {
-            acceleration = driver_model.update(leaderVelocity, distanceToLeader);
+            acceleration = driverModel.update(leaderVelocity, distanceToLeader);
         }
         velocity = Math.max(0.0, velocity + (acceleration * timestep));
         position += velocity * timestep;

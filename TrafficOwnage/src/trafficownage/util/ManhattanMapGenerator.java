@@ -206,7 +206,7 @@ public class ManhattanMapGenerator {
             for (Pair<Node,Node> pair : verticalAvenue) {
 
                 if (v % mainRoadInterval == 0) {
-                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
+                    rs = new RoadSegment(r, 120.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
 //                    rs.addLeftStartLane(2, false);

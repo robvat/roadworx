@@ -31,7 +31,7 @@ public class Pathfinding {
         //Choose a node and set up H
         //depending on the player we start move in the x or y direction
         start_node.g = 0;
-        start_node.h = start_node.getLocation().distance(end_node.getLocation());
+        start_node.h = start_node.getLocation().distance(end_node.getLocation()) / car.getMaxVelocity();
         //Set up F
         start_node.f = start_node.h + start_node.g;
 
@@ -58,7 +58,7 @@ public class Pathfinding {
                 Node n = end_node;
 
                 while (n != start_node) {
-                    solution.add(n);
+                    solution.add(0,n);
                     n = n.parent;
                 }
 
@@ -72,7 +72,8 @@ public class Pathfinding {
                     if (!closednodes.contains(n)) {
                         //IF NOT ON THE OPEN LIST, PUT IT THERE
                         rs = cur_node.getRoadSegment(n);
-                        nodecost = cur_node.g + (rs.getLength() + rs.getMaxSpeed());
+                        
+                        nodecost = cur_node.g + (rs.getLength() / Math.min(car.getMaxVelocity(),rs.getMaxVelocity()));
 
                         if (!opennodes.contains(n)) {
 
@@ -80,7 +81,7 @@ public class Pathfinding {
 
                             n.g = nodecost;
 
-                            n.h = n.getLocation().distance(end_node.getLocation());
+                            n.h = n.getLocation().distance(end_node.getLocation()) / car.getMaxVelocity();
 
                             n.f = n.g + n.h;
 

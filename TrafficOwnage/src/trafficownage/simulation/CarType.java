@@ -5,6 +5,8 @@
 
 package trafficownage.simulation;
 
+import java.util.Random;
+
 /**
  *
  * @author Gerrit
@@ -23,10 +25,26 @@ public enum CarType {
         this.length = length;
     }
 
+    private static Random rand = new Random();
+
+    public static CarType getRandomCarType() {
+        int r = rand.nextInt(3);
+        switch (r) {
+            case 0:
+                return CarType.LORRY;
+            case 1:
+                return CarType.CAR;
+            case 2:
+                return CarType.MINICAR;
+            default:
+                return CarType.CAR;
+        }
+    }
+
     /**
      * @return the max_v
      */
-    public double getMaxV() {
+    public double getMaxVelocity() {
         return max_v;
     }
 

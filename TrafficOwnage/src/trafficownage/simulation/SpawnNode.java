@@ -17,14 +17,14 @@ import java.util.Random;
 public class SpawnNode extends Node {
 
     private List<Lane> lanes;
-    private double timePassed, spawnInterval;
+//    private double timePassed, spawnInterval;
 
     public SpawnNode(Point2D.Double location, double spawnInterval) {
         super(location);
 
         lanes = new LinkedList<Lane>();
 
-        this.spawnInterval = spawnInterval;
+//        this.spawnInterval = spawnInterval;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class SpawnNode extends Node {
             lanes.addAll(rs.getSourceLanes(this));
         }
 
-        timePassed = 0.0;
+//        timePassed = 0.0;
     }
 
     @Override
@@ -52,40 +52,40 @@ public class SpawnNode extends Node {
 
     Random rand = new Random();
 
-    private Car generateRandomCar() {
-        Car car = new Car();
+//    private Car generateRandomCar() {
+//        Car car = new Car();
+//
+//        int r = rand.nextInt(3);
+//
+//        if (r == 0)
+//            car.init(CarType.CAR, DriverType.NORMAL);
+//        else if (r == 1)
+//            car.init(CarType.LORRY, DriverType.NORMAL);
+//        else if (r == 2)
+//            car.init(CarType.MINICAR, DriverType.NORMAL);
+//
+//        return car;
+//    }
 
-        int r = rand.nextInt(3);
-
-        if (r == 0)
-            car.init(CarType.CAR, DriverType.NORMAL);
-        else if (r == 1)
-            car.init(CarType.LORRY, DriverType.NORMAL);
-        else if (r == 2)
-            car.init(CarType.MINICAR, DriverType.NORMAL);
-        
-        return car;
-    }
-
-    private Lane lane;
-    private Car car;
+//    private Lane lane;
+//    private Car car;
 
     @Override
     public void update(double timestep) {
         super.update(timestep);
         
-        timePassed += timestep;
-
-        while (timePassed > spawnInterval) {
-            timePassed = 0.0;
-
-            car = generateRandomCar();
-
-            lane = lanes.get(0);//rand.nextInt(lanes.size()));
-            if (lane.acceptsCarAdd(car)) {
-                lane.addCar(car);
-            }
-        }
+//        timePassed += timestep;
+//
+//        while (timePassed > spawnInterval) {
+//            timePassed = 0.0;
+//
+//            car = generateRandomCar();
+//
+//            lane = lanes.get(0);//rand.nextInt(lanes.size()));
+//            if (lane.acceptsCarAdd(car)) {
+//                lane.addCar(car);
+//            }
+//        }
     }
 
 }

@@ -44,17 +44,30 @@ public class MainLoop {
 
     public void init() {
 
+        simulatedTime = (double)TimeUnit.HOURS.toSeconds(6);
+
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(32,16,120.0,8,5,15);
+        gen.generate(8,4,120.0,4,5,15);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
 
-        spawnManager.init(gen.getAreas());
+        spawnManager.init(nodes,gen.getAreas());
 
-        //spawnManager.addMapping(ManhattanMapGenerator.ALL_NODES, ManhattanMapGenerator.ALL_NODES, 5.0);
+        spawnManager.addMapping(
+                (double)(TimeUnit.HOURS.toSeconds(6) + TimeUnit.MINUTES.toSeconds(1)),
+                (double)(TimeUnit.HOURS.toSeconds(6) + TimeUnit.MINUTES.toSeconds(11)),
+                ManhattanMapGenerator.SPAWN_NODES,
+                ManhattanMapGenerator.SPAWN_NODES,
+                1500);
 
-        simulatedTime = (double)TimeUnit.HOURS.toSeconds(6);
+        spawnManager.addMapping(
+                (double)(TimeUnit.HOURS.toSeconds(6) + TimeUnit.MINUTES.toSeconds(6)),
+                (double)(TimeUnit.HOURS.toSeconds(6) + TimeUnit.MINUTES.toSeconds(16)),
+                ManhattanMapGenerator.SPAWN_NODES,
+                ManhattanMapGenerator.LOCAL_NODES,
+                200);
+
 
         sStep = 1.0 / (double)FPS; //Step size in seconds
         msStep = (long)(sStep * 1000.0) / SPEED_MULTIPLIER; //Step size in milliseconds
@@ -143,7 +156,7 @@ public class MainLoop {
 
             synchronized(syncObject){
 
-                spawnManager.update(sStep);
+                spawnManager.update(simulatedTime,sStep);
 
                 for (Node n : nodes)
                     n.update(sStep);
