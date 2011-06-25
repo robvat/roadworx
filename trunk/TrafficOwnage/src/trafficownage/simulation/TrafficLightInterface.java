@@ -5,13 +5,12 @@
 
 package trafficownage.simulation;
 
+import java.util.List;
+
 /**
  *
  * @author Gerrit
  */
-public interface MainLoopListener {
-    void benchmarkCarAdded(Car car);
-    void logMessage(String message);
-    void mapLoaded();
-    void nextFrame();
+public interface TrafficLightInterface {
+    List<Lane> getGreenLanes();
 }

@@ -117,7 +117,8 @@ public class ManhattanMapGenerator {
 
             for (int y = 0; y <= height; y++) {
 
-                n = new StupidTrafficLight(new Point2D.Double(x_loc,y_loc),15.0);
+                // = new StupidTrafficLight(new Point2D.Double(x_loc,y_loc),25);
+                n = new TrafficLight(new Point2D.Double(x_loc,y_loc));
                 grid[x][y] = n;
                 nodes.add(n);
 
@@ -254,8 +255,6 @@ public class ManhattanMapGenerator {
 
                 r.addLast(rs);
             }
-            if (r.getSegments().size() < 10)
-                System.out.println("WUT?");
 
             roads.add(r);
             h++;

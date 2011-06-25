@@ -19,7 +19,7 @@ import trafficownage.util.ManhattanMapGenerator;
 public class MainLoop {
     private final static long FPS = 20;
 
-    private final static long SPEED_MULTIPLIER = 32;
+    private final static long SPEED_MULTIPLIER = 64;
 
     private List<Road> roads;
     private List<Node> nodes;

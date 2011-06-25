@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author Gerrit
  */
-public class StupidTrafficLight extends Node {
+public class StupidTrafficLight extends Node implements TrafficLightInterface {
 
     private HashMap<RoadSegment,Boolean> trafficLights;
     private List<RoadSegment> roadSegments;
