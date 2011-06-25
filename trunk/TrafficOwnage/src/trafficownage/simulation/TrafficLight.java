@@ -18,7 +18,7 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     private HashMap<RoadSegment,Boolean> trafficLights;
     private List<RoadSegment> roadSegments;
     private double trafficLightInterval;
-    private int currentLight = 0, activeLight = 0;
+    private int activeLight = 0;
     private double timePassed;
 
     public TrafficLight(Point2D.Double location) {
@@ -31,7 +31,7 @@ public class TrafficLight extends Node implements TrafficLightInterface {
 
         trafficLights = new HashMap<RoadSegment,Boolean>();
         roadSegments = new ArrayList<RoadSegment>();
-        currentLight = 0;
+        activeLight = 0;
         timePassed = 0.0;
 
         RoadSegment rs;
@@ -46,7 +46,7 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     }
     
     public List<Lane> getGreenLanes() {
-        return roadSegments.get(currentLight).getDestinationLanes(this);
+        return roadSegments.get(activeLight).getDestinationLanes(this);
     }
 
     @Override
@@ -91,8 +91,6 @@ public class TrafficLight extends Node implements TrafficLightInterface {
         	//gets the lane with the longest Qcount in the next avtive road segment.
             int tmp,max = -1;
             
-            int newLight = currentLight;
-            
             int currentLight = activeLight;
             
             int i = (currentLight + 1) % roadSegments.size();
@@ -100,7 +98,6 @@ public class TrafficLight extends Node implements TrafficLightInterface {
             while (i != currentLight) {
             	tmp = getLongestQueueCount(roadSegments.get(i));
             	if (tmp > max) {
-            		newLight = currentLight;
             		max = tmp;
             		break;
             	}
@@ -111,11 +108,10 @@ public class TrafficLight extends Node implements TrafficLightInterface {
             trafficLightInterval = 3 * max;//3 seconds for each car can change after with physics formulas..            
 
             timePassed = 0.0;
-            currentLight = i;
+            activeLight = i;
 
             for (i = 0; i < roadSegments.size(); i++) {
-                trafficLights.put(roadSegments.get(i), i == currentLight);
-                if(i == currentLight) activeLight = i; 
+                trafficLights.put(roadSegments.get(i), i == activeLight);
             }
         }
     }
