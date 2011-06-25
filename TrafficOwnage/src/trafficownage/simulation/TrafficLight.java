@@ -104,12 +104,12 @@ public class TrafficLight extends Node implements TrafficLightInterface {
             	}
             	
             	i = (i + 1) % roadSegments.size();
-            }            
+            }
 
             trafficLightInterval = 3 * max;//3 seconds for each car can change after with physics formulas..            
-        	
+
             timePassed = 0.0;
-            currentLight = (currentLight + 1) % roadSegments.size();
+            currentLight = i;
 
             for (i = 0; i < roadSegments.size(); i++) {
                 trafficLights.put(roadSegments.get(i), i == currentLight);
