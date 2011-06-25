@@ -4,6 +4,7 @@
  */
 package trafficownage.simulation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import trafficownage.util.Container;
@@ -36,7 +37,7 @@ public class Car
     private boolean updated = false; //if the car already changed lane, this is true
     private boolean courtesy = false; // In courtesy mode => braking
     private Car courtesyCar; // The car that send the request needs to be checked
-    private CarListener listener;
+    private List<CarListener> listeners;
 
     private Container container;
 
@@ -85,8 +86,8 @@ public class Car
         driverModel = new DriverModel();
     }
 
-    public void setListener(CarListener listener) {
-        this.listener = listener;
+    public void addListener(CarListener listener) {
+        listeners.add(listener);
     }
 
     /**
@@ -96,6 +97,8 @@ public class Car
      */
     public void init(CarType carType, DriverType driverType)
     {
+        listeners = new ArrayList<CarListener>();
+
         maxCarVelocity = Math.min(carType.getMaxVelocity(), driverType.getMaxVelocity());
 
         this.car_type = carType;
@@ -295,6 +298,11 @@ public class Car
             }
         }        
     }
+
+    public Route getRoute() {
+        return route;
+    }
+
     /**
      * Updates the car position and velocity
      * @param dT
@@ -365,8 +373,9 @@ public class Car
                 if (route.isEndOfRoute()) {
                     //System.out.println("Car arrived at its destination.");
 
-                    if (listener != null)
-                        listener.reachedDestination(currentLane.getEndNode());
+                    if (!listeners.isEmpty())
+                        for (CarListener listener : listeners)
+                            listener.reachedDestination(this, currentLane.getEndNode());
 
                     currentLane.removeCar(this);
 

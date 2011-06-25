@@ -10,5 +10,5 @@ package trafficownage.simulation;
  * @author Gerrit
  */
 public interface CarListener {
-    void reachedDestination(Node destination);
+    void reachedDestination(Car c, Node destination);
 }
