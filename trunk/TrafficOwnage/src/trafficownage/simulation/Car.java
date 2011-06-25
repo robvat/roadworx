@@ -598,44 +598,11 @@ public class Car
 
         if (desiredLane == null)
         {
-            //System.err.println("The lane it wants to change to doesn't exist");
+            System.err.println("The lane it wants to change to doesn't exist.");
             return false;
         }
 
-
         Triplet<Boolean,Car,Car> laneChangeParameters = desiredLane.acceptsCarInsert(this);
-
-        //check if the l ane change is physically possible
-        //find the cars in front of you and behind you on the changedLane
-//        Car carInFront = null;
-//        double carInFrontDistance = Double.MAX_VALUE;
-//        Car carBehind = null;
-//        double carBehindDistance = Double.MAX_VALUE;
-//
-//        double tmp;
-//
-//        if (desiredLane.hasCars())
-//        {
-//            Car otherCar = desiredLane.getFirstCar();
-//
-//            while (otherCar != null) {
-//                 tmp = otherCar.getBack() - getFront();
-//
-//                if (tmp > 0.0 && tmp < carInFrontDistance) {
-//                    carInFront = otherCar;
-//                    carInFrontDistance = tmp;
-//                }
-//
-//                tmp = getBack() - otherCar.getFront();
-//
-//                if (tmp > 0.0 && tmp < carBehindDistance) {
-//                    carBehind = otherCar;
-//                    carBehindDistance = tmp;
-//                }
-//
-//                otherCar = otherCar.getCarBehind();
-//            }
-//        }
 
         Car carInFront = laneChangeParameters.getObject2();
         Car carBehind = laneChangeParameters.getObject3();
@@ -653,13 +620,13 @@ public class Car
             double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront()) / (this.getVelocity() - carInFront.getVelocity());
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
-            if (carInFront.getBack() < this.getFront() && importance[0] != ESSENTIAL)
+            if (!laneChangeParameters.getObject1() && importance[0] != ESSENTIAL)
             {
                 return false;
-            } else if (carInFront.getBack() < this.getFront() && importance[0] == ESSENTIAL) //TODO: slow down yourself
+            } else if (!laneChangeParameters.getObject1() && importance[0] == ESSENTIAL) //TODO: slow down yourself
             {
                 return false;
-            } else if (!((carInFront.getVelocity() - this.getVelocity()) < decceleratedVelocity))
+            } else if (!((this.getVelocity() - carInFront.getVelocity()) < decceleratedVelocity))
             {
                 return false;
             } else
@@ -678,7 +645,7 @@ public class Car
             } else if (carBehind.getFront() > this.getBack() && importance[0] == ESSENTIAL)
             {
                 return this.sendCourtesyRequest(carBehind);
-            } else if (!((this.getVelocity() - carBehind.getVelocity()) < decceleratedVelocity2))
+            } else if (!((carBehind.getVelocity() - this.getVelocity()) < decceleratedVelocity2))
             {
                 return false;
             } else
@@ -703,8 +670,8 @@ public class Car
                     || carBehind.getFront() > this.getBack() && importance[0] == ESSENTIAL)
             {
                 return sendCourtesyRequest(carBehind);
-            } else if (!((carInFront.getVelocity() - this.getVelocity()) < decceleratedVelocity)
-                    || !((this.getVelocity() - carBehind.getVelocity()) < decceleratedVelocity2))
+            } else if (!((this.getVelocity() - carInFront.getVelocity()) < decceleratedVelocity)
+                    || !((carBehind.getVelocity() - this.getVelocity()) < decceleratedVelocity2))
             {
                 //you will crash into carF or carB will crash into you
                 return false;

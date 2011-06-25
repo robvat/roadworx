@@ -119,7 +119,7 @@ public abstract class Node
         return directionList;
     }
 
-    private void addSpawnCar(Car car) {
+    public void addSpawnCar(Car car) {
         spawnCars.add(car);
     }
 
