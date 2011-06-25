@@ -17,6 +17,8 @@ public class Road {
 
     private LinkedList<RoadSegment> segments;
 
+    private List<Node> roadNodes;
+
     private String roadName;
 
     public Road(String roadName) {
@@ -39,6 +41,10 @@ public class Road {
 
     public List<RoadSegment> getSegments() {
         return segments;
+    }
+
+    public List<Node> getNodes() {
+        return roadNodes;
     }
 
     public void addLast(RoadSegment segment) {
@@ -90,14 +96,17 @@ public class Road {
     }
 
     public void init() {
-        for (RoadSegment rs : segments) {
-            for (Lane l : rs.getStartLanes()) {
-                
-            }
-            for (Lane l : rs.getEndLanes()) {
+        LinkedList<Node> nodes = new LinkedList<Node>();
 
-            }
+        RoadSegment rs = startSegment;
+        nodes.addLast(rs.getStartNode());
+
+        while (rs != null) {
+            nodes.addLast(rs.getEndNode());
+            rs = rs.getNextSegment();
         }
+
+        roadNodes = nodes;
     }
 
     public void update(double timestep) {
