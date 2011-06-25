@@ -358,7 +358,7 @@ public class Car
             if (((getCarInFront() != null && getCarInFront().isInQueue()) || getCarInFront() == null) && velocity < VELOCITY_THRESHOLD)
             {
                 if (route.isEndOfRoute()) {
-                    System.out.println("Car arrived at its destination.");
+                    //System.out.println("Car arrived at its destination.");
                     currentLane.removeCar(this);
                 } else {
                     inQueue = true;
