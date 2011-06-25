@@ -37,6 +37,7 @@ public class MainLoop implements NodeListener, CarListener {
     private MainLoopListener listener = null;
 
     private SpawnManager spawnManager = new SpawnManager();
+    private SequenceManager sequenceManager = new SequenceManager();
 
     private static final double DAY = (double)TimeUnit.HOURS.toSeconds(24);
 
@@ -85,6 +86,8 @@ public class MainLoop implements NodeListener, CarListener {
 
         for (Node n : nodes)
             n.init(this);
+
+        sequenceManager.init(sStep, roads);
 
         if (listener != null)
             listener.mapLoaded();
@@ -167,6 +170,8 @@ public class MainLoop implements NodeListener, CarListener {
             synchronized(syncObject){
 
                 spawnManager.update(simulatedTime,sStep);
+                
+                sequenceManager.update(sStep);
 
                 for (Node n : nodes)
                     n.update(sStep);

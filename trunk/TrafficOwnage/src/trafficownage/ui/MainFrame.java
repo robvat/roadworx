@@ -112,12 +112,14 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
             }
         });
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setBackground(new java.awt.Color(51, 51, 51));
 
         timeLabel.setFont(timeLabel.getFont().deriveFont(timeLabel.getFont().getStyle() | java.awt.Font.BOLD, timeLabel.getFont().getSize()+3));
+        timeLabel.setForeground(new java.awt.Color(255, 255, 255));
         timeLabel.setText("     ");
 
         carCountLabel.setFont(carCountLabel.getFont().deriveFont(carCountLabel.getFont().getStyle() | java.awt.Font.BOLD, carCountLabel.getFont().getSize()+3));
+        carCountLabel.setForeground(new java.awt.Color(255, 255, 255));
         carCountLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         carCountLabel.setText("     ");
 
@@ -141,6 +143,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         drawModeButtonGroup.add(radDrawCars);
         radDrawCars.setSelected(true);
         radDrawCars.setText("Default");
+        radDrawCars.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         radDrawCars.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radDrawCarsActionPerformed(evt);
@@ -149,6 +152,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
         drawModeButtonGroup.add(radDrawDensity);
         radDrawDensity.setText("Density");
+        radDrawDensity.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         radDrawDensity.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radDrawDensityActionPerformed(evt);
@@ -157,6 +161,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
         drawModeButtonGroup.add(radNoDrawing);
         radNoDrawing.setText("Disabled");
+        radNoDrawing.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         radNoDrawing.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radNoDrawingActionPerformed(evt);
