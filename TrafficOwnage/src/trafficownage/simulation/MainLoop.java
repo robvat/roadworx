@@ -16,7 +16,7 @@ import trafficownage.util.ManhattanMapGenerator;
  *
  * @author Gerrit
  */
-public class MainLoop {
+public class MainLoop implements NodeListener, CarListener {
     private final static long FPS = 20;
 
     private final static long SPEED_MULTIPLIER = 64;
@@ -32,6 +32,8 @@ public class MainLoop {
     private long msStep;
     private double sStep;
 
+    private int carCount;
+
     private MainLoopListener listener = null;
 
     private SpawnManager spawnManager = new SpawnManager();
@@ -44,34 +46,34 @@ public class MainLoop {
 
     public void init() {
 
-        simulatedTime = (double)TimeUnit.HOURS.toSeconds(6);
+        simulatedTime = (double)TimeUnit.HOURS.toSeconds(8);
 
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(8,4,120.0,4,5,15);
+        gen.generate(32,16,100.0,16,5,15);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
 
         spawnManager.init(nodes,gen.getAreas());
 
-        spawnManager.addMapping(
-                (double)(TimeUnit.HOURS.toSeconds(6)),
-                (double)(TimeUnit.HOURS.toSeconds(9)),
-                ManhattanMapGenerator.SPAWN_NODES,
-                ManhattanMapGenerator.SPAWN_NODES,
-                10000);
+//        spawnManager.addMapping(
+//                (double)(TimeUnit.HOURS.toSeconds(6)),
+//                (double)(TimeUnit.HOURS.toSeconds(9)),
+//                ManhattanMapGenerator.SPAWN_NODES,
+//                ManhattanMapGenerator.SPAWN_NODES,
+//                50000);
 
         spawnManager.addMapping(
                 (double)(TimeUnit.HOURS.toSeconds(8)),
                 (double)(TimeUnit.HOURS.toSeconds(10)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
-                7500);
+                50000);
 
         spawnManager.addMapping(
                 ManhattanMapGenerator.LOCAL_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
-                5.0);
+                0.5);
 
 
         sStep = 1.0 / (double)FPS; //Step size in seconds
@@ -82,7 +84,7 @@ public class MainLoop {
             r.init();
 
         for (Node n : nodes)
-            n.init();
+            n.init(this);
 
         if (listener != null)
             listener.mapLoaded();
@@ -204,5 +206,18 @@ public class MainLoop {
 
     public List<Road> getRoads() {
         return roads;
+    }
+
+    public int getCarCount() {
+        return carCount;
+    }
+
+    public void carAdded(Car car) {
+        carCount++;
+        car.setListener(this);
+    }
+
+    public void reachedDestination(Node destination) {
+        carCount--;
     }
 }

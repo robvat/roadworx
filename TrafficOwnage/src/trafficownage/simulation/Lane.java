@@ -243,6 +243,10 @@ public class Lane {
         return !cars.isEmpty();
     }
 
+    public int getCarCount() {
+        return cars.size();
+    }
+
     public void update(double timestep) {
 
 

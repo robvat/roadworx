@@ -89,6 +89,8 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         initMap();
 
+        drawMode = DRAW_CARS;
+
         repaint();
     }
 
@@ -125,6 +127,10 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             drawInfo(gr);
         }
 
+    }
+
+    public void setDrawMode(int drawMode) {
+        this.drawMode = drawMode;
     }
 
 
@@ -323,6 +329,11 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
     }
 
+    private int drawMode;
+
+    public final static int DRAW_CARS = 0;
+    public final static int DRAW_DENSITY = 1;
+
     private int drawLaneContent(Graphics2D gr, double length, List<Lane> lanes, int i) {
 
         double dx,dy;
@@ -341,53 +352,70 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
             line = lane_coords.get(l);
 
-            i++;
-
             dx = line.x2 - line.x1;
             dy = line.y2 - line.y1;
 
+            car_count += l.getCarCount();
 
-            if (l.getEndNode().getNodeType() == Node.TRAFFICLIGHT_NODE && ((TrafficLightInterface)l.getEndNode()).getGreenLanes().contains(l)) {
-                gr.setColor(GREEN_LIGHT_COLOR);
+            if (drawMode == DRAW_CARS) {
 
-                light_x1 = line.x2 - (lightLength * dx);
-                light_x2 = line.x2;
-                light_y1 = line.y2 - (lightLength * dy);
-                light_y2 = line.y2;
+                i++;
 
-                gr.drawLine((int)light_x1,(int)light_y1,(int)light_x2,(int)light_y2);
+                if (l.getEndNode().getNodeType() == Node.TRAFFICLIGHT_NODE && ((TrafficLightInterface)l.getEndNode()).getGreenLanes().contains(l)) {
+                    gr.setColor(GREEN_LIGHT_COLOR);
+
+                    light_x1 = line.x2 - (lightLength * dx);
+                    light_x2 = line.x2;
+                    light_y1 = line.y2 - (lightLength * dy);
+                    light_y2 = line.y2;
+
+                    gr.drawLine((int)light_x1,(int)light_y1,(int)light_x2,(int)light_y2);
+                }
+
+                if (!l.hasCars())
+                    continue;
+
+                Car c = l.getFirstCar();
+                while (c != null) {
+                    car_start = c.getPosition() / length;
+                    car_end = c.getBack() / length;
+
+                    if (c.isInQueue())
+                        gr.setColor(CAR_QUEUE_COLOR);
+                    else
+                        gr.setColor(CAR_DEFAULT_COLOR);
+
+                    car_x1 = line.x1 + (car_start*dx);
+                    car_y1 = line.y1 + (car_start*dy);
+                    car_x2 = line.x1 + (car_end*dx);
+                    car_y2 = line.y1 + (car_end*dy);
+
+                    gr.drawLine((int)car_x1,(int)car_y1,(int)car_x2,(int)car_y2);
+
+                    c = c.getCarBehind();
+                }
+
+                i++;
+            } else if (drawMode == DRAW_DENSITY) {
+
+                double ratio = l.getCombinedCarLength() / l.getLength();
+                gr.setColor(getColor(Math.pow(ratio,0.5)));
+                gr.draw(line);
             }
-
-            if (!l.hasCars())
-                continue;
-
-            Car c = l.getFirstCar();
-            while (c != null) {
-                car_start = c.getPosition() / length;
-                car_end = c.getBack() / length;
-
-                if (c.isInQueue())
-                    gr.setColor(CAR_QUEUE_COLOR);
-                else
-                    gr.setColor(CAR_DEFAULT_COLOR);
-
-                car_x1 = line.x1 + (car_start*dx);
-                car_y1 = line.y1 + (car_start*dy);
-                car_x2 = line.x1 + (car_end*dx);
-                car_y2 = line.y1 + (car_end*dy);
-
-                gr.drawLine((int)car_x1,(int)car_y1,(int)car_x2,(int)car_y2);
-
-                car_count++;
-
-                c = c.getCarBehind();
-            }
-
-            i++;
         }
 
         return i;
     }
+
+    public Color getColor(double power)
+    {
+        double H = (1.0 - power) * 0.4; // Hue (note 0.4 = Green, see huge chart below)
+        double S = 0.9; // Saturation
+        double B = 0.9; // Brightness
+
+        return Color.getHSBColor((float)H,(float)S,(float)B);
+    }
+
 
     private void drawRoadSegmentCars(Graphics2D gr, RoadSegment r) {
         

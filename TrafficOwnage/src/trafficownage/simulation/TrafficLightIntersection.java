@@ -24,8 +24,8 @@ public class TrafficLightIntersection extends Node{
     }
     
     @Override
-    public void init() {
-        super.init();
+    public void init(NodeListener listener) {
+        super.init(listener);
 
         for (Lane l : getIncomingLanes()) {
             //traffic_lights.put(l,new TrafficLight());

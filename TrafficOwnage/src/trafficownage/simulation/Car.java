@@ -36,6 +36,7 @@ public class Car
     private boolean updated = false; //if the car already changed lane, this is true
     private boolean courtesy = false; // In courtesy mode => braking
     private Car courtesyCar; // The car that send the request needs to be checked
+    private CarListener listener;
 
     private Container container;
 
@@ -82,6 +83,10 @@ public class Car
     public Car()
     {
         driverModel = new DriverModel();
+    }
+
+    public void setListener(CarListener listener) {
+        this.listener = listener;
     }
 
     /**
@@ -359,7 +364,12 @@ public class Car
             {
                 if (route.isEndOfRoute()) {
                     //System.out.println("Car arrived at its destination.");
+
+                    if (listener != null)
+                        listener.reachedDestination(currentLane.getEndNode());
+
                     currentLane.removeCar(this);
+
                 } else {
                     inQueue = true;
                 }

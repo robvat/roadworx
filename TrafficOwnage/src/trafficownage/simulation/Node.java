@@ -28,6 +28,7 @@ public abstract class Node
     private List<Lane> incomingLanes;
     private HashMap<Lane,Lane> laneMap;
 
+    private NodeListener listener;
 
     public double f,g,h; //pathfinding variables
     public Node parent;
@@ -66,7 +67,9 @@ public abstract class Node
         return nodeType;
     }
 
-    public void init() {
+    public void init(NodeListener listener) {
+        this.listener = listener;
+
         sortNodes();
 
         determineIncomingLanes();
@@ -288,6 +291,10 @@ public abstract class Node
                 if (l.acceptsCarAdd(car)) {
                     l.addCar(car);
                     spawnCars.remove(car);
+
+                    if (listener != null)
+                        listener.carAdded(car);
+
                     i--;
                 }
             }

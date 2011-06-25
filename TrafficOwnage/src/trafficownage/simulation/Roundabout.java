@@ -218,8 +218,8 @@ public class Roundabout extends Node
      *
      */
     @Override
-    public void init() {
-        super.init();
+    public void init(NodeListener listener) {
+        super.init(listener);
         // might add here more later!
     }
 

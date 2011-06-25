@@ -26,8 +26,8 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     }
 
     @Override
-    public void init() {
-        super.init();
+    public void init(NodeListener listener) {
+        super.init(listener);
 
         trafficLights = new HashMap<RoadSegment,Boolean>();
         roadSegments = new ArrayList<RoadSegment>();
@@ -73,7 +73,7 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     private int getLongestQueueCount(RoadSegment rs) {
     	int count = 0;
     	for (Lane l : rs.getDestinationLanes(this)) {
-    		count = Math.max(l.getQueueCount(), count);
+    		count = Math.max(l.getCarCount(), count);
     	}
     	
     	return count;

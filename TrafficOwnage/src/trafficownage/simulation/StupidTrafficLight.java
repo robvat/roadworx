@@ -28,8 +28,8 @@ public class StupidTrafficLight extends Node implements TrafficLightInterface {
     }
 
     @Override
-    public void init() {
-        super.init();
+    public void init(NodeListener listener) {
+        super.init(listener);
 
         trafficLights = new HashMap<RoadSegment,Boolean>();
         roadSegments = new ArrayList<RoadSegment>();
