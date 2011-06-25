@@ -18,7 +18,7 @@ import trafficownage.simulation.RoadSegment;
 public class Pathfinding {
 
 
-    public static List<Node> fastestRoute(Car car, Node start_node, Node end_node, List<Node> nodes) {
+    public static Pair<Double,List<Node>> fastestRoute(Car car, Node start_node, Node end_node, List<Node> nodes) {
 
         List<Node> solution = new LinkedList<Node>();
 
@@ -98,7 +98,7 @@ public class Pathfinding {
             }
         }
 
-        return solution;
+        return new Pair<Double,List<Node>>(end_node.g,solution);
 
     }
 

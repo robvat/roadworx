@@ -57,21 +57,28 @@ public class MainLoop implements NodeListener, CarListener {
 
         spawnManager.init(nodes,gen.getAreas());
 
-//        spawnManager.addMapping(
-//                (double)(TimeUnit.HOURS.toSeconds(6)),
-//                (double)(TimeUnit.HOURS.toSeconds(9)),
-//                ManhattanMapGenerator.SPAWN_NODES,
-//                ManhattanMapGenerator.SPAWN_NODES,
-//                50000);
+        spawnManager.addMapping(false,
+                (double)(TimeUnit.HOURS.toSeconds(6)),
+                (double)(TimeUnit.HOURS.toSeconds(9)),
+                ManhattanMapGenerator.SPAWN_NODES,
+                ManhattanMapGenerator.SPAWN_NODES,
+                50000);
 
-        spawnManager.addMapping(
+        spawnManager.addMapping(true,
+                (double)(TimeUnit.HOURS.toSeconds(8)) + (double)(TimeUnit.MINUTES.toSeconds(5)),
+                (double)(TimeUnit.HOURS.toSeconds(8)) + (double)(TimeUnit.MINUTES.toSeconds(10)),
+                ManhattanMapGenerator.LOCAL_NODES,
+                ManhattanMapGenerator.LOCAL_NODES,
+                10);
+
+        spawnManager.addMapping(false,
                 (double)(TimeUnit.HOURS.toSeconds(8)),
                 (double)(TimeUnit.HOURS.toSeconds(10)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
                 50000);
 
-        spawnManager.addMapping(
+        spawnManager.addMapping(false,
                 ManhattanMapGenerator.LOCAL_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
                 0.5);
@@ -219,10 +226,10 @@ public class MainLoop implements NodeListener, CarListener {
 
     public void carAdded(Car car) {
         carCount++;
-        car.setListener(this);
+        car.addListener(this);
     }
 
-    public void reachedDestination(Node destination) {
+    public void reachedDestination(Car car, Node destination) {
         carCount--;
     }
 }

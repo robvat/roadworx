@@ -18,16 +18,24 @@ public class Route {
 
     private int currentIndex;
 
+    private double optimalTravelTime;
+
     private List<Node> nodeList;
 
-    public Route(List<Node> nodeList) {
+    public Route(double optimalTravelTime, List<Node> nodeList) {
 
+        this.optimalTravelTime = optimalTravelTime;
+        
         this.nodeList = nodeList;
 
         endOfRoute = false;
         currentIndex = 0;
-
+        
         nextNode = nodeList.get(currentIndex);
+    }
+
+    public double getOptimalTravelTime() {
+        return optimalTravelTime;
     }
 
     public void determineNext(Node approachingNode) {

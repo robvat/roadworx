@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import trafficownage.util.Pair;
 import trafficownage.util.Pathfinding;
 import trafficownage.util.Triplet;
@@ -17,11 +18,16 @@ import trafficownage.util.Triplet;
  *
  * @author Gerrit
  */
-public class SpawnManager {
+public class SpawnManager implements CarListener {
     private HashMap<Integer,List<Node>> areas;
 
     private List<Mapping> mappings;
     private List<Node> allNodes;
+
+    private List<Car> benchmarkedCars;
+    private HashMap<Car,Double> departureTimes;
+
+    private double simulatedTime;
 
     private Random rand;
 
@@ -34,23 +40,56 @@ public class SpawnManager {
     public void init(List<Node> allNodes, HashMap<Integer,List<Node>> areas) {
         this.allNodes = allNodes;
         this.areas = areas;
+
+        this.benchmarkedCars = new ArrayList<Car>();
+        this.departureTimes = new HashMap<Car,Double>();
     }
 
-    public void addMapping(int spawnArea, int targetArea, double spawnInterval) {
-        mappings.add(new Mapping(null,spawnArea,targetArea,spawnInterval,null));
+    public void addMapping(boolean benchmarked, int spawnArea, int targetArea, double spawnInterval) {
+        addMapping(benchmarked,null,spawnArea,targetArea,spawnInterval, null);
     }
 
-    public void addMapping(double startTime, double endTime, int spawnArea, int targetArea, double spawnInterval) {
-        mappings.add(new Mapping(new Pair<Double,Double>(startTime,endTime),spawnArea,targetArea,spawnInterval,null));
+    public void addMapping(boolean benchmarked, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
+        addMapping(benchmarked,null,spawnArea,targetArea,spawnInterval,carType);
     }
 
-    public void addMapping(double startTime, double endTime, int spawnArea, int targetArea, int spawnNumber) {
+    public void addMapping(boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, int spawnNumber) {
+        addMapping(benchmarked, startTime,endTime,spawnArea,targetArea,spawnNumber, null);
+    }
+
+    public void addMapping(boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, int spawnNumber, CarType carType) {
         double spawnInterval = (endTime - startTime) / (double)spawnNumber;
 
-        mappings.add(new Mapping(new Pair<Double,Double>(startTime,endTime),spawnArea,targetArea,spawnInterval,null));
+        addMapping(benchmarked, startTime,endTime,spawnArea,targetArea,spawnInterval,carType);
     }
 
+    public void addMapping(boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, double spawnInterval) {
+        addMapping(benchmarked, new Pair<Double,Double>(startTime,endTime), spawnArea, targetArea, spawnInterval, null);
+    }
+
+    public void addMapping(boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
+        addMapping(benchmarked, new Pair<Double,Double>(startTime,endTime), spawnArea, targetArea, spawnInterval, carType);
+    }
+
+    public void addMapping(boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval) {
+        addMapping(benchmarked, timeSpan, spawnArea, targetArea, spawnInterval, null);
+    }
+
+    public void addMapping(boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
+        mappings.add(new Mapping(benchmarked, timeSpan, spawnArea, targetArea, spawnInterval, carType));
+    }
+
+    private static double DAY = (double)TimeUnit.DAYS.toSeconds(1);
+
     public void update (double simulatedTime, double timeStep) {
+
+        if (simulatedTime < this.simulatedTime) {
+            //what a beautiful new day
+            for (Car c : benchmarkedCars)
+                departureTimes.put(c,departureTimes.get(c) - DAY);
+        }
+
+        this.simulatedTime = simulatedTime;
 
         for (Mapping m : mappings) {
             if (isActive(simulatedTime, m)) {
@@ -70,7 +109,7 @@ public class SpawnManager {
         return (mapping.getTimeSpan() == null || (simulatedTime >= mapping.getTimeSpan().getObject1() && simulatedTime <= mapping.getTimeSpan().getObject2()));
     }
 
-    private void spawnCar(CarType carType, DriverType driverType, int spawnArea, int targetArea) {
+    private void spawnCar(boolean benchmarked, CarType carType, DriverType driverType, int spawnArea, int targetArea) {
         if (!areas.containsKey(spawnArea) || !areas.containsKey(targetArea)) {
             System.err.println("Spawn or target area does not exist.");
             return;
@@ -87,20 +126,34 @@ public class SpawnManager {
             targetNode = selectRandomNode(targetNodes);
         }
 
-        Car c = generateCar(carType, driverType, spawnNode,targetNode);
+        Car c = generateCar(benchmarked, carType, driverType, spawnNode,targetNode);
         spawnNode.addSpawnCar(c);
     }
 
-    private Car generateCar(CarType carType, DriverType driverType, Node spawnNode, Node targetNode) {
+    private Car generateCar(boolean benchmarked, CarType carType, DriverType driverType, Node spawnNode, Node targetNode) {
         Car car = new Car();
         car.init(carType, driverType);
-        car.setRoute(new Route(Pathfinding.fastestRoute(car,spawnNode,targetNode,allNodes)));
-        
+
+        Pair<Double,List<Node>> route = Pathfinding.fastestRoute(car,spawnNode,targetNode,allNodes);
+        car.setRoute(new Route(route.getObject1(),route.getObject2()));
+
+        if (benchmarked) {
+            benchmarkedCars.add(car);
+            departureTimes.put(car,simulatedTime);
+            car.addListener(this);
+        }
+
         return car;
     }
 
     private Node selectRandomNode(List<Node> nodes) {
         return nodes.get(rand.nextInt(nodes.size()));
+    }
+
+    public void reachedDestination(Car car, Node destination) {
+        double timeTravelled = simulatedTime - departureTimes.get(car);
+        double benchmarkValue = timeTravelled / car.getRoute().getOptimalTravelTime();
+        System.out.println("Car arrived. Benchmark value: " + benchmarkValue);
     }
 
     private class Mapping {
@@ -109,15 +162,17 @@ public class SpawnManager {
         private double spawnInterval;
         private double timePassed;
         private boolean activated;
+        private boolean benchmarked;
 
         private CarType carType;
 
-        public Mapping(Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
+        public Mapping(boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
             this.timeSpan = timeSpan;
             this.spawnArea = spawnArea;
             this.targetArea = targetArea;
             this.spawnInterval = spawnInterval;
             this.timePassed = 0.0;
+            this.benchmarked = benchmarked;
 
             this.carType = carType;
 
@@ -147,9 +202,9 @@ public class SpawnManager {
             if (timePassed >= spawnInterval) {
 
                 if (carType != null)
-                     spawnCar(carType,DriverType.getRandomDriverType(),spawnArea, targetArea);
+                     spawnCar(benchmarked,carType,DriverType.getRandomDriverType(),spawnArea, targetArea);
                 else
-                    spawnCar(CarType.getRandomCarType(),DriverType.getRandomDriverType(),spawnArea, targetArea);
+                    spawnCar(benchmarked,CarType.getRandomCarType(),DriverType.getRandomDriverType(),spawnArea, targetArea);
 
                 timePassed = 0;
             }
