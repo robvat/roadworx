@@ -82,6 +82,8 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     @Override
 	public
     void update(double timestep) {
+        super.update(timestep);
+
         timePassed += timestep;           
         
         if (timePassed > trafficLightInterval) {
