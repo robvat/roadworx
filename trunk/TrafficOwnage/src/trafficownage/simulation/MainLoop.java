@@ -78,6 +78,9 @@ public class MainLoop {
         msStep = (long)(sStep * 1000.0) / SPEED_MULTIPLIER; //Step size in milliseconds
 
         //Init all roads/nodes
+        for (Road r : roads)
+            r.init();
+
         for (Node n : nodes)
             n.init();
 
