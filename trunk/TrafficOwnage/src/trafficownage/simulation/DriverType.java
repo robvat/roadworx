@@ -5,6 +5,8 @@
 
 package trafficownage.simulation;
 
+import java.util.Random;
+
 /**
  *
  * @author Gerrit Drost
@@ -34,6 +36,23 @@ public enum DriverType {
             this.minimum_distance_to_leader = minimum_distance_to_leader;
             this.desired_time_headway = desired_time_headway;
     }
+
+    private static Random rand = new Random();
+
+    public static DriverType getRandomDriverType() {
+        int r = rand.nextInt(3);
+        switch (r) {
+            case 0:
+                return DriverType.NORMAL;
+            case 1:
+                return DriverType.AGRESSIVE;
+            case 2:
+                return DriverType.GRANDPA;
+            default:
+                return DriverType.NORMAL;
+        }
+    }
+
     /**
      * @return the max_acceleration
      */

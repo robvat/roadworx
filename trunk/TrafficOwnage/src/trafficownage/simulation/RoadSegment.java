@@ -40,7 +40,7 @@ public class RoadSegment {
         this.parent = parent;
     }
 
-    public double getMaxSpeed() {
+    public double getMaxVelocity() {
         return maxSpeed;
     }
 

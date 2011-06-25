@@ -95,7 +95,7 @@ public class Lane {
     /**
      * @return the maxSpeed
      */
-    public double getMaxSpeed() {
+    public double getMaxVelocity() {
         return maxSpeed;
     }
 

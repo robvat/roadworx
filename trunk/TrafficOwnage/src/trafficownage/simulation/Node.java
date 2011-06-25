@@ -276,9 +276,9 @@ public abstract class Node
     public void update(double timestep) {
         int i = 0;
         Car car;
-        for (i = 0; i < spawnCars.size(); i++) {
+        for (i = 0; i > -1 && i < spawnCars.size(); i++) {
             car = spawnCars.get(i);
-            Node n = car.getFirstNode();
+            Node n = car.getNextNode();
             
             RoadSegment rs = getRoadSegment(n);
 
