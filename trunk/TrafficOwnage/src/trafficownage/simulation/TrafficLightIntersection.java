@@ -28,7 +28,7 @@ public class TrafficLightIntersection extends Node{
         super.init();
 
         for (Lane l : getIncomingLanes()) {
-            traffic_lights.put(l,new TrafficLight());
+            //traffic_lights.put(l,new TrafficLight());
             carsCounted.put(traffic_lights.get(l), new Counting());
         }
     }
@@ -61,23 +61,24 @@ public class TrafficLightIntersection extends Node{
     boolean drivethrough(Car incoming) {
         Lane l = incoming.getLane();
         TrafficLight t = traffic_lights.get(l);
-        if(t.getCurrentLight() == TrafficLight.GREEN) {
-            //let him drive through
-            return true;
-        }
-        else if(t.getCurrentLight() == TrafficLight.YELLOW){
-            // if the breaking distance is bigger than the distance to the light: let him pass
-            // else let him break
-            if (incoming.getDistanceToLaneEnd() <
-                    (incoming.getVelocity()/2.0)*(incoming.getVelocity()/incoming.getDriverType().getMaxComfortableDeceleration()))
-                return true;
-            else
-                return false;
-        }
-        else {
-            //dont let him drive through
-            return false;
-        }
+        return true;
+//        if(t.getCurrentLight() == TrafficLight.GREEN) {
+//            //let him drive through
+//            return true;
+//        }
+//        else if(t.getCurrentLight() == TrafficLight.YELLOW){
+//            // if the breaking distance is bigger than the distance to the light: let him pass
+//            // else let him break
+//            if (incoming.getDistanceToLaneEnd() <
+//                    (incoming.getVelocity()/2.0)*(incoming.getVelocity()/incoming.getDriverType().getMaxComfortableDeceleration()))
+//                return true;
+//            else
+//                return false;
+//        }
+//        else {
+//            //dont let him drive through
+//            return false;
+//        }
     }
 
     @Override

@@ -48,7 +48,7 @@ public class TrafficLight extends Node {
 
         RoadSegment rs = incoming.getLane().getRoadSegment();
 
-        return trafficLights.get(rs) && l.acceptsCar(incoming);
+        return trafficLights.get(rs) && l.acceptsCarAdd(incoming);
         
     }
 

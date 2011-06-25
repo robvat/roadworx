@@ -55,18 +55,23 @@ public class MainLoop {
         spawnManager.init(nodes,gen.getAreas());
 
         spawnManager.addMapping(
-                (double)(TimeUnit.HOURS.toSeconds(6) + TimeUnit.MINUTES.toSeconds(1)),
-                (double)(TimeUnit.HOURS.toSeconds(6) + TimeUnit.MINUTES.toSeconds(11)),
+                (double)(TimeUnit.HOURS.toSeconds(6)),
+                (double)(TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
-                1500);
+                10000);
 
         spawnManager.addMapping(
-                (double)(TimeUnit.HOURS.toSeconds(6) + TimeUnit.MINUTES.toSeconds(6)),
-                (double)(TimeUnit.HOURS.toSeconds(6) + TimeUnit.MINUTES.toSeconds(16)),
+                (double)(TimeUnit.HOURS.toSeconds(8)),
+                (double)(TimeUnit.HOURS.toSeconds(10)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
-                200);
+                7500);
+
+        spawnManager.addMapping(
+                ManhattanMapGenerator.LOCAL_NODES,
+                ManhattanMapGenerator.LOCAL_NODES,
+                5.0);
 
 
         sStep = 1.0 / (double)FPS; //Step size in seconds
