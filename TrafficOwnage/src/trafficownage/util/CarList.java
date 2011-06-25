@@ -105,6 +105,12 @@ public class CarList {
         size--;
     }
 
+    public void clear() {
+        while (size > 0)
+            remove(getFirst());
+        
+    }
+
     public Car getFirst() {
         return header.getNext().getCar();
     }

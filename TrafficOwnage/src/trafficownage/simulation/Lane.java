@@ -2,13 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package trafficownage.simulation;
 
-import java.util.LinkedList;
 import java.util.List;
 import trafficownage.util.CarList;
-import trafficownage.util.Pair;
 import trafficownage.util.Triplet;
 
 /**
@@ -16,6 +13,7 @@ import trafficownage.util.Triplet;
  * @author Gerrit Drost <gerritdrost@gmail.com>
  */
 public class Lane {
+
     private int laneId;
     private RoadSegment roadSegment;
     private Lane rightNeighbour;
@@ -24,11 +22,9 @@ public class Lane {
     private Node endNode;
     private double maxSpeed;
     private List<Node> allowedDirections;
-
     private double queueLength;
     private double carsLength;
     private int queueCount;
-
     private CarList cars;
 
     public Lane(int laneId, RoadSegment roadSegment, Node startNode, Node endNode, List<Node> allowedDirections, double maxSpeed) {
@@ -49,7 +45,6 @@ public class Lane {
     public void setRightNeighbour(Lane leftNeighbour) {
         this.leftNeighbour = leftNeighbour;
     }
-
 
     /**
      * @return the laneId
@@ -115,8 +110,9 @@ public class Lane {
         this.allowedDirections = allowedDirections;
     }
 
-
-   
+    public void clear() {
+        cars.clear();
+    }
 
     public Car getFirstCar() {
         return cars.getFirst();
@@ -125,43 +121,48 @@ public class Lane {
     public Car getLastCar() {
         return cars.getLast();
     }
+
     public boolean acceptsCarAdd(Car car) {
 
         Car lastCar = getLastCar();
 
-        if (!hasCars() || lastCar.getBack() > 0.0)
+        if (!hasCars() || lastCar.getBack() > 0.0) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 
-    public Triplet<Boolean,Car,Car> acceptsCarInsert(Car car) {
-        
+    public Triplet<Boolean, Car, Car> acceptsCarInsert(Car car) {
+
         Car firstCar = getFirstCar();
         Car lastCar = getLastCar();
 
-        if (lastCar == null && firstCar == null)
-            return new Triplet<Boolean,Car,Car>(true,null,null);
+        if (lastCar == null && firstCar == null) {
+            return new Triplet<Boolean, Car, Car>(true, null, null);
+        }
 
-        if (lastCar != null && lastCar.getBack() > car.getFront())
-            return new Triplet<Boolean,Car,Car>(true,lastCar,null);
+        if (lastCar != null && lastCar.getBack() > car.getFront()) {
+            return new Triplet<Boolean, Car, Car>(true, lastCar, null);
+        }
 
-        if (firstCar != null && car.getBack() > firstCar.getFront())
-            return new Triplet<Boolean,Car,Car>(true,null,firstCar);
+        if (firstCar != null && car.getBack() > firstCar.getFront()) {
+            return new Triplet<Boolean, Car, Car>(true, null, firstCar);
+        }
 
         Car otherCar = firstCar;
 
         while (otherCar != null) {
-            if (otherCar.getBack() > car.getFront() && otherCar.getCarBehind() != null && car.getBack() > otherCar.getCarBehind().getFront())
-                //we found our slot
-                return new Triplet<Boolean,Car,Car>(true,otherCar,otherCar.getCarBehind());
-            
+            if (otherCar.getBack() > car.getFront() && otherCar.getCarBehind() != null && car.getBack() > otherCar.getCarBehind().getFront()) //we found our slot
+            {
+                return new Triplet<Boolean, Car, Car>(true, otherCar, otherCar.getCarBehind());
+            }
+
             otherCar = otherCar.getCarBehind();
         }
 
-        return  new Triplet<Boolean,Car,Car>(false,null,null);
+        return new Triplet<Boolean, Car, Car>(false, null, null);
     }
-    
 
     /**
      *
@@ -171,9 +172,10 @@ public class Lane {
 
         carsLength += car.getLength();
 
-        if (car.getCurrentLane() != null)
+        if (car.getCurrentLane() != null) {
             car.getCurrentLane().removeCar(car);
-        
+        }
+
         cars.addLast(car);
 
         car.setLane(this);
@@ -186,36 +188,39 @@ public class Lane {
         cars.remove(car);
     }
 
-    public void insertCar(Car car){
+    public void insertCar(Car car) {
 
         carsLength += car.getLength();
 
-        if (car.getCurrentLane() != null)
+        if (car.getCurrentLane() != null) {
             car.getCurrentLane().removeCar(car);
-        
+        }
+
         cars.addLast(car);
 
         car.switchLane(this);
     }
 
-    public void insertCarAfter(Car carInFront, Car car){
+    public void insertCarAfter(Car carInFront, Car car) {
 
         carsLength += car.getLength();
 
-        if (car.getCurrentLane() != null)
+        if (car.getCurrentLane() != null) {
             car.getCurrentLane().removeCar(car);
+        }
 
         cars.insertAfter(carInFront, car);
 
         car.switchLane(this);
     }
-    
-    public void insertCarBefore(Car carBehind, Car car){
+
+    public void insertCarBefore(Car carBehind, Car car) {
 
         carsLength += car.getLength();
 
-        if (car.getCurrentLane() != null)
+        if (car.getCurrentLane() != null) {
             car.getCurrentLane().removeCar(car);
+        }
 
         cars.insertBefore(carBehind, car);
 
@@ -285,10 +290,10 @@ public class Lane {
 //                i--;
 //            }
 //        }
-        
+
         /*while (car != null) {
-            car.update(timestep);
-            car = car.getCarBehind();
+        car.update(timestep);
+        car = car.getCarBehind();
         }*/
 
     }

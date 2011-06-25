@@ -7,6 +7,7 @@ package trafficownage.util;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import trafficownage.simulation.*;
@@ -26,10 +27,18 @@ public class ManhattanMapGenerator {
     private Node[][] grid;
     private List<Node> nodes;
     private List<Road> roads;
+
+    private List<Node> localNodes;
+    private List<Node> spawnNodes;
+
     private Road[] horizontalRoads;
     private Road[] verticalRoads;
     private List<Pair<Node,Node>>[] horizontalAvenues;
     private List<Pair<Node,Node>>[] verticalAvenues;
+
+    public static final int ALL_NODES = -1;
+    public static final int LOCAL_NODES = 0;
+    public static final int SPAWN_NODES = 1;
 
     private Random rand;
 
@@ -53,6 +62,8 @@ public class ManhattanMapGenerator {
         rand = new Random(seed);
 
         nodes = new ArrayList<Node>();
+        localNodes = new ArrayList<Node>();
+        spawnNodes = new ArrayList<Node>();
         roads = new ArrayList<Road>();
 
         generateNodes();
@@ -62,6 +73,25 @@ public class ManhattanMapGenerator {
 
     public List<Node> getNodes() {
         return nodes;
+    }
+
+    public List<Node> getLocalNodes() {
+        return localNodes;
+    }
+
+    public List<Node> getSpawnNodes() {
+        return spawnNodes;
+    }
+
+    public HashMap<Integer,List<Node>> getAreas() {
+        HashMap<Integer,List<Node>> areas = new HashMap<Integer, List<Node>>();
+
+        areas.put(ALL_NODES, nodes);
+        areas.put(LOCAL_NODES, localNodes);
+        areas.put(SPAWN_NODES, spawnNodes);
+
+        return areas;
+
     }
 
     public List<Road> getRoads() {
@@ -86,9 +116,14 @@ public class ManhattanMapGenerator {
             y_loc = y_start;
 
             for (int y = 0; y <= height; y++) {
+
                 n = new StupidTrafficLight(new Point2D.Double(x_loc,y_loc),15.0);
                 grid[x][y] = n;
                 nodes.add(n);
+
+                if (x % mainRoadInterval != 0 && y % mainRoadInterval != 0)
+                    localNodes.add(n);
+
                 y_loc += blockSize;
             }
             
@@ -102,6 +137,8 @@ public class ManhattanMapGenerator {
         Node n;
         double x_loc,y_loc;
 
+
+
         for (int x = 0; x <= width; x += mainRoadInterval) {
             x_loc = grid[x][0].getLocation().getX();
 
@@ -109,12 +146,14 @@ public class ManhattanMapGenerator {
             y_loc = grid[x][0].getLocation().getY() - (blockSize * 2.0);
             n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
             nodes.add(n);
+            spawnNodes.add(n);
             verticalAvenues[x].add(0,new Pair<Node,Node>(n,grid[x][0]));
 
 
             y_loc = grid[x][height].getLocation().getY() + (blockSize * 2.0);
             n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
             nodes.add(n);
+            spawnNodes.add(n);
             verticalAvenues[x].add(verticalAvenues[x].size(),new Pair<Node,Node>(grid[x][height],n));
 
         }
@@ -127,12 +166,14 @@ public class ManhattanMapGenerator {
             x_loc = grid[0][y].getLocation().getX() - (blockSize * 2.0);
             n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
             nodes.add(n);
+            spawnNodes.add(n);
             horizontalAvenues[y].add(0,new Pair<Node,Node>(n,grid[0][y]));
 
 
             x_loc = grid[width][y].getLocation().getX() + (blockSize * 2.0);
             n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
             nodes.add(n);
+            spawnNodes.add(n);
             horizontalAvenues[y].add(horizontalAvenues[y].size(),new Pair<Node,Node>(grid[width][y],n));
 
         }
@@ -168,18 +209,18 @@ public class ManhattanMapGenerator {
                     rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
-                    rs.addLeftStartLane(2, false);
-                    rs.addLeftStartLane(3, false);
+//                    rs.addLeftStartLane(2, false);
+//                    rs.addLeftStartLane(3, false);
                     rs.addLeftEndLane(10, false);
                     rs.addLeftEndLane(11, false);
-                    rs.addLeftEndLane(12, false);
-                    rs.addLeftEndLane(13, false);
+//                    rs.addLeftEndLane(12, false);
+//                    rs.addLeftEndLane(13, false);
                 } else {
                     rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
-                    rs.addLeftStartLane(1, false);
+//                    rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(10, false);
-                    rs.addLeftEndLane(11, false);
+//                    rs.addLeftEndLane(11, false);
                 }
                 
                 r.addLast(rs);
@@ -197,18 +238,18 @@ public class ManhattanMapGenerator {
                     rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
-                    rs.addLeftStartLane(2, false);
-                    rs.addLeftStartLane(3, false);
+//                    rs.addLeftStartLane(2, false);
+//                    rs.addLeftStartLane(3, false);
                     rs.addLeftEndLane(10, false);
                     rs.addLeftEndLane(11, false);
-                    rs.addLeftEndLane(12, false);
-                    rs.addLeftEndLane(13, false);
+//                    rs.addLeftEndLane(12, false);
+//                    rs.addLeftEndLane(13, false);
                 } else {
                     rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
-                    rs.addLeftStartLane(1, false);
+//                    rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(10, false);
-                    rs.addLeftEndLane(11, false);
+//                    rs.addLeftEndLane(11, false);
                 }
 
                 r.addLast(rs);

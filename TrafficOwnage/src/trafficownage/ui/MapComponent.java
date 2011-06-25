@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JComponent;
 import trafficownage.simulation.Car;
 import trafficownage.simulation.Lane;
@@ -66,7 +67,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
     private final static Color NODE_COLOR = new Color(255,64,64);
 
-    private final static Color CAR_QUEUE_COLOR = new Color(192,32,32);
+    private final static Color CAR_QUEUE_COLOR = new Color(32,72,192);
     private final static Color CAR_DEFAULT_COLOR = new Color(0,0,0);
 
     private final static double NODE_STROKE_WIDTH = 6.0;
@@ -114,16 +115,17 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             car_count = 0;
 
             gr.setStroke(new BasicStroke((int)(ppm * CAR_WIDTH),BasicStroke.CAP_BUTT,BasicStroke.JOIN_BEVEL));
+
             for (Road r : map_roads)
                 for (RoadSegment rs : r.getSegments())
-                drawRoadSegmentCars(gr,rs);
-
+                    drawRoadSegmentCars(gr,rs);
 
 
             drawInfo(gr);
         }
 
     }
+
 
     private void drawLaneLight(Graphics2D gr, Lane l) {
         Line2D.Double line = lane_coords.get(l);
@@ -284,6 +286,25 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
 
     private void drawInfo(Graphics2D gr) {
+
+        DecimalFormat twoDForm = new DecimalFormat("#.#");		 
+
+        int i = 0;
+
+        String cars = "Rendered cars: " + Integer.toString(car_count);
+
+        if (selected_car != null) {
+            String acc = "a: " + twoDForm.format(selected_car.getAcceleration()) + " m/s^2";
+            String vel_kph = "v(km/h): " + twoDForm.format(selected_car.getVelocity() * 3.6) + " km/h";
+            String vel_ms = "v(m/s): " + twoDForm.format(selected_car.getVelocity()) + " m/s";
+            String pos = "p: " + twoDForm.format(selected_car.getPosition()) + "m";
+            drawText(gr,acc,vel_kph,vel_ms,pos,cars);
+        } else {
+            drawText(gr,cars);
+        } 
+    }
+
+    private void drawText(Graphics2D gr, String... lines) {
         // get metrics from the graphics
         FontMetrics metrics = gr.getFontMetrics(INFO_FONT);
         // get the height of a line of text in this font and render context
@@ -292,27 +313,13 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         gr.setFont(INFO_FONT);
         gr.setColor(INFO_COLOR);
 
-        DecimalFormat twoDForm = new DecimalFormat("#.#");		 
-
         int i = 0;
 
-        if (selected_car != null) {
-            String acc = "a: " + twoDForm.format(selected_car.getAcceleration()) + " m/s^2";
-            String vel_kph = "v(km/h): " + twoDForm.format(selected_car.getVelocity() * 3.6) + " km/h";
-            String vel_ms = "v(m/s): " + twoDForm.format(selected_car.getVelocity()) + " m/s";
-            String pos = "p: " + twoDForm.format(selected_car.getPosition()) + "m";
-
-            gr.drawString(acc,12,12 + (line_height * i) + 2);
-            i++;
-            gr.drawString(vel_kph,12,12 + (line_height * i) + 2);
-            i++;
-            gr.drawString(vel_ms,12,12 + (line_height * i) + 2);
-            i++;
-            gr.drawString(pos,12,12 + (line_height * i) + 2);
+        for (String line : lines) {
+            gr.drawString(line,12,12 + (line_height * i) + 2);
             i++;
         }
 
-        gr.drawString("Rendered cars: " + Integer.toString(car_count), 12, 12 + (line_height * i) + 2);
     }
 
     private int drawLaneContent(Graphics2D gr, double length, List<Lane> lanes, int i) {
@@ -323,7 +330,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         double light_x1,light_y1,light_x2,light_y2;
 
-        double lightLength = Math.min(length,15.0);
+        double lightLength = Math.min(length,15.0) / length;
 
         double car_start,car_end;
 
@@ -342,14 +349,12 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             if (l.getEndNode().getNodeType() == Node.TRAFFICLIGHT_NODE && ((StupidTrafficLight)l.getEndNode()).getGreenLanes().contains(l)) {
                 gr.setColor(GREEN_LIGHT_COLOR);
 
-                light_x1 = line.x2 - ((lightLength / length) * dx);
+                light_x1 = line.x2 - (lightLength * dx);
                 light_x2 = line.x2;
-                light_y1 = line.y2 - ((lightLength / length) * dy);
+                light_y1 = line.y2 - (lightLength * dy);
                 light_y2 = line.y2;
 
                 gr.drawLine((int)light_x1,(int)light_y1,(int)light_x2,(int)light_y2);
-
-
             }
 
             if (!l.hasCars())

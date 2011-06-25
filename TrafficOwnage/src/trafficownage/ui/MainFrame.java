@@ -11,14 +11,20 @@
 
 package trafficownage.ui;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.swing.UIManager;
 import trafficownage.simulation.Car;
 import trafficownage.simulation.MainLoop;
+import trafficownage.simulation.MainLoopListener;
+import trafficownage.simulation.Node;
+import trafficownage.simulation.Road;
 
 /**
  *
  * @author Gerrit
  */
-public class MainFrame extends javax.swing.JFrame implements SimulationUpdateListener {
+public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
     private MainLoop m;
 
@@ -32,8 +38,6 @@ public class MainFrame extends javax.swing.JFrame implements SimulationUpdateLis
         mapComponent2.init(m);
 
         mapComponent2.repaint();
-
-        new Thread(m).start();
     }
 
     /** This method is called from within the constructor to
@@ -49,7 +53,11 @@ public class MainFrame extends javax.swing.JFrame implements SimulationUpdateLis
         jScrollPane1 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList();
         mapComponent2 = new trafficownage.ui.MapComponent();
-        addCarButton = new javax.swing.JButton();
+        startButton = new javax.swing.JButton();
+        pauseButton = new javax.swing.JButton();
+        stopButton = new javax.swing.JButton();
+        drawMapCheckbox = new javax.swing.JCheckBox();
+        infoLabel = new javax.swing.JLabel();
 
         javax.swing.GroupLayout mapComponent1Layout = new javax.swing.GroupLayout(mapComponent1);
         mapComponent1.setLayout(mapComponent1Layout);
@@ -70,24 +78,50 @@ public class MainFrame extends javax.swing.JFrame implements SimulationUpdateLis
         jScrollPane1.setViewportView(jList1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Roadworx");
 
         javax.swing.GroupLayout mapComponent2Layout = new javax.swing.GroupLayout(mapComponent2);
         mapComponent2.setLayout(mapComponent2Layout);
         mapComponent2Layout.setHorizontalGroup(
             mapComponent2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 380, Short.MAX_VALUE)
+            .addGap(0, 780, Short.MAX_VALUE)
         );
         mapComponent2Layout.setVerticalGroup(
             mapComponent2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 244, Short.MAX_VALUE)
+            .addGap(0, 544, Short.MAX_VALUE)
         );
 
-        addCarButton.setText("Add Car");
-        addCarButton.addActionListener(new java.awt.event.ActionListener() {
+        startButton.setText("Start");
+        startButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addCarButtonActionPerformed(evt);
+                startButtonActionPerformed(evt);
             }
         });
+
+        pauseButton.setText("Pause");
+        pauseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pauseButtonActionPerformed(evt);
+            }
+        });
+
+        stopButton.setText("Stop");
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
+
+        drawMapCheckbox.setSelected(true);
+        drawMapCheckbox.setText("Live drawing");
+        drawMapCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                drawMapCheckboxActionPerformed(evt);
+            }
+        });
+
+        infoLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        infoLabel.setText("Simulation is not running.");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -97,14 +131,28 @@ public class MainFrame extends javax.swing.JFrame implements SimulationUpdateLis
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(addCarButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(startButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(pauseButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(stopButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(drawMapCheckbox)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 365, Short.MAX_VALUE)
+                        .addComponent(infoLabel)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(addCarButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(startButton)
+                    .addComponent(pauseButton)
+                    .addComponent(stopButton)
+                    .addComponent(drawMapCheckbox)
+                    .addComponent(infoLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
@@ -113,15 +161,37 @@ public class MainFrame extends javax.swing.JFrame implements SimulationUpdateLis
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void addCarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addCarButtonActionPerformed
+    private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
         //mapComponent2.setSelectedCar(m.addCar());
-    }//GEN-LAST:event_addCarButtonActionPerformed
+
+        m.start();
+
+    }//GEN-LAST:event_startButtonActionPerformed
+
+    private void pauseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pauseButtonActionPerformed
+        // TODO add your handling code here:
+        m.pause();
+    }//GEN-LAST:event_pauseButtonActionPerformed
+
+    private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
+        m.stop();
+    }//GEN-LAST:event_stopButtonActionPerformed
+
+    private void drawMapCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawMapCheckboxActionPerformed
+        mapComponent2.setVisible(drawMapCheckbox.isSelected());
+    }//GEN-LAST:event_drawMapCheckboxActionPerformed
 
     /**
     * @param args the command line arguments
     */
     public static void main(String args[]) {
+         try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+        }
+
         java.awt.EventQueue.invokeLater(new Runnable() {
+
             public void run() {
                 new MainFrame().setVisible(true);
             }
@@ -129,19 +199,40 @@ public class MainFrame extends javax.swing.JFrame implements SimulationUpdateLis
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton addCarButton;
+    private javax.swing.JCheckBox drawMapCheckbox;
+    private javax.swing.JLabel infoLabel;
     private javax.swing.JList jList1;
     private javax.swing.JScrollPane jScrollPane1;
     private trafficownage.ui.MapComponent mapComponent1;
     private trafficownage.ui.MapComponent mapComponent2;
+    private javax.swing.JButton pauseButton;
+    private javax.swing.JButton startButton;
+    private javax.swing.JButton stopButton;
     // End of variables declaration//GEN-END:variables
 
-    public void carsUpdated() {
-        mapComponent2.update();
+
+    public void benchmarkCarAdded(Car car) {
     }
 
-    public void carAdded(Car car) {
-        
+    public void mapLoaded() {
+        mapComponent2.init(m);
+    }
+
+    public void nextFrame() {
+
+        long seconds = (long)m.getSimulatedTime();
+        long minutes = TimeUnit.SECONDS.toMinutes(seconds);
+        long hours = TimeUnit.MINUTES.toHours(minutes);
+
+        seconds -= TimeUnit.MINUTES.toSeconds(minutes);
+        minutes -= TimeUnit.HOURS.toMinutes(hours);
+
+        String time = "Time: " + String.format("%02d:%02d:%02d", hours, minutes, seconds);
+
+        infoLabel.setText(time);
+
+        if (drawMapCheckbox.isSelected())
+            mapComponent2.update();
     }
 
 }
