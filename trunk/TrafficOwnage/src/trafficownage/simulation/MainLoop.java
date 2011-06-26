@@ -2,10 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package trafficownage.simulation;
 
 import java.awt.geom.Point2D;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -17,63 +17,58 @@ import trafficownage.util.ManhattanMapGenerator;
  * @author Gerrit
  */
 public class MainLoop implements NodeListener, CarListener {
+
     private final static long FPS = 20;
-
-    private final static long SPEED_MULTIPLIER = 64;
-
+    private int speedMultiplier;
     private List<Road> roads;
     private List<Node> nodes;
-
     private boolean initialized;
     private boolean run;
     private boolean stop;
     private boolean realtime = true;
-
     private long msStep;
     private double sStep;
-
+    private double currentSpeed;
     private int carCount;
-
     private MainLoopListener listener = null;
-
     private SpawnManager spawnManager = new SpawnManager();
     private SequenceManager sequenceManager = new SequenceManager();
-
-    private static final double DAY = (double)TimeUnit.HOURS.toSeconds(24);
+    private static final double DAY = (double) TimeUnit.HOURS.toSeconds(24);
 
     public MainLoop() {
         initialized = false;
+        speedMultiplier = 16;
     }
 
     public void init() {
 
-        simulatedTime = (double)TimeUnit.HOURS.toSeconds(8);
+        simulatedTime = (double) TimeUnit.HOURS.toSeconds(8);
 
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(32,16,100.0,16,5,15);
+        gen.generate(32, 16, 100.0, 16, 5, 15);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
 
-        spawnManager.init(nodes,gen.getAreas());
+        spawnManager.init(nodes, gen.getAreas());
 
         spawnManager.addMapping(false,
-                (double)(TimeUnit.HOURS.toSeconds(6)),
-                (double)(TimeUnit.HOURS.toSeconds(9)),
+                (double) (TimeUnit.HOURS.toSeconds(6)),
+                (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
                 50000);
 
         spawnManager.addMapping(true,
-                (double)(TimeUnit.HOURS.toSeconds(8)) + (double)(TimeUnit.MINUTES.toSeconds(5)),
-                (double)(TimeUnit.HOURS.toSeconds(8)) + (double)(TimeUnit.MINUTES.toSeconds(10)),
+                (double) (TimeUnit.HOURS.toSeconds(8)) + (double) (TimeUnit.MINUTES.toSeconds(5)),
+                (double) (TimeUnit.HOURS.toSeconds(8)) + (double) (TimeUnit.MINUTES.toSeconds(10)),
                 ManhattanMapGenerator.LOCAL_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
                 10);
 
         spawnManager.addMapping(false,
-                (double)(TimeUnit.HOURS.toSeconds(8)),
-                (double)(TimeUnit.HOURS.toSeconds(10)),
+                (double) (TimeUnit.HOURS.toSeconds(8)),
+                (double) (TimeUnit.HOURS.toSeconds(10)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
                 50000);
@@ -84,23 +79,37 @@ public class MainLoop implements NodeListener, CarListener {
                 0.5);
 
 
-        sStep = 1.0 / (double)FPS; //Step size in seconds
-        msStep = (long)(sStep * 1000.0) / SPEED_MULTIPLIER; //Step size in milliseconds
+        sStep = 1.0 / (double) FPS; //Step size in seconds
+        msStep = (long) ((sStep * 1000.0) / (double)speedMultiplier); //Step size in milliseconds
 
         //Init all roads/nodes
-        for (Road r : roads)
+        for (Road r : roads) {
             r.init();
+        }
 
-        for (Node n : nodes)
+        for (Node n : nodes) {
             n.init(this);
+        }
 
         sequenceManager.init(sStep, roads);
 
-        if (listener != null)
+        if (listener != null) {
             listener.mapLoaded();
+        }
 
         initialized = true;
         stop = true;
+    }
+
+    public int getSpeedMultiplier() {
+        return speedMultiplier;
+    }
+    
+    public void setSpeedMultiplier(int speedMultiplier) {
+        synchronized (syncObject) {
+            this.speedMultiplier = speedMultiplier;
+        msStep = (long) ((sStep * 1000.0) / (double)speedMultiplier); //Step size in milliseconds
+        }
     }
 
     public void init(MainLoopListener listener) {
@@ -111,9 +120,7 @@ public class MainLoop implements NodeListener, CarListener {
     public void setUIListener(MainLoopListener listener) {
         this.listener = listener;
     }
-
     Random randy = new Random();
-    
     private final Object syncObject = new Object();
 
     public Object getSyncObject() {
@@ -123,7 +130,6 @@ public class MainLoop implements NodeListener, CarListener {
     public void setRealtime(boolean realtime) {
         this.realtime = realtime;
     }
-
     private double simulatedTime;
 
     public double getSimulatedTime() {
@@ -131,29 +137,41 @@ public class MainLoop implements NodeListener, CarListener {
     }
 
     public void pause() {
-        if (initialized)
-            run = !run;
+        synchronized (syncObject) {
+            if (initialized) {
+                run = !run;
+            }
+        }
+    }
+
+    public double getCurrentSpeed() {
+        return currentSpeed;
     }
 
     public void stop() {
-        if (initialized) {
-            stop = true;
+        synchronized (syncObject) {
+            if (initialized) {
+                stop = true;
+            }
         }
     }
 
     public void start() {
-        if (!initialized)
-            return;
+        synchronized (syncObject) {
+            if (!initialized) {
+                return;
+            }
 
-        if (!run && !stop) {
-            pause();
-            return;
-        } else {
-            new Thread(runner).start();
+            if (!run && !stop) {
+                pause();
+                return;
+            } else {
+                new Thread(runner).start();
+            }
         }
     }
-
     private Runnable runner = new Runnable() {
+
         public void run() {
             loop();
         }
@@ -163,31 +181,37 @@ public class MainLoop implements NodeListener, CarListener {
         run = true;
         stop = false;
 
-        long span,start,end,leftover;
+        long span, start, end, leftover;
+
+        double timetaken;
 
         while (!stop) {
 
-            if (!run)
+            if (!run) {
                 continue;
+            }
 
             start = System.currentTimeMillis();
 
             //System.out.println(simulated_time);
 
-            synchronized(syncObject){
+            synchronized (syncObject) {
 
-                spawnManager.update(simulatedTime,sStep);
-                
+                spawnManager.update(simulatedTime, sStep);
+
                 sequenceManager.update(sStep);
 
-                for (Node n : nodes)
+                for (Node n : nodes) {
                     n.update(sStep);
-                
+                }
 
-                for (Road r : roads) 
+
+                for (Road r : roads) {
                     r.update(sStep);
+                }
 
-                listener.nextFrame();
+                if (listener != null)
+                    listener.nextFrame(sStep);
             }
 
             simulatedTime = (simulatedTime + sStep) % DAY;
@@ -198,11 +222,16 @@ public class MainLoop implements NodeListener, CarListener {
 
             leftover = Math.max(0, msStep - span);
 
+            timetaken = Math.max(.1,(double)span + leftover);
+            
+            currentSpeed = sStep / ((double)timetaken / 1000.0);
+            if (Double.POSITIVE_INFINITY == currentSpeed)
+                System.err.println("MAY NOT HAPPEND!");
+
             if (realtime) {
                 try {
                     Thread.sleep(leftover);
                 } catch (InterruptedException ex) {
-
                 }
             }
         }
@@ -211,7 +240,6 @@ public class MainLoop implements NodeListener, CarListener {
         init();
     }
 
-    
     public List<Node> getNodes() {
         return nodes;
     }

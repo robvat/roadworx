@@ -18,16 +18,15 @@ import trafficownage.util.Triplet;
  *
  * @author Gerrit
  */
-public class SpawnManager implements CarListener {
+public class SpawnManager {
     private HashMap<Integer,List<Node>> areas;
 
     private List<Mapping> mappings;
     private List<Node> allNodes;
 
-    private List<Car> benchmarkedCars;
-    private HashMap<Car,Double> departureTimes;
-
     private double simulatedTime;
+
+    private HashMap<Car,Double> departureTimes;
 
     private Random rand;
 
@@ -41,7 +40,6 @@ public class SpawnManager implements CarListener {
         this.allNodes = allNodes;
         this.areas = areas;
 
-        this.benchmarkedCars = new ArrayList<Car>();
         this.departureTimes = new HashMap<Car,Double>();
     }
 
@@ -85,7 +83,7 @@ public class SpawnManager implements CarListener {
 
         if (simulatedTime < this.simulatedTime) {
             //what a beautiful new day
-            for (Car c : benchmarkedCars)
+            for (Car c : departureTimes.keySet())
                 departureTimes.put(c,departureTimes.get(c) - DAY);
         }
 
@@ -101,68 +99,31 @@ public class SpawnManager implements CarListener {
             } else if (m.isActivated()) {
                 m.deactivate();
             }
-        }
-        
+        }        
     }
 
     private boolean isActive(double simulatedTime, Mapping mapping) {
         return (mapping.getTimeSpan() == null || (simulatedTime >= mapping.getTimeSpan().getObject1() && simulatedTime <= mapping.getTimeSpan().getObject2()));
     }
 
-    private void spawnCar(boolean benchmarked, CarType carType, DriverType driverType, int spawnArea, int targetArea) {
-        if (!areas.containsKey(spawnArea) || !areas.containsKey(targetArea)) {
-            System.err.println("Spawn or target area does not exist.");
-            return;
-        }
-
-        List<Node> spawnNodes = areas.get(spawnArea);
-        List<Node> targetNodes = areas.get(targetArea);
-
-        Node spawnNode = null;
-        Node targetNode = null;
-
-        while (spawnNode == null || targetNode == null || spawnNode == targetNode) {
-            spawnNode = selectRandomNode(spawnNodes);
-            targetNode = selectRandomNode(targetNodes);
-        }
-
-        Car c = generateCar(benchmarked, carType, driverType, spawnNode,targetNode);
-        spawnNode.addSpawnCar(c);
-    }
-
-    private Car generateCar(boolean benchmarked, CarType carType, DriverType driverType, Node spawnNode, Node targetNode) {
-        Car car = new Car();
-        car.init(carType, driverType);
-
-        Pair<Double,List<Node>> route = Pathfinding.fastestRoute(car,spawnNode,targetNode,allNodes);
-        car.setRoute(new Route(route.getObject1(),route.getObject2()));
-
-        if (benchmarked) {
-            benchmarkedCars.add(car);
-            departureTimes.put(car,simulatedTime);
-            car.addListener(this);
-        }
-
-        return car;
-    }
 
     private Node selectRandomNode(List<Node> nodes) {
         return nodes.get(rand.nextInt(nodes.size()));
     }
 
-    public void reachedDestination(Car car, Node destination) {
-        double timeTravelled = simulatedTime - departureTimes.get(car);
-        double benchmarkValue = timeTravelled / car.getRoute().getOptimalTravelTime();
-        System.out.println("Car arrived. Benchmark value: " + benchmarkValue);
-    }
 
-    private class Mapping {
+    private class Mapping implements CarListener {
         private Pair<Double,Double> timeSpan;
         private int spawnArea, targetArea;
         private double spawnInterval;
         private double timePassed;
         private boolean activated;
         private boolean benchmarked;
+
+        private List<Car> benchmarkedCars;
+
+        private HashMap<Car,Double> results;
+        private double result;
 
         private CarType carType;
 
@@ -174,6 +135,9 @@ public class SpawnManager implements CarListener {
             this.timePassed = 0.0;
             this.benchmarked = benchmarked;
 
+            this.benchmarkedCars = new ArrayList<Car>();
+            this.results = new HashMap<Car,Double>();
+            
             this.carType = carType;
 
             this.activated = false;
@@ -202,13 +166,68 @@ public class SpawnManager implements CarListener {
             if (timePassed >= spawnInterval) {
 
                 if (carType != null)
-                     spawnCar(benchmarked,carType,DriverType.getRandomDriverType(),spawnArea, targetArea);
+                     spawnCar(carType,DriverType.getRandomDriverType(),spawnArea, targetArea);
                 else
-                    spawnCar(benchmarked,CarType.getRandomCarType(),DriverType.getRandomDriverType(),spawnArea, targetArea);
+                    spawnCar(CarType.getRandomCarType(),DriverType.getRandomDriverType(),spawnArea, targetArea);
 
                 timePassed = 0;
             }
         }
+
+        public boolean isBenchmarked() {
+            return benchmarked;
+        }
+
+        public double getBenchmarkResults() {
+            return result;
+        }
+
+        private void spawnCar(CarType carType, DriverType driverType, int spawnArea, int targetArea) {
+            if (!areas.containsKey(spawnArea) || !areas.containsKey(targetArea)) {
+                System.err.println("Spawn or target area does not exist.");
+                return;
+            }
+
+            List<Node> spawnNodes = areas.get(spawnArea);
+            List<Node> targetNodes = areas.get(targetArea);
+
+            Node spawnNode = null;
+            Node targetNode = null;
+
+            while (spawnNode == null || targetNode == null || spawnNode == targetNode) {
+                spawnNode = selectRandomNode(spawnNodes);
+                targetNode = selectRandomNode(targetNodes);
+            }
+
+            Car c = generateCar(carType, driverType, spawnNode,targetNode);
+            spawnNode.addSpawnCar(c);
+        }
+
+        private Car generateCar(CarType carType, DriverType driverType, Node spawnNode, Node targetNode) {
+            Car car = new Car();
+            car.init(carType, driverType);
+
+            Pair<Double,List<Node>> route = Pathfinding.fastestRoute(car,spawnNode,targetNode,allNodes);
+            car.setRoute(new Route(route.getObject1(),route.getObject2()));
+
+            if (benchmarked) {
+                benchmarkedCars.add(car);
+                departureTimes.put(car,simulatedTime);
+                car.addListener(this);
+            }
+
+            return car;
+        }
+
+        public void reachedDestination(Car car, Node destination) {
+            double timeTravelled = simulatedTime - departureTimes.get(car);
+            double benchmarkValue = timeTravelled / car.getRoute().getOptimalTravelTime();
+
+
+            result = ((result * (double)results.size()) + benchmarkValue) / (double)(results.size() + 1);
+            results.put(car, benchmarkValue);
+        }
+
 
 
     }

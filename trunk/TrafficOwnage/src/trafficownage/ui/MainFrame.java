@@ -11,6 +11,7 @@
 
 package trafficownage.ui;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.swing.UIManager;
@@ -54,18 +55,24 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         jList1 = new javax.swing.JList();
         timeLabel1 = new javax.swing.JLabel();
         drawModeButtonGroup = new javax.swing.ButtonGroup();
-        startButton = new javax.swing.JButton();
-        pauseButton = new javax.swing.JButton();
-        stopButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         timeLabel = new javax.swing.JLabel();
         carCountLabel = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        mapComponent2 = new trafficownage.ui.MapComponent();
+        jPanel4 = new javax.swing.JPanel();
+        startButton = new javax.swing.JButton();
+        pauseButton = new javax.swing.JButton();
+        stopButton = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        decreaseSimSpeedButton = new javax.swing.JButton();
+        increaseSimSpeedButton = new javax.swing.JButton();
+        simSpeedLabel = new javax.swing.JLabel();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
         radDrawCars = new javax.swing.JRadioButton();
         radDrawDensity = new javax.swing.JRadioButton();
         radNoDrawing = new javax.swing.JRadioButton();
-        jPanel2 = new javax.swing.JPanel();
-        mapComponent2 = new trafficownage.ui.MapComponent();
-        jLabel1 = new javax.swing.JLabel();
 
         javax.swing.GroupLayout mapComponent1Layout = new javax.swing.GroupLayout(mapComponent1);
         mapComponent1.setLayout(mapComponent1Layout);
@@ -91,6 +98,60 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Roadworx");
 
+        jPanel1.setBackground(new java.awt.Color(51, 51, 51));
+
+        timeLabel.setFont(timeLabel.getFont().deriveFont(timeLabel.getFont().getStyle() | java.awt.Font.BOLD, timeLabel.getFont().getSize()+3));
+        timeLabel.setForeground(new java.awt.Color(255, 255, 255));
+        timeLabel.setText("     ");
+
+        carCountLabel.setFont(carCountLabel.getFont().deriveFont(carCountLabel.getFont().getStyle() | java.awt.Font.BOLD, carCountLabel.getFont().getSize()+3));
+        carCountLabel.setForeground(new java.awt.Color(255, 255, 255));
+        carCountLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        carCountLabel.setText("     ");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(timeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 186, Short.MAX_VALUE)
+                .addComponent(carCountLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addComponent(timeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE)
+                .addComponent(carCountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE))
+        );
+
+        jPanel2.setBackground(new java.awt.Color(102, 102, 102));
+        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        javax.swing.GroupLayout mapComponent2Layout = new javax.swing.GroupLayout(mapComponent2);
+        mapComponent2.setLayout(mapComponent2Layout);
+        mapComponent2Layout.setHorizontalGroup(
+            mapComponent2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 485, Short.MAX_VALUE)
+        );
+        mapComponent2Layout.setVerticalGroup(
+            mapComponent2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 431, Short.MAX_VALUE)
+        );
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
         startButton.setText("Start");
         startButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -112,38 +173,73 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
             }
         });
 
-        jPanel1.setBackground(new java.awt.Color(51, 51, 51));
+        jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD, jLabel2.getFont().getSize()+1));
+        jLabel2.setText("Simulation Controls");
 
-        timeLabel.setFont(timeLabel.getFont().deriveFont(timeLabel.getFont().getStyle() | java.awt.Font.BOLD, timeLabel.getFont().getSize()+3));
-        timeLabel.setForeground(new java.awt.Color(255, 255, 255));
-        timeLabel.setText("     ");
+        decreaseSimSpeedButton.setText("-");
+        decreaseSimSpeedButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                decreaseSimSpeedButtonActionPerformed(evt);
+            }
+        });
 
-        carCountLabel.setFont(carCountLabel.getFont().deriveFont(carCountLabel.getFont().getStyle() | java.awt.Font.BOLD, carCountLabel.getFont().getSize()+3));
-        carCountLabel.setForeground(new java.awt.Color(255, 255, 255));
-        carCountLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        carCountLabel.setText("     ");
+        increaseSimSpeedButton.setText("+");
+        increaseSimSpeedButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                increaseSimSpeedButtonActionPerformed(evt);
+            }
+        });
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        simSpeedLabel.setFont(simSpeedLabel.getFont().deriveFont(simSpeedLabel.getFont().getStyle() | java.awt.Font.BOLD, simSpeedLabel.getFont().getSize()+1));
+        simSpeedLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        simSpeedLabel.setText("16x");
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(timeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 512, Short.MAX_VALUE)
-                .addComponent(carCountLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(startButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(pauseButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(stopButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(decreaseSimSpeedButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(simSpeedLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(increaseSimSpeedButton)))
                 .addContainerGap())
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(timeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
-            .addComponent(carCountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(startButton)
+                    .addComponent(pauseButton)
+                    .addComponent(stopButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(decreaseSimSpeedButton)
+                    .addComponent(increaseSimSpeedButton)
+                    .addComponent(simSpeedLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
+
+        jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD, jLabel1.getFont().getSize()+1));
+        jLabel1.setText("Drawing:");
 
         drawModeButtonGroup.add(radDrawCars);
         radDrawCars.setSelected(true);
         radDrawCars.setText("Default");
-        radDrawCars.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         radDrawCars.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radDrawCarsActionPerformed(evt);
@@ -152,7 +248,6 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
         drawModeButtonGroup.add(radDrawDensity);
         radDrawDensity.setText("Density");
-        radDrawDensity.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         radDrawDensity.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radDrawDensityActionPerformed(evt);
@@ -161,65 +256,52 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
         drawModeButtonGroup.add(radNoDrawing);
         radNoDrawing.setText("Disabled");
-        radNoDrawing.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         radNoDrawing.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radNoDrawingActionPerformed(evt);
             }
         });
 
-        jPanel2.setBackground(new java.awt.Color(102, 102, 102));
-        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-        javax.swing.GroupLayout mapComponent2Layout = new javax.swing.GroupLayout(mapComponent2);
-        mapComponent2.setLayout(mapComponent2Layout);
-        mapComponent2Layout.setHorizontalGroup(
-            mapComponent2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 695, Short.MAX_VALUE)
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(radNoDrawing)
+                    .addComponent(radDrawDensity)
+                    .addComponent(radDrawCars)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(101, Short.MAX_VALUE))
         );
-        mapComponent2Layout.setVerticalGroup(
-            mapComponent2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 556, Short.MAX_VALUE)
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radDrawCars, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radDrawDensity)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radNoDrawing)
+                .addGap(16, 16, 16))
         );
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-
-        jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD, jLabel1.getFont().getSize()+1));
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        jLabel1.setText("Drawing:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(radDrawDensity)
-                    .addComponent(radNoDrawing)
-                    .addComponent(radDrawCars)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(startButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(pauseButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(stopButton)))))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -227,18 +309,9 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(stopButton)
-                            .addComponent(pauseButton)
-                            .addComponent(startButton))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel1)
-                        .addGap(5, 5, 5)
-                        .addComponent(radDrawCars, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(radDrawDensity)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(radNoDrawing))
+                        .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(11, 11, 11)
+                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -277,6 +350,24 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         mapComponent2.setDrawMode(MapComponent.DRAW_CARS);
     }//GEN-LAST:event_radDrawCarsActionPerformed
 
+    private void increaseSimSpeedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_increaseSimSpeedButtonActionPerformed
+        int speed = m.getSpeedMultiplier();
+
+        speed = Math.min(64, speed + 1);
+
+        simSpeedLabel.setText(speed + "x");
+        m.setSpeedMultiplier(speed);
+    }//GEN-LAST:event_increaseSimSpeedButtonActionPerformed
+
+    private void decreaseSimSpeedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_decreaseSimSpeedButtonActionPerformed
+        int speed = m.getSpeedMultiplier();
+
+        speed = Math.max(1, speed - 1);
+
+        simSpeedLabel.setText(speed + "x");
+        m.setSpeedMultiplier(speed);
+    }//GEN-LAST:event_decreaseSimSpeedButtonActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -296,11 +387,16 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel carCountLabel;
+    private javax.swing.JButton decreaseSimSpeedButton;
     private javax.swing.ButtonGroup drawModeButtonGroup;
+    private javax.swing.JButton increaseSimSpeedButton;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JList jList1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
     private trafficownage.ui.MapComponent mapComponent1;
     private trafficownage.ui.MapComponent mapComponent2;
@@ -308,6 +404,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     private javax.swing.JRadioButton radDrawCars;
     private javax.swing.JRadioButton radDrawDensity;
     private javax.swing.JRadioButton radNoDrawing;
+    private javax.swing.JLabel simSpeedLabel;
     private javax.swing.JButton startButton;
     private javax.swing.JButton stopButton;
     private javax.swing.JLabel timeLabel;
@@ -322,7 +419,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         mapComponent2.init(m);
     }
 
-    public void nextFrame() {
+    public void nextFrame(double timestep) {
 
         long seconds = (long)m.getSimulatedTime();
         long minutes = TimeUnit.SECONDS.toMinutes(seconds);
@@ -334,7 +431,8 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         String time = "Time: " + String.format("%02d:%02d:%02d", hours, minutes, seconds);
 
         timeLabel.setText(time);
-        carCountLabel.setText(Integer.toString(m.getCarCount()) + " cars");
+        carCountLabel.setText(m.getCarCount() + " cars");
+
 
         if (!radNoDrawing.isSelected())
             mapComponent2.update();
