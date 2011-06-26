@@ -127,6 +127,8 @@ public class SpawnManager {
 
         private CarType carType;
 
+
+
         public Mapping(boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
             this.timeSpan = timeSpan;
             this.spawnArea = spawnArea;
@@ -140,7 +142,29 @@ public class SpawnManager {
             
             this.carType = carType;
 
+            lambda = (double)spawnInterval;
+            L = Math.exp(-lambda);
+
+            determineSpawnInterval();
+
             this.activated = false;
+        }
+
+        private double lambda;
+        private double L;
+
+        private Random rand = new Random();
+
+        private void determineSpawnInterval() {
+            int k = 0;
+            double p = 1.0;
+
+            while (p > L) {
+                p *= rand.nextDouble();
+                k++;
+            }
+
+            spawnInterval = (double)(k-1);
         }
 
         public Pair<Double,Double> getTimeSpan() {
@@ -169,6 +193,8 @@ public class SpawnManager {
                      spawnCar(carType,DriverType.getRandomDriverType(),spawnArea, targetArea);
                 else
                     spawnCar(CarType.getRandomCarType(),DriverType.getRandomDriverType(),spawnArea, targetArea);
+
+                determineSpawnInterval();
 
                 timePassed = 0;
             }
