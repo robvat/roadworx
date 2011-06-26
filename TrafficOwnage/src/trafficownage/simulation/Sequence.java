@@ -46,8 +46,6 @@ public class Sequence {
             int throughput = 0;
             for (TrafficLight n : nodes) {
                 throughput += n.pollAcceptedCars();
-                if (n.getIncomingLanes().size() == 8)
-                    System.out.println("Booya!");
             }
 
             if (throughputs.size() == cycleRemember)

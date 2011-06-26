@@ -386,7 +386,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             } else if (drawMode == DRAW_DENSITY) {
 
                 double ratio = l.getCombinedCarLength() / l.getLength();
-                gr.setColor(getColor(Math.pow(ratio,0.5)));
+                gr.setColor(getColor(Math.pow(ratio,0.3)));
                 gr.draw(line);
             }
         }

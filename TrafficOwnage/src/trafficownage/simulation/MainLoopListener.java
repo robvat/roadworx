@@ -13,5 +13,5 @@ public interface MainLoopListener {
     void benchmarkCarAdded(Car car);
     void logMessage(String message);
     void mapLoaded();
-    void nextFrame();
+    void nextFrame(double timestep);
 }
