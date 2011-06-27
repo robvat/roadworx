@@ -202,12 +202,16 @@ public class ManhattanMapGenerator {
         RoadSegment rs;
 
         int v = 0;
+        boolean mainRoad;
         for (List<Pair<Node,Node>> verticalAvenue : verticalAvenues) {
-            Road r = new Road("Vertical " + Integer.toString(v + 1));
+            mainRoad = (v % mainRoadInterval == 0);
+            
+            Road r = new Road("Vertical " + Integer.toString(v + 1), mainRoad ? 1 : 2);
+
             for (Pair<Node,Node> pair : verticalAvenue) {
 
-                if (v % mainRoadInterval == 0) {
-                    rs = new RoadSegment(r, 120.0 / 3.6, pair.getObject1(), pair.getObject2());
+                if (mainRoad) {
+                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
 //                    rs.addLeftStartLane(2, false);
@@ -232,10 +236,13 @@ public class ManhattanMapGenerator {
         
         int h = 0;
         for (List<Pair<Node,Node>> horizontalAvenue : horizontalAvenues) {
-            Road r = new Road("Horizontal " + Integer.toString(h + 1));
+            mainRoad = (h % mainRoadInterval == 0);
+
+            Road r = new Road("Horizontal " + Integer.toString(h + 1), mainRoad ? 1 : 2);
+
             for (Pair<Node,Node> pair : horizontalAvenue) {
 
-                if (h % mainRoadInterval == 0) {
+                if (mainRoad) {
                     rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
