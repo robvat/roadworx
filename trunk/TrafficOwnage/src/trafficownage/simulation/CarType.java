@@ -12,11 +12,11 @@ import java.util.Random;
  * @author Gerrit
  */
 public enum CarType {
-    SUPERCAR(55.0, 200.0, 1200, 4.0, true),
-    LORRY(32.0, 70.0, 4500, 18.0, false),
-    BIGCAR(38.0, 90.0, 2000, 6.0, true),
-    CAR(45.0, 100.0, 1000, 4.5, true),
-    MINICAR(30.0, 80.0, 600, 2.5, true);
+    SUPERCAR(300.0/3.6, (100.0/3.6)/6.0, 1200, 4.0, true),
+    LORRY(90.0/3.6, (100.0/3.6)/18.0, 4500, 18.0, false),
+    BIGCAR(120.0/3.6, (100.0/3.6)/13, 2000, 6.0, true),
+    CAR(150.0/3.6, (100.0/3.6)/10, 1000, 4.5, true),
+    MINICAR(120.0/3.6, (100.0/3.6)/15, 600, 2.5, true);
 
 
     private double max_v, weight, length, max_acc;
@@ -33,13 +33,13 @@ public enum CarType {
     private static Random rand = new Random();
 
     public static CarType getRandomCarType() {
-        // 1% supercar(make sure aggressive driver :P)
+        // 10% supercar
         // cars are worth 70% of traffic, trucks 30%
-        // Minicar has 25%, Car has 30%, Bigcar has 14%
+        // Minicar has 25%, Car has 30%, Bigcar has 10%
         Double rn = Math.random();
-        if (rn >= 0 & rn <= 0.1)
+        if (rn >= 0 & rn <= 0.05)
             return CarType.SUPERCAR;
-        else if (rn > 0.01 & rn <=0.15)
+        else if (rn > 0.05 & rn <=0.15)
             return CarType.BIGCAR;
         else if (rn > 0.15 & rn <= 0.4)
             return CarType.MINICAR;
