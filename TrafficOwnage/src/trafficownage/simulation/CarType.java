@@ -5,8 +5,6 @@
 
 package trafficownage.simulation;
 
-import java.util.Random;
-
 /**
  *
  * @author Gerrit
@@ -22,7 +20,7 @@ public enum CarType {
     private double max_v, weight, length, max_acc;
     private Boolean overtake;
 
-    CarType(double max_v, double max_acc, double weight, double length, Boolean overtake) {
+    CarType(double max_v, double max_acc, double weight, double length, boolean overtake) {
         this.max_v = max_v;
         this.max_acc = max_acc;
         this.weight = weight;
@@ -30,13 +28,12 @@ public enum CarType {
         this.overtake = overtake;
     }
 
-    private static Random rand = new Random();
-
     public static CarType getRandomCarType() {
         // 10% supercar
         // cars are worth 70% of traffic, trucks 30%
         // Minicar has 25%, Car has 30%, Bigcar has 10%
         Double rn = Math.random();
+        
         if (rn >= 0 & rn <= 0.05)
             return CarType.SUPERCAR;
         else if (rn > 0.05 & rn <=0.15)
