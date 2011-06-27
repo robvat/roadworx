@@ -24,6 +24,8 @@ public class SpawnManager {
     private List<Mapping> mappings;
     private List<Node> allNodes;
 
+    private List<Mapping> benchmarkedMappings;
+
     private double simulatedTime;
 
     private HashMap<Car,Double> departureTimes;
@@ -33,6 +35,7 @@ public class SpawnManager {
     public SpawnManager() {
         areas = new HashMap<Integer,List<Node>>();
         mappings = new ArrayList<Mapping>();
+        benchmarkedMappings = new ArrayList<Mapping>();
         rand = new Random();
     }
 
@@ -74,7 +77,13 @@ public class SpawnManager {
     }
 
     public void addMapping(boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
-        mappings.add(new Mapping(benchmarked, timeSpan, spawnArea, targetArea, spawnInterval, carType));
+
+        Mapping m = new Mapping(benchmarked, timeSpan, spawnArea, targetArea, spawnInterval, carType);
+
+        if (benchmarked)
+            benchmarkedMappings.add(m);
+        
+        mappings.add(m);
     }
 
     private static double DAY = (double)TimeUnit.DAYS.toSeconds(1);
@@ -102,12 +111,17 @@ public class SpawnManager {
         }        
     }
 
+    public List<Mapping> getBenchmarkedMappings() {
+        return benchmarkedMappings;
+    }
+
     private boolean isActive(double simulatedTime, Mapping mapping) {
         return (mapping.getTimeSpan() == null || (simulatedTime >= mapping.getTimeSpan().getObject1() && simulatedTime <= mapping.getTimeSpan().getObject2()));
     }
 
 
     private Node selectRandomNode(List<Node> nodes) {
+
         return nodes.get(rand.nextInt(nodes.size()));
     }
 
@@ -126,8 +140,6 @@ public class SpawnManager {
         private double result;
 
         private CarType carType;
-
-
 
         public Mapping(boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
             this.timeSpan = timeSpan;

@@ -59,7 +59,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
     private final static Color BACKGROUND_COLOR = new Color(64,64,64);
 
-    private final static Color ROAD_COLOR = new Color(255,255,64);
+    private final static Color ROAD_COLOR = new Color(255,255,192);
 
     private final static Color RED_LIGHT_COLOR = new Color(255,64,64);
     private final static Color GREEN_LIGHT_COLOR = new Color(0,192,0);
@@ -348,15 +348,27 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
                 i++;
 
-                if (l.getEndNode().getNodeType() == Node.TRAFFICLIGHT_NODE && ((TrafficLightInterface)l.getEndNode()).getGreenLanes().contains(l)) {
-                    gr.setColor(GREEN_LIGHT_COLOR);
+                if (l.getEndNode().getNodeType() == Node.TRAFFICLIGHT_NODE) {
+                    if (((TrafficLightInterface)(l.getEndNode())).getGreenLanes().contains(l)) {
+                        gr.setColor(GREEN_LIGHT_COLOR);
 
-                    light_x1 = line.x2 - (lightLength * dx);
-                    light_x2 = line.x2;
-                    light_y1 = line.y2 - (lightLength * dy);
-                    light_y2 = line.y2;
+                        light_x1 = line.x2 - (lightLength * dx);
+                        light_x2 = line.x2;
+                        light_y1 = line.y2 - (lightLength * dy);
+                        light_y2 = line.y2;
 
-                    gr.drawLine((int)light_x1,(int)light_y1,(int)light_x2,(int)light_y2);
+                        gr.drawLine((int)light_x1,(int)light_y1,(int)light_x2,(int)light_y2);
+                    } else {
+                        gr.setColor(RED_LIGHT_COLOR);
+
+                        light_x1 = line.x2 - (lightLength * dx);
+                        light_x2 = line.x2;
+                        light_y1 = line.y2 - (lightLength * dy);
+                        light_y2 = line.y2;
+
+                        gr.drawLine((int)light_x1,(int)light_y1,(int)light_x2,(int)light_y2);
+
+                    }
                 }
 
                 if (!l.hasCars())
@@ -426,9 +438,9 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         
         int d = r*2;
 
-        gr.setColor(NODE_COLOR);//n.getPriority()]);
-        gr.setStroke(new BasicStroke((int)(ppm * NODE_STROKE_WIDTH)));
-        gr.drawOval(x-r, y-r, d, d);
+        //gr.setColor(NODE_COLOR);//n.getPriority()]);
+        //gr.setStroke(new BasicStroke((int)(ppm * NODE_STROKE_WIDTH)));
+        //gr.drawOval(x-r, y-r, d, d);
     }
 
     public void mouseWheelMoved(MouseWheelEvent e) {

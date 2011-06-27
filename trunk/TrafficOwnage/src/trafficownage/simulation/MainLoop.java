@@ -32,12 +32,11 @@ public class MainLoop implements NodeListener, CarListener {
     private int carCount;
     private MainLoopListener listener = null;
     private SpawnManager spawnManager = new SpawnManager();
-    private SequenceManager sequenceManager = new SequenceManager();
     private static final double DAY = (double) TimeUnit.HOURS.toSeconds(24);
 
     public MainLoop() {
         initialized = false;
-        speedMultiplier = 32;
+        speedMultiplier = 16;
     }
 
     public void init() {
@@ -45,7 +44,7 @@ public class MainLoop implements NodeListener, CarListener {
         simulatedTime = (double) TimeUnit.HOURS.toSeconds(8);
 
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(16, 1, 100.0, 16, 5, 15);
+        gen.generate(16, 16, 100.0, 4, 5, 15);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
@@ -54,26 +53,26 @@ public class MainLoop implements NodeListener, CarListener {
 
         spawnManager.addMapping(false,
                 (double) (TimeUnit.HOURS.toSeconds(8)),
-                (double) (TimeUnit.HOURS.toSeconds(10)),
+                (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
-                0.2);
+                5000);
 
-        /*spawnManager.addMapping(true,
+        spawnManager.addMapping(true,
                 (double) (TimeUnit.HOURS.toSeconds(8)),
-                (double) (TimeUnit.HOURS.toSeconds(10)),
+                (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.LOCAL_NODES,
-                ManhattanMapGenerator.LOCAL_NODES,
-                5.0);
+                ManhattanMapGenerator.SPAWN_NODES,
+                10000);
 
-        spawnManager.addMapping(false,
+        /*spawnManager.addMapping(false,
                 (double) (TimeUnit.HOURS.toSeconds(8)),// + TimeUnit.MINUTES.toSeconds(2)),
                 (double) (TimeUnit.HOURS.toSeconds(10)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
-                50000);
+                500000);
 
-        spawnManager.addMapping(false,
+        /*spawnManager.addMapping(false,
                 ManhattanMapGenerator.LOCAL_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
                 0.5);*/
@@ -90,8 +89,6 @@ public class MainLoop implements NodeListener, CarListener {
         for (Node n : nodes) {
             n.init(this);
         }
-
-        sequenceManager.init(sStep, roads);
 
         if (listener != null) {
             listener.mapLoaded();
@@ -199,8 +196,6 @@ public class MainLoop implements NodeListener, CarListener {
 
                 spawnManager.update(simulatedTime, sStep);
 
-                sequenceManager.update(sStep);
-
                 for (Node n : nodes) {
                     n.update(sStep);
                 }
@@ -228,7 +223,7 @@ public class MainLoop implements NodeListener, CarListener {
             if (Double.POSITIVE_INFINITY == currentSpeed)
                 System.err.println("MAY NOT HAPPEND!");
 
-            if (realtime) {
+            if (realtime && leftover > 0) {
                 try {
                     Thread.sleep(leftover);
                 } catch (InterruptedException ex) {
