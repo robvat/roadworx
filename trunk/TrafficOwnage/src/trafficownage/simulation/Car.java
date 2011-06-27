@@ -611,6 +611,14 @@ public class Car
             double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront() -2.0) / (this.getVelocity() - carInFront.getVelocity());    //2 meters for safety
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
+            if (timeUntilCrashWithCarF < this.getDriverType().getDesiredTimeHeadway())
+            {
+                return false;
+            }
+            if((carInFront.getBack() - this.getFront()) < this.getDriverType().getMinimumDistanceToLeader())
+            {
+                return false;
+            }
             if (!laneChangeParameters.getObject1() && importance[0] != ESSENTIAL)
             {
                 return false;
@@ -630,6 +638,14 @@ public class Car
             double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront() -2.0) / (carBehind.getVelocity() - this.getVelocity());    //2m for safety
             double decceleratedVelocity2 = timeUntilCrashWithMe * carBehind.getDriverType().getMaxComfortableDeceleration();
 
+            if (timeUntilCrashWithMe < carBehind.getDriverType().getDesiredTimeHeadway())
+            {
+                return false;
+            }
+            if((this.getBack() - carBehind.getFront()) < carBehind.getDriverType().getMinimumDistanceToLeader())
+            {
+                return false;
+            }
             if (carBehind.getFront() > this.getBack() && importance[0] != ESSENTIAL)
             {
                 return false;
@@ -653,6 +669,22 @@ public class Car
             double decceleratedVelocity2 = timeUntilCrashWithMe * carBehind.getDriverType().getMaxComfortableDeceleration();
 
             //check that they aren't overlapping you
+            if (timeUntilCrashWithCarF < this.getDriverType().getDesiredTimeHeadway())
+            {
+                return false;
+            }
+            if (timeUntilCrashWithMe < carBehind.getDriverType().getDesiredTimeHeadway())
+            {
+                return false;
+            }
+            if((carInFront.getBack() - this.getFront()) < this.getDriverType().getMinimumDistanceToLeader())
+            {
+                return false;
+            }
+            if((this.getBack() - carBehind.getFront()) < carBehind.getDriverType().getMinimumDistanceToLeader())
+            {
+                return false;
+            }
             if (carInFront.getBack() < this.getFront() && importance[0] != ESSENTIAL
                     || carBehind.getFront() > this.getBack() && importance[0] != ESSENTIAL)
             {
