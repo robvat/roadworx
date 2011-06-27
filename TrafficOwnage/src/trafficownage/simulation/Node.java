@@ -288,6 +288,9 @@ public abstract class Node
             List<Lane> lanes = rs.getSourceLanes(this);
 
             for (Lane l : lanes) {
+                if (!car.doesOvertake() && l.getRightNeighbour() != null)
+                    continue;
+
                 if (l.acceptsCarAdd(car)) {
                     l.addCar(car);
                     spawnCars.remove(car);

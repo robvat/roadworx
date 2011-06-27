@@ -18,13 +18,13 @@ import trafficownage.util.Triplet;
 public class TrafficLight extends Node implements TrafficLightInterface {
 
     private List<RoadSegment> roadSegments;
+    private HashMap<RoadSegment,RoadSegment> oppositeRoadSegments;
+    
     private List<Lane> activeLights;
     private double trafficLightInterval;
     private int activeLight = 0;
 
     private double timePassed;
-
-    private HashMap<Lane,TrafficLightListener> sequences;
 
     public TrafficLight(Point2D.Double location) {
         super(location);
@@ -34,29 +34,33 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     public void init(NodeListener listener) {
         super.init(listener);
 
-        forcements = new ArrayList<Triplet<List<Lane>,Double,Double>>();
         activeLights = new ArrayList<Lane>();
-        sequences = new HashMap<Lane,TrafficLightListener>();
+
         roadSegments = new ArrayList<RoadSegment>();
+        oppositeRoadSegments = new HashMap<RoadSegment,RoadSegment>();
+
         activeLight = 0;
         timePassed = 0.0;
 
-        RoadSegment rs;
+        RoadSegment rs1,rs2;
 
-        for (Node n : getSourceNodes()) {
-            rs = getRoadSegment(n);
-            roadSegments.add(rs);
+        for (Node n1 : getSourceNodes()) {
+            rs1 = getRoadSegment(n1);
+            roadSegments.add(rs1);
+
+            for (Node n2 : getDestinationNodes()) {
+                rs2 = getRoadSegment(n2);
+
+                if (n2 != n1 && rs2.getRoad() == rs1.getRoad()) {
+                    oppositeRoadSegments.put(rs1,rs2);
+                    break;
+                }
+            }
         }
 
         setNodeType(Node.TRAFFICLIGHT_NODE);
     }
 
-    public void registerLanes(List<Lane> lanes, Sequence sequence) {
-        for (Lane lane : lanes) {
-            if (!sequences.containsKey(lane))
-                sequences.put(lane, sequence);
-        }
-    }
     
     public List<Lane> getGreenLanes() {
         return activeLights;
@@ -76,8 +80,6 @@ public class TrafficLight extends Node implements TrafficLightInterface {
 
     @Override
     void acceptCar(Car incoming) {
-        if (sequences.containsKey(incoming.getCurrentLane()))
-            sequences.get(incoming.getCurrentLane()).incrementCarCount();
 
         if (incoming.getNextLane() == null || !incoming.getNextLane().acceptsCarAdd(incoming))
             System.err.println("Car did not check correctly if it could join a lane.");
@@ -85,25 +87,6 @@ public class TrafficLight extends Node implements TrafficLightInterface {
         incoming.getNextLane().addCar(incoming);
     }
 
-    private int getLongestQueueCount(RoadSegment rs) {
-    	int count = 0;
-    	for (Lane l : rs.getDestinationLanes(this)) {
-    		count = Math.max(l.getCarCount(), count);
-    	}
-    	
-    	return count;
-    }
-
-    private List<Triplet<List<Lane>,Double,Double>> forcements;
-
-    public void forceGreen(Road road, List<Lane> lanes, double duration) {
-        forcements.add(new Triplet<List<Lane>,Double,Double>(lanes,0.0,duration));
-
-        activeLights.clear();
-
-        changeTrafficLight(road,lanes);
-        
-    }
 
     private Road currentRoad; //TODO: it should be possible to let cars from the same road drive
 
@@ -117,9 +100,23 @@ public class TrafficLight extends Node implements TrafficLightInterface {
         for (Lane l : lanes)
             if (lanes.contains(l))
                 activeLights.add(l);
+    }
 
+    private Pair<Integer,Double> getQueueInfo(RoadSegment rs) {
+    	int count = 0;
+        double timeHeadway = 0.0;
+    	for (Lane l : rs.getDestinationLanes(this)) {
 
-        
+            if (!l.hasCars())
+                continue;
+
+            if (l.getCarCount() > count) {
+                count = l.getCarCount();
+                timeHeadway = l.getFirstCar().getDistanceToLaneEnd() * l.getFirstCar().getVelocity();
+            }
+    	}
+
+    	return new Pair<Integer,Double>(count, timeHeadway);
     }
 
     @Override
@@ -128,58 +125,35 @@ public class TrafficLight extends Node implements TrafficLightInterface {
 
         timePassed += timestep;
 
-        if (!forcements.isEmpty()) {
-
-            Triplet<List<Lane>,Double,Double> forcement;
+        if (timePassed > trafficLightInterval) {
             
-            for (int i = 0; i < forcements.size(); i++) {
-                forcement = forcements.get(i);
+            Pair<Integer,Double> next = null;
+       
+            activeLight = (activeLight + 1) % roadSegments.size();
 
-                if (forcement.getObject2() >= forcement.getObject3()) {
-                    forcements.remove(forcement);
-                    i--;
-                }  else {
-                    forcement.setObject2(forcement.getObject2() + timestep);
-                }
-            }
-        }
-        
-        if (forcements.isEmpty() && timePassed > trafficLightInterval) {
-        	
-        	//gets the lane with the longest Qcount in the next avtive road segment.
-            int tmp,max = -1;
-            
-            int currentLight = activeLight;
-            
-            int i = (currentLight + 1) % roadSegments.size();
+            RoadSegment rs = roadSegments.get(activeLight);
 
-            RoadSegment rs;
+            next = getQueueInfo(rs);
 
-            while (i != currentLight) {
-                rs = roadSegments.get(i);
-                if (!forcements.isEmpty() && currentRoad != null && rs.getRoad() != currentRoad)
-                    continue;
+            if (!activeLights.isEmpty() && next.getObject1() == 0)
+                return;
 
-            	tmp = getLongestQueueCount(roadSegments.get(i));
-            	if (tmp > max) {
-            		max = tmp;
-            		break;
-            	}
-            	
-            	i = (i + 1) % roadSegments.size();
-            }
 
-            if (max == 0)
-                max = 1;
-
-            trafficLightInterval = 3 * max;//3 seconds for each car can change after with physics formulas..            
+            trafficLightInterval = Math.min(120.0, next.getObject2() + (6 * next.getObject1()));//3 seconds for each car can change after with physics formulas..
 
             timePassed = 0.0;
-            activeLight = i;
 
             activeLights.clear();
 
-            changeTrafficLight(roadSegments.get(i).getRoad(),roadSegments.get(i).getDestinationLanes(this));
+            RoadSegment rs1 = roadSegments.get(activeLight);
+            RoadSegment rs2;
+
+            changeTrafficLight(rs1.getRoad(),rs1.getDestinationLanes(this));
+
+            if (oppositeRoadSegments.containsKey(rs1)) {
+                rs2 = oppositeRoadSegments.get(rs1);
+                changeTrafficLight(rs1.getRoad(),rs2.getDestinationLanes(this));
+            }
 
         }
     }

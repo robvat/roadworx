@@ -18,8 +18,8 @@ import trafficownage.util.Triplet;
 public class Car
 {
 
-    private CarType car_type;
-    private DriverType driver_type;
+    private CarType carType;
+    private DriverType driverType;
     private Route route;
     private boolean inQueue = false;
     private DriverModel driverModel;
@@ -106,8 +106,8 @@ public class Car
 
         maxCarVelocity = Math.min(carType.getMaxVelocity(), driverType.getMaxVelocity());
 
-        this.car_type = carType;
-        this.driver_type = driverType;
+        this.carType = carType;
+        this.driverType = driverType;
         driverModel.init(driverType, carType);
         //route = new Route();
 
@@ -121,7 +121,7 @@ public class Car
 
     public DriverType getDriverType()
     {
-        return driver_type;
+        return driverType;
     }
 
     public void setContainer(Container container) {
@@ -211,12 +211,12 @@ public class Car
 
     public double getBack()
     {
-        return position - car_type.getLength();
+        return position - carType.getLength();
     }
 
     public double getLength()
     {
-        return car_type.getLength();
+        return carType.getLength();
     }
 
     public Lane getLane()
@@ -297,11 +297,22 @@ public class Car
         }
         
         for (Lane l : lanes) {
+            if (!carType.doesOvertake() && l.getRightNeighbour() != null)
+                continue;
+            
             if (l.acceptsCarAdd(this)) {
                 nextLane = l;
                 return;
             }
         }        
+    }
+
+    public CarType getCarType() {
+        return carType;
+    }
+
+    public boolean doesOvertake() {
+        return carType.doesOvertake();
     }
 
     public Route getRoute() {
@@ -408,7 +419,7 @@ public class Car
         if(courtesy)
         {
             if(this.getVelocity() > 0.05)
-                acceleration = (-driver_type.getMaxComfortableDeceleration());
+                acceleration = (-driverType.getMaxComfortableDeceleration());
             else
                 acceleration = 0;
         }
@@ -545,7 +556,7 @@ public class Car
             return false;
         }
 
-        if(!this.car_type.doesOvertake() && importance[0] == UNNECESSARY){
+        if(!this.carType.doesOvertake() && importance[0] == UNNECESSARY){
             return false;
         }
 
@@ -589,7 +600,7 @@ public class Car
 
         if (desiredLane == null)
         {
-            System.err.println("The lane it wants to change to doesn't exist.");
+            //System.err.println("The lane it wants to change to doesn't exist.");
             return false;
         }
 

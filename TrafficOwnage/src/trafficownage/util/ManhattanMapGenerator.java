@@ -117,8 +117,8 @@ public class ManhattanMapGenerator {
 
             for (int y = 0; y <= height; y++) {
 
-                // = new StupidTrafficLight(new Point2D.Double(x_loc,y_loc),25);
                 n = new TrafficLight(new Point2D.Double(x_loc,y_loc));
+                
                 grid[x][y] = n;
                 nodes.add(n);
 
@@ -144,14 +144,14 @@ public class ManhattanMapGenerator {
             x_loc = grid[x][0].getLocation().getX();
 
 
-            y_loc = grid[x][0].getLocation().getY() - (blockSize * 2.0);
+            y_loc = grid[x][0].getLocation().getY() - (blockSize * 8.0);
             n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
             nodes.add(n);
             spawnNodes.add(n);
             verticalAvenues[x].add(0,new Pair<Node,Node>(n,grid[x][0]));
 
 
-            y_loc = grid[x][height].getLocation().getY() + (blockSize * 2.0);
+            y_loc = grid[x][height].getLocation().getY() + (blockSize * 8.0);
             n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
             nodes.add(n);
             spawnNodes.add(n);
@@ -164,14 +164,14 @@ public class ManhattanMapGenerator {
             y_loc = grid[0][y].getLocation().getY();
 
 
-            x_loc = grid[0][y].getLocation().getX() - (blockSize * 2.0);
+            x_loc = grid[0][y].getLocation().getX() - (blockSize * 8.0);
             n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
             nodes.add(n);
             spawnNodes.add(n);
             horizontalAvenues[y].add(0,new Pair<Node,Node>(n,grid[0][y]));
 
 
-            x_loc = grid[width][y].getLocation().getX() + (blockSize * 2.0);
+            x_loc = grid[width][y].getLocation().getX() + (blockSize * 8.0);
             n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
             nodes.add(n);
             spawnNodes.add(n);
@@ -221,7 +221,7 @@ public class ManhattanMapGenerator {
 //                    rs.addLeftEndLane(12, false);
 //                    rs.addLeftEndLane(13, false);
                 } else {
-                    rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
+                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
 //                    rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(10, false);
@@ -253,7 +253,7 @@ public class ManhattanMapGenerator {
 //                    rs.addLeftEndLane(12, false);
 //                    rs.addLeftEndLane(13, false);
                 } else {
-                    rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
+                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
 //                    rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(10, false);
