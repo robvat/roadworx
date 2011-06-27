@@ -12,33 +12,41 @@ import java.util.Random;
  * @author Gerrit
  */
 public enum CarType {
-    LORRY(20.0, 50, 4500, 12.0),
-    CAR(45.0, 100.0, 1000, 4.5),
-    MINICAR(28.0, 75.0, 600, 2.5);
+    SUPERCAR(55.0, 200.0, 1200, 4.0, true),
+    LORRY(32.0, 70.0, 4500, 18.0, false),
+    BIGCAR(38.0, 90.0, 2000, 6.0, true),
+    CAR(45.0, 100.0, 1000, 4.5, true),
+    MINICAR(30.0, 80.0, 600, 2.5, true);
+
 
     private double max_v, weight, length, max_acc;
+    private Boolean overtake;
 
-    CarType(double max_v, double max_acc, double weight, double length) {
+    CarType(double max_v, double max_acc, double weight, double length, Boolean overtake) {
         this.max_v = max_v;
         this.max_acc = max_acc;
         this.weight = weight;
         this.length = length;
+        this.overtake = overtake;
     }
 
     private static Random rand = new Random();
 
     public static CarType getRandomCarType() {
-        int r = rand.nextInt(3);
-        switch (r) {
-            case 0:
-                return CarType.LORRY;
-            case 1:
-                return CarType.CAR;
-            case 2:
-                return CarType.MINICAR;
-            default:
-                return CarType.CAR;
-        }
+        // 1% supercar(make sure aggressive driver :P)
+        // cars are worth 70% of traffic, trucks 30%
+        // Minicar has 25%, Car has 30%, Bigcar has 14%
+        Double rn = Math.random();
+        if (rn >= 0 & rn <= 0.1)
+            return CarType.SUPERCAR;
+        else if (rn > 0.01 & rn <=0.15)
+            return CarType.BIGCAR;
+        else if (rn > 0.15 & rn <= 0.4)
+            return CarType.MINICAR;
+        else if (rn > 0.4 & rn <= 0.7)
+            return CarType.CAR;
+        else
+            return CarType.LORRY;
     }
 
     /**
@@ -69,6 +77,8 @@ public enum CarType {
         return max_acc;
     }
 
-    
+    public Boolean doesOvertake(){
+        return overtake;
+    }
 
 }
