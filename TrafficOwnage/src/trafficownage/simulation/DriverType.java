@@ -13,22 +13,22 @@ import java.util.Random;
  */
 public enum DriverType {
 
-    NORMAL(2.78f, 2.5f, 44.0f, 1.0f, 2.0f),
-    AGRESSIVE(4.0f, 3.5f, 65.0f, 0.2f, 0.5f),
-    GRANDPA(1.8f, 1.0f, 25f, 3.0f, 3.0f);
+    NORMAL((100.0/3.6)/12, 2.5f, 130.0/3.6, 1.0f, 2.0f),
+    AGRESSIVE((100.0/3.6)/4, 3.5f, 400.0/3.6, 0.2f, 0.5f),
+    GRANDPA((100.0/3.6)/20, 1.0f, 80.0/3.6, 3.0f, 3.0f);
 
-    private float max_acceleration,
+    private double max_acceleration,
             max_comfortable_deceleration,
             max_velocity,
             minimum_distance_to_leader,
             desired_time_headway;
 
     DriverType(
-            float max_acceleration,
-            float max_comfortable_deceleration,
-            float max_velocity,
-            float minimum_distance_to_leader,
-            float desired_time_headway) {
+            double max_acceleration,
+            double max_comfortable_deceleration,
+            double max_velocity,
+            double minimum_distance_to_leader,
+            double desired_time_headway) {
 
             this.max_acceleration = max_acceleration;
             this.max_comfortable_deceleration = max_comfortable_deceleration;
@@ -53,35 +53,35 @@ public enum DriverType {
     /**
      * @return the max_acceleration
      */
-    public float getMaxAcceleration() {
+    public double getMaxAcceleration() {
         return max_acceleration;
     }
 
     /**
      * @return the max_comfortable_deceleration
      */
-    public float getMaxComfortableDeceleration() {
+    public double getMaxComfortableDeceleration() {
         return max_comfortable_deceleration;
     }
 
     /**
      * @return the max_velocity
      */
-    public float getMaxVelocity() {
+    public double getMaxVelocity() {
         return max_velocity;
     }
 
     /**
      * @return the minimum_distance_to_leader
      */
-    public float getMinimumDistanceToLeader() {
+    public double getMinimumDistanceToLeader() {
         return minimum_distance_to_leader;
     }
 
     /**
      * @return the desired_time_headway
      */
-    public float getDesiredTimeHeadway() {
+    public double getDesiredTimeHeadway() {
         return desired_time_headway;
     }
     
