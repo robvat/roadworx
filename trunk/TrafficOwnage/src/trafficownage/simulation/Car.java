@@ -74,6 +74,11 @@ public class Car
         {
             return s0;
         }
+
+        public double getMaxVelocity()
+        {
+            return v0;
+        }
     }
 
     /**
@@ -481,27 +486,27 @@ public class Car
         //TODO: check if there is need for lane changing because of transit lanes
 
         //speed advantage
-        //we assume that findNextCar is the car in front of this car, and that the double is the distance between the cars
+//        we assume that findNextCar is the car in front of this car, and that the double is the distance between the cars
 
-        // We need to be far off the next Node
-//        if((currentLane.getLength() - position) > 300)
-//        {
-//            // We need to be close to the next car
-//            if(nextCar != null && distanceToNextCar < 200)
-//            {
-//                // Both aren't accelerating or nothing
-//                if((Math.abs(this.getCarInFront().getAcceleration()) < 0.1) && (Math.abs(acceleration) < 0.1))
-//                {
-//                    // You still have some headroom left in the speed department
-//                    if(velocity < max_velocity)
-//                    {
-//                        // time to overtake!
-//                        importance[1] = DESIRABLE;
-//                        done = false;
-//                    }
-//                }
-//            }
-//        }
+//         We need to be far off the next Node
+        if((currentLane.getLength() - position) > 300)
+        {
+            // We need to be close to the next car
+            if(nextCar != null && distanceToNextCar < 200)
+            {
+                // Both aren't accelerating or nothing
+                if((Math.abs(this.getCarInFront().getAcceleration()) < 0.1) && (Math.abs(acceleration) < 0.1))
+                {
+                    // You still have some headroom left in the speed department
+                    if((velocity + 10) < driverModel.getMaxVelocity())
+                    {
+                        // time to overtake!
+                        importance[1] = DESIRABLE;
+                        done = false;
+                    }
+                }
+            }
+        }
 
         //queue advantage
         Lane left = leftLane;
@@ -537,6 +542,10 @@ public class Car
         // if lane changing is unnecessary for everything: stop
         if (done)
         {
+            return false;
+        }
+
+        if(!this.car_type.doesOvertake() && importance[0] == UNNECESSARY){
             return false;
         }
 
@@ -599,7 +608,7 @@ public class Car
             return changeLane(desiredLane, carInFront, carBehind);
         } else if (carBehind == null)
         {
-            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront()) / (this.getVelocity() - carInFront.getVelocity());
+            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront() -2.0) / (this.getVelocity() - carInFront.getVelocity());    //2 meters for safety
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
             if (!laneChangeParameters.getObject1() && importance[0] != ESSENTIAL)
@@ -618,7 +627,7 @@ public class Car
             }
         } else if (carInFront == null)
         {
-            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront()) / (carBehind.getVelocity() - this.getVelocity());
+            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront() -2.0) / (carBehind.getVelocity() - this.getVelocity());    //2m for safety
             double decceleratedVelocity2 = timeUntilCrashWithMe * carBehind.getDriverType().getMaxComfortableDeceleration();
 
             if (carBehind.getFront() > this.getBack() && importance[0] != ESSENTIAL)
@@ -637,10 +646,10 @@ public class Car
             }
         } else
         {
-            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront()) / (this.getVelocity() - carInFront.getVelocity());
+            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront() -2.0) / (this.getVelocity() - carInFront.getVelocity());    //2m for safety
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
-            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront()) / (carBehind.getVelocity() - this.getVelocity());
+            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront() -2.0) / (carBehind.getVelocity() - this.getVelocity());    //2m for safety
             double decceleratedVelocity2 = timeUntilCrashWithMe * carBehind.getDriverType().getMaxComfortableDeceleration();
 
             //check that they aren't overlapping you
