@@ -13,9 +13,27 @@ import java.util.Random;
  */
 public enum DriverType {
 
-    NORMAL((100.0/3.6)/12, 2.5f, 130.0/3.6, 1.0f, 2.0f),
-    AGRESSIVE((100.0/3.6)/4, 3.5f, 400.0/3.6, 0.2f, 0.5f),
-    GRANDPA((100.0/3.6)/20, 1.0f, 80.0/3.6, 3.0f, 3.0f);
+    NORMAL(
+            (100.0/3.6)/12,
+            2.5,
+            130.0/3.6,
+            1.0, 2.0
+            ),
+
+    AGRESSIVE(
+            (100.0/3.6)/4,
+            3.5, 400.0/3.6,
+            0.2,
+            0.5
+            ),
+
+    GRANDPA(
+            (100.0/3.6)/20,
+            1.0,
+            80.0/3.6,
+            3.0,
+            3.0
+            );
 
     private double max_acceleration,
             max_comfortable_deceleration,
