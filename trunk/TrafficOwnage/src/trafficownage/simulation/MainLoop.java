@@ -37,7 +37,7 @@ public class MainLoop implements NodeListener, CarListener {
 
     public MainLoop() {
         initialized = false;
-        speedMultiplier = 16;
+        speedMultiplier = 32;
     }
 
     public void init() {
@@ -45,7 +45,7 @@ public class MainLoop implements NodeListener, CarListener {
         simulatedTime = (double) TimeUnit.HOURS.toSeconds(8);
 
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(1, 1, 100.0, 1, 5, 15);
+        gen.generate(16, 1, 100.0, 16, 5, 15);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
@@ -57,26 +57,26 @@ public class MainLoop implements NodeListener, CarListener {
                 (double) (TimeUnit.HOURS.toSeconds(10)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
+                0.2);
+
+        /*spawnManager.addMapping(true,
+                (double) (TimeUnit.HOURS.toSeconds(8)),
+                (double) (TimeUnit.HOURS.toSeconds(10)),
+                ManhattanMapGenerator.LOCAL_NODES,
+                ManhattanMapGenerator.LOCAL_NODES,
                 5.0);
 
-//        spawnManager.addMapping(true,
-//                (double) (TimeUnit.HOURS.toSeconds(8)),
-//                (double) (TimeUnit.HOURS.toSeconds(10)),
-//                ManhattanMapGenerator.LOCAL_NODES,
-//                ManhattanMapGenerator.LOCAL_NODES,
-//                5.0);
-//
-//        spawnManager.addMapping(false,
-//                (double) (TimeUnit.HOURS.toSeconds(8) + TimeUnit.MINUTES.toSeconds(2)),
-//                (double) (TimeUnit.HOURS.toSeconds(10)),
-//                ManhattanMapGenerator.SPAWN_NODES,
-//                ManhattanMapGenerator.LOCAL_NODES,
-//                50000);
+        spawnManager.addMapping(false,
+                (double) (TimeUnit.HOURS.toSeconds(8)),// + TimeUnit.MINUTES.toSeconds(2)),
+                (double) (TimeUnit.HOURS.toSeconds(10)),
+                ManhattanMapGenerator.SPAWN_NODES,
+                ManhattanMapGenerator.LOCAL_NODES,
+                50000);
 
-//        spawnManager.addMapping(false,
-//                ManhattanMapGenerator.LOCAL_NODES,
-//                ManhattanMapGenerator.LOCAL_NODES,
-//                0.5);
+        spawnManager.addMapping(false,
+                ManhattanMapGenerator.LOCAL_NODES,
+                ManhattanMapGenerator.LOCAL_NODES,
+                0.5);*/
 
 
         sStep = 1.0 / (double) FPS; //Step size in seconds

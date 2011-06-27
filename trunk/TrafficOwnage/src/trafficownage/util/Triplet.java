@@ -24,4 +24,8 @@ public class Triplet<E,F,G> extends Pair<E,F> {
     public G getObject3() {
         return obj3;
     }
+
+    public void setObject3(G obj3) {
+        this.obj3 = obj3;
+    }
 }

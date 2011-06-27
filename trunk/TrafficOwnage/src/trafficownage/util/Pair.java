@@ -25,4 +25,12 @@ public class Pair<E,F> {
     public F getObject2() {
         return obj2;
     }
+
+    public void setObject1(E obj1) {
+        this.obj1 = obj1;
+    }
+
+    public void setObject2(F obj2) {
+        this.obj2 = obj2;
+    }
 }

@@ -142,7 +142,7 @@ public class SpawnManager {
             
             this.carType = carType;
 
-            lambda = (double)spawnInterval;
+            lambda = (double)spawnInterval * ((double)1/timeUnit);
             L = Math.exp(-lambda);
 
             determineSpawnInterval();
@@ -152,6 +152,8 @@ public class SpawnManager {
 
         private double lambda;
         private double L;
+
+        private static final double timeUnit = 0.05;
 
         private Random rand = new Random();
 
@@ -164,7 +166,7 @@ public class SpawnManager {
                 k++;
             }
 
-            spawnInterval = (double)(k-1);
+            spawnInterval = (double)(k-1) * timeUnit;
         }
 
         public Pair<Double,Double> getTimeSpan() {
