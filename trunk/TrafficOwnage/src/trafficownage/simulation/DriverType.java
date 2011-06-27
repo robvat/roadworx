@@ -40,17 +40,14 @@ public enum DriverType {
     private static Random rand = new Random();
 
     public static DriverType getRandomDriverType() {
-        int r = rand.nextInt(3);
-        switch (r) {
-            case 0:
-                return DriverType.NORMAL;
-            case 1:
-                return DriverType.AGRESSIVE;
-            case 2:
-                return DriverType.GRANDPA;
-            default:
-                return DriverType.NORMAL;
-        }
+        // normal drivers are 90%, the other two are 10%, divided: 6% aggressive, 4% grandpa.
+        double rn = Math.random();
+        if (rn >= 0 & rn < 0.9)
+            return DriverType.NORMAL;
+        else if (rn >=0.9 & rn < 0.96)
+            return DriverType.AGRESSIVE;
+        else
+            return DriverType.GRANDPA;
     }
 
     /**
