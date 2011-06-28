@@ -31,8 +31,6 @@ public class ManhattanMapGenerator {
 
     private Road[] horizontalRoads;
     private Road[] verticalRoads;
-    private List<Pair<Node,Node>>[] horizontalAvenues;
-    private List<Pair<Node,Node>>[] verticalAvenues;
 
     private List<Integer> verticalMainRoads;
     private List<Integer> horizontalMainRoads;
@@ -151,7 +149,7 @@ public class ManhattanMapGenerator {
                 grid[x][y] = n;
                 nodes.add(n);
 
-                if (!horizontalMainRoads.contains(x) && !verticalMainRoads.contains(y) )
+                if (!horizontalHighways.contains(x) && !horizontalMainRoads.contains(x) && !verticalHighways.contains(x) && !verticalMainRoads.contains(y) )
                     localNodes.add(n);
 
                 y_loc += blockSize;
@@ -163,185 +161,203 @@ public class ManhattanMapGenerator {
 
     }
 
-    private void addSpawnNodes() {
-        Node n;
-        double x_loc,y_loc;
-
-
-
-        for (int x : horizontalHighways) {
-            x_loc = grid[x][0].getLocation().getX();
-
-
-            y_loc = grid[x][0].getLocation().getY() - (blockSize * 8.0);
-            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
-            nodes.add(n);
-            spawnNodes.add(n);
-            verticalAvenues[x].add(0,new Pair<Node,Node>(n,grid[x][0]));
-
-
-            y_loc = grid[x][height].getLocation().getY() + (blockSize * 8.0);
-            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
-            nodes.add(n);
-            spawnNodes.add(n);
-            verticalAvenues[x].add(verticalAvenues[x].size(),new Pair<Node,Node>(grid[x][height],n));
-
-        }
-
-
-        for (int y : verticalHighways) {
-            y_loc = grid[0][y].getLocation().getY();
-
-
-            x_loc = grid[0][y].getLocation().getX() - (blockSize * 8.0);
-            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
-            nodes.add(n);
-            spawnNodes.add(n);
-            horizontalAvenues[y].add(0,new Pair<Node,Node>(n,grid[0][y]));
-
-
-            x_loc = grid[width][y].getLocation().getX() + (blockSize * 8.0);
-            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
-            nodes.add(n);
-            spawnNodes.add(n);
-            horizontalAvenues[y].add(horizontalAvenues[y].size(),new Pair<Node,Node>(grid[width][y],n));
-
-        }
-    }
 
 
     private static final int 
-            SMALL_ROAD = 0,
-            MAIN_ROAD = 1,
+            SMALLROAD = 0,
+            MAINROAD = 1,
             HIGHWAY = 2;
-    
-    private void generateRoads() {
-        generateRoadPairs();
 
-        addSpawnNodes();
+    private RoadSegment createRoadSegment(Road r, int lanesPerSide, double velocity, Node n1, Node n2) {
+        RoadSegment rs = new RoadSegment(r, velocity, n1, n2);
 
-        RoadSegment rs = null;
-
-        int v = 0;
-        int roadType = -1;
-
-        for (List<Pair<Node,Node>> verticalAvenue : verticalAvenues) {
-            
-            if (verticalMainRoads.contains(v))
-                roadType = MAIN_ROAD;
-            else if (verticalHighways.contains(v))
-                roadType = HIGHWAY;
-            else
-                roadType = SMALL_ROAD;
-            
-            Road r = new Road("Vertical " + Integer.toString(v + 1));
-
-            for (Pair<Node,Node> pair : verticalAvenue) {
-
-                if (roadType == HIGHWAY) {
-                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
-
-                    rs.addLeftStartLane(0, false);
-                    rs.addLeftStartLane(1, false);
-
-                    rs.addLeftEndLane(10, false);
-                    rs.addLeftEndLane(11, false);
-
-                } else if (roadType == MAIN_ROAD) {
-                    rs = new RoadSegment(r, 50.0 / 3.6, pair.getObject1(), pair.getObject2());
-
-                    rs.addLeftStartLane(0, false);
-                    rs.addLeftStartLane(1, false);
-
-                    rs.addLeftEndLane(10, false);
-                    rs.addLeftEndLane(11, false);
-
-                } else if (roadType == SMALL_ROAD) {
-
-                    rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
-                    rs.addLeftStartLane(0, false);
-                    rs.addLeftEndLane(10, false);
-
-                }
-                
-                r.addLast(rs);
-            }
-            roads.add(r);
-            v++;
+        for (int i = 0; i < lanesPerSide; i++) {
+            rs.addLeftStartLane(i, false);
+            rs.addLeftEndLane(lanesPerSide + i, false);
         }
-        
-        int h = 0;
-        for (List<Pair<Node,Node>> horizontalAvenue : horizontalAvenues) {
 
-            if (horizontalMainRoads.contains(h))
-                roadType = MAIN_ROAD;
-            else if (horizontalHighways.contains(h))
-                roadType = HIGHWAY;
-            else
-                roadType = SMALL_ROAD;
-
-            Road r = new Road("Horizontal " + Integer.toString(h + 1));
-
-            for (Pair<Node,Node> pair : horizontalAvenue) {
-
-                if (roadType == HIGHWAY) {
-                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
-                    rs.addLeftStartLane(0, false);
-                    rs.addLeftStartLane(1, false);
-
-                    rs.addLeftEndLane(10, false);
-                    rs.addLeftEndLane(11, false);
-
-                } else if (roadType == MAIN_ROAD) {
-                    rs = new RoadSegment(r, 50.0 / 3.6, pair.getObject1(), pair.getObject2());
-                    rs.addLeftStartLane(0, false);
-                    rs.addLeftStartLane(1, false);
-
-                    rs.addLeftEndLane(10, false);
-                    rs.addLeftEndLane(11, false);
-                } else if (roadType == SMALL_ROAD) {
-                    rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
-                    rs.addLeftStartLane(0, false);
-                    rs.addLeftEndLane(10, false);
-                }
-
-                r.addLast(rs);
-            }
-
-            roads.add(r);
-            h++;
-        }
+        return rs;
     }
 
-    private void generateRoadPairs() {
-        verticalAvenues = new List[width+1];
-        horizontalAvenues = new List[height+1];
+    private static final int HIGHWAY_LANES = 3;
+    private static final double HIGHWAY_VELOCITY = 80 / 3.6;
 
-        List<Pair<Node,Node>> roadList;
+    private static final int MAINROAD_LANES = 2;
+    private static final double MAINROAD_VELOCITY = 50 / 3.6;
+
+    private static final int SMALLROAD_LANES = 1;
+    private static final double SMALLROAD_VELOCITY = 30 / 3.6;
+
+    private Node generateVerticalSpawnNode(int x, int y) {
+        double 
+                x_loc = 0.0,
+                y_loc = 0.0;
+        
+        Node n;
+
+        if (y == 0) {
+            x_loc = grid[x][y].getLocation().getX();
+            y_loc = grid[x][y].getLocation().getY() - (blockSize * 8.0);
+        } else {//if (y == height) {
+            x_loc = grid[x][y].getLocation().getX();
+            y_loc = grid[x][y].getLocation().getY() + (blockSize * 8.0);
+        }
+
+        n = new SpawnNode(new Point2D.Double(x_loc,y_loc));
+        nodes.add(n);
+        spawnNodes.add(n);
+
+        return n;
+    }
+
+    private Node generateHorizontalSpawnNode(int x, int y) {
+        double
+                x_loc = 0.0,
+                y_loc = 0.0;
+
+        Node n;
+
+        if (x == 0) {
+            x_loc = grid[x][y].getLocation().getX() - (blockSize * 8.0);
+            y_loc = grid[x][y].getLocation().getY();
+        } else {//if (y == height) {
+            x_loc = grid[x][y].getLocation().getX() + (blockSize * 8.0);
+            y_loc = grid[x][y].getLocation().getY();
+        }
+
+        n = new SpawnNode(new Point2D.Double(x_loc,y_loc));
+        nodes.add(n);
+        spawnNodes.add(n);
+
+        return n;
+    }
+
+    private int getVerticalNodeType(int x) {
+            if (verticalMainRoads.contains(x))
+                return MAINROAD;
+            else if (verticalHighways.contains(x))
+                return HIGHWAY;
+            else
+                return SMALLROAD;
+    }
+
+    private int getHorizontalNodeType(int y) {
+            if (horizontalMainRoads.contains(y))
+                return MAINROAD;
+            else if (horizontalHighways.contains(y))
+                return HIGHWAY;
+            else
+                return SMALLROAD;
+    }
+
+    private void generateRoads() {
+        RoadSegment rs = null;
+
         int x,y;
+        int myNodeType;
+
+        Node n1,n2;
+
+        int i;
+
+        Road r;
 
         for (x = 0; x <= width; x++) {
 
-            roadList = new ArrayList<Pair<Node,Node>>();
+            i = 1;
 
-            verticalAvenues[x] = roadList;
+            myNodeType = getVerticalNodeType(x);
 
-            for (y = 0; y < height; y++)
-                roadList.add(new Pair<Node,Node>(grid[x][y],grid[x][y+1]));
+            r = new Road("Vertical " + Integer.toString(x + 1));
+
+            if (myNodeType == HIGHWAY)
+                r.addFirst(createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,generateVerticalSpawnNode(x,0),grid[x][0]));
+                        
+            for (y = 0; y < height; y++) {
+
+                n1 = grid[x][y];
+                n2 = grid[x][y+1];
+
+                rs = null;
+
+                if (myNodeType == HIGHWAY) {
+                    rs = createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,n1,n2);
+                }
+                else if (myNodeType == MAINROAD)
+                    rs = createRoadSegment(r,MAINROAD_LANES,MAINROAD_VELOCITY,n1,n2);
+                else if (myNodeType == SMALLROAD) {
+
+                    if (getHorizontalNodeType(y) == HIGHWAY || getHorizontalNodeType(y+1) == HIGHWAY) {
+                        i++;
+                        if (r.getFirstSegment() != null)
+                            roads.add(r);
+
+                        r = new Road("Vertical " + Integer.toString(x + 1) + " part " + i);
+                    } else {
+                        rs = createRoadSegment(r,SMALLROAD_LANES,SMALLROAD_VELOCITY,n1,n2);
+                    }
+                }
+                
+                if (rs != null)
+                    r.addLast(rs);
+            }
+
+            if (myNodeType == HIGHWAY)
+                r.addLast(createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,generateVerticalSpawnNode(x,height),grid[x][height]));
+
+            if (r.getFirstSegment() != null)
+                roads.add(r);
             
         }
-
+        
         for (y = 0; y <= height; y++) {
 
-            roadList = new ArrayList<Pair<Node,Node>>();
+            i = 1;
 
-            horizontalAvenues[y] = roadList;
+            myNodeType = getHorizontalNodeType(y);
 
-            for (x = 0; x < width; x++)
-                roadList.add(new Pair<Node,Node>(grid[x][y],grid[x+1][y]));
+            r = new Road("Horizontal " + Integer.toString(y + 1));
 
+            if (myNodeType == HIGHWAY)
+                r.addLast(createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,generateHorizontalSpawnNode(0,y),grid[0][y]));
+
+            for (x = 0; x < width; x++) {
+
+                n1 = grid[x][y];
+                n2 = grid[x+1][y];
+
+                rs = null;
+
+                if (myNodeType == HIGHWAY) {
+                    rs = createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,n1,n2);                    
+                }
+                else if (myNodeType == MAINROAD)
+                    rs = createRoadSegment(r,MAINROAD_LANES,MAINROAD_VELOCITY,n1,n2);
+                else if (myNodeType == SMALLROAD) {
+                    if (getVerticalNodeType(x) == HIGHWAY || getVerticalNodeType(x+1) == HIGHWAY) {
+                        i++;
+
+                        if (r.getFirstSegment() != null)
+                            roads.add(r);
+
+                        r = new Road("Horizontal " + Integer.toString(y + 1) + " part " + i);
+                    } else {
+                        rs = createRoadSegment(r,SMALLROAD_LANES,SMALLROAD_VELOCITY,n1,n2);
+                    }
+                }
+
+                if (rs != null)
+                    r.addLast(rs);
+            }
+
+            if (myNodeType == HIGHWAY)
+                r.addLast(createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,generateHorizontalSpawnNode(width,y),grid[width][y]));
+
+            if (r.getFirstSegment() != null)
+                roads.add(r);
         }
     }
+
 
 
 
