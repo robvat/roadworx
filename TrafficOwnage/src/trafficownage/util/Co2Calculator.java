@@ -23,7 +23,7 @@ public class Co2Calculator {
         else if (aCarType == 1) carType = EFCdeisel;
         else carType = EFClorry;
     }
-    public double getCo2(){
+    public double getCo2() {
         
         double calculatedemmision =  carType[0] + (carType[1]*speed) + (carType[2]*Math.pow(speed, 2)) 
                 + (carType[3]*acceleration) + (carType[4]*Math.pow(acceleration, 2)) + (carType[5]*speed*acceleration);  
