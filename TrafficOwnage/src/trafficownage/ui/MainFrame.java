@@ -27,7 +27,7 @@ import trafficownage.simulation.MainLoop;
 import trafficownage.simulation.MainLoopListener;
 import trafficownage.simulation.Node;
 import trafficownage.simulation.Road;
-import trafficownage.simulation.SpawnManager.Mapping;
+import trafficownage.simulation.TrafficManager.Mapping;
 import trafficownage.util.Pair;
 
 /**
@@ -140,6 +140,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         drawCarsRadioButton = new javax.swing.JRadioButtonMenuItem();
         drawDensityRadioButton = new javax.swing.JRadioButtonMenuItem();
         drawSpeedLimitsRadioButton = new javax.swing.JRadioButtonMenuItem();
+        drawEmissionRadioButton = new javax.swing.JRadioButtonMenuItem();
         resultsMenu = new javax.swing.JMenu();
 
         javax.swing.GroupLayout mapComponent1Layout = new javax.swing.GroupLayout(mapComponent1);
@@ -322,11 +323,11 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(currentViewModeLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE)
+                    .addComponent(oldStopButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(oldPauseButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(oldStartButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(increaseSimSpeedButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(oldStopButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(oldPauseButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(oldStartButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(increaseSimSpeedButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(simSpeedLabel)
                         .addComponent(decreaseSimSpeedButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
@@ -382,6 +383,15 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
             }
         });
         drawingMenu.add(drawSpeedLimitsRadioButton);
+
+        drawModeButtonGroup.add(drawEmissionRadioButton);
+        drawEmissionRadioButton.setText("CO2 emission");
+        drawEmissionRadioButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                drawEmissionRadioButtonActionPerformed(evt);
+            }
+        });
+        drawingMenu.add(drawEmissionRadioButton);
 
         jMenuBar1.add(drawingMenu);
 
@@ -494,6 +504,12 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         updateInfo();
     }//GEN-LAST:event_drawSpeedLimitsRadioButtonActionPerformed
 
+    private void drawEmissionRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawEmissionRadioButtonActionPerformed
+        mapComponent2.setDrawMode(MapComponent.DRAW_EMISSION);
+
+        updateInfo();
+    }//GEN-LAST:event_drawEmissionRadioButtonActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -518,6 +534,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     private javax.swing.JButton decreaseSimSpeedButton;
     private javax.swing.JRadioButtonMenuItem drawCarsRadioButton;
     private javax.swing.JRadioButtonMenuItem drawDensityRadioButton;
+    private javax.swing.JRadioButtonMenuItem drawEmissionRadioButton;
     private javax.swing.ButtonGroup drawModeButtonGroup;
     private javax.swing.JRadioButtonMenuItem drawSpeedLimitsRadioButton;
     private javax.swing.JCheckBoxMenuItem drawingEnabledCheckbox;

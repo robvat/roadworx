@@ -116,6 +116,17 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="drawSpeedLimitsRadioButtonActionPerformed"/>
               </Events>
             </MenuItem>
+            <MenuItem class="javax.swing.JRadioButtonMenuItem" name="drawEmissionRadioButton">
+              <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="drawModeButtonGroup"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="CO2 emission"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="drawEmissionRadioButtonActionPerformed"/>
+              </Events>
+            </MenuItem>
           </SubComponents>
         </Menu>
         <Menu class="javax.swing.JMenu" name="resultsMenu">
@@ -352,11 +363,11 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="1" attributes="0">
                       <Component id="currentViewModeLabel" alignment="0" pref="23" max="32767" attributes="0"/>
+                      <Component id="oldStopButton" alignment="0" max="32767" attributes="1"/>
+                      <Component id="oldPauseButton" alignment="0" max="32767" attributes="1"/>
+                      <Component id="oldStartButton" alignment="0" max="32767" attributes="1"/>
+                      <Component id="increaseSimSpeedButton" alignment="0" max="32767" attributes="1"/>
                       <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                          <Component id="oldStopButton" alignment="0" max="32767" attributes="1"/>
-                          <Component id="oldPauseButton" alignment="0" max="32767" attributes="1"/>
-                          <Component id="oldStartButton" alignment="0" max="32767" attributes="1"/>
-                          <Component id="increaseSimSpeedButton" alignment="0" max="32767" attributes="1"/>
                           <Component id="simSpeedLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="decreaseSimSpeedButton" alignment="3" max="32767" attributes="1"/>
                       </Group>
