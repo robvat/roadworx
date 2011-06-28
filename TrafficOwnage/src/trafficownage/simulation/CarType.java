@@ -14,11 +14,14 @@ import java.util.Random;
 
 
 public enum CarType {
-    SUPERCAR(300.0/3.6, (100.0/3.6)/6.0, 1200, 4.0, 0, true),
-    LORRY(90.0/3.6, (100.0/3.6)/18.0, 4500, 18.0, 2, false),
-    BIGCAR(120.0/3.6, (100.0/3.6)/13, 2000, 6.0, 1, true),
-    CAR(150.0/3.6, (100.0/3.6)/10, 1000, 4.5, 0, true),
-    MINICAR(120.0/3.6, (100.0/3.6)/15, 600, 2.5, 0, true);
+    SUPERCAR(300.0/3.6, (100.0/3.6)/5.0, 1200, 4.0, 0, true),
+    LORRY(80.0/3.6, (100.0/3.6)/18.0, 4500, 18.0, 2, false),
+    COMPANYBUS(100.0/3.6, (100.0/3.6)/16.0, 2500, 7.0, 1, true),
+    MINICAR(100.0/3.6, (100.0/3.6)/15.0, 700, 2.5, 0, true),
+    SMALLCAR(120.0/3.6, (100.0/3.6)/12.0, 1050, 3.5, 0, true),
+    MEDIUMCAR(150.0/3.6, (100.0/3.6)/10.0, 1250, 4.5, 0, true),
+    LARGECAR(150.0/3.6, (100.0/3.6)/13.0, 1600, 5.5, 0, true),
+    VERYLARGECAR(120.0/3.6, (100.0/3.6)/16.0, 2050, 6.5, 0, true);
 
 
     public static final int FUEL_PETROL = 0, FUEL_DIESEL = 1, FUEL_LORRY = 2;
@@ -42,17 +45,23 @@ public enum CarType {
         // cars are worth 70% of traffic, trucks 30%
         // Minicar has 25%, Car has 30%, Bigcar has 10%
         Double rn = rand.nextDouble();
-        
-        if (rn >= 0 & rn <= 0.05)
-            return CarType.SUPERCAR; //.randomizeParameters();
-        else if (rn > 0.05 & rn <=0.15)
-            return CarType.BIGCAR; //.randomizeParameters();
-        else if (rn > 0.15 & rn <= 0.4)
+
+       if (rn >= 0 & rn <= 0.21)
             return CarType.MINICAR; //.randomizeParameters();
-        else if (rn > 0.4 & rn <= 0.7)
-            return CarType.CAR; //.randomizeParameters();
-        else
+        else if (rn > 0.21 & rn <=0.41)
+            return CarType.SMALLCAR; //.randomizeParameters();
+        else if (rn > 0.41 & rn <= 0.61)
+            return CarType.MEDIUMCAR; //.randomizeParameters();
+        else if (rn > 0.61 & rn <= 0.75)
+            return CarType.LARGECAR; //.randomizeParameters();
+        else if (rn > 0.75 & rn <= 0.78)
+            return CarType.VERYLARGECAR; //.randomizeParameters();
+        else if (rn > 0.78 & rn <= 0.88)
+            return CarType.COMPANYBUS; //.randomizeParameters();
+        else if (rn > 0.88 & rn <= 0.98)
             return CarType.LORRY; //.randomizeParameters();
+        else
+            return CarType.SUPERCAR; //.randomizeParameters();
     }
 
     
