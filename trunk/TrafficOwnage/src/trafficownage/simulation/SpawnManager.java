@@ -263,6 +263,10 @@ public class SpawnManager {
             car.init(carType, driverType);
 
             Pair<Double,List<Node>> route = Pathfinding.fastestRoute(car,spawnNode,targetNode,allNodes);
+
+//            Pair<Double,List<Node>> route2 = Pathfinding.shortestRoute(targetNode, spawnNode, allNodes);
+//            if (Math.random() < 0.5)
+//                    route = route2;
             car.setRoute(new Route(route.getObject1(),route.getObject2()));
 
             if (benchmarked) {

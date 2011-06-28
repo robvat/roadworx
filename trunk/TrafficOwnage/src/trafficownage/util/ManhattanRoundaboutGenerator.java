@@ -211,7 +211,7 @@ public class ManhattanRoundaboutGenerator {
         for (List<Pair<Node,Node>> verticalAvenue : verticalAvenues) {
             mainRoad = (v % mainRoadInterval == 0);
 
-            Road r = new Road("Vertical " + Integer.toString(v + 1), mainRoad ? 1 : 2);
+            Road r = new Road("Vertical " + Integer.toString(v + 1));
 
             for (Pair<Node,Node> pair : verticalAvenue) {
 
@@ -243,7 +243,7 @@ public class ManhattanRoundaboutGenerator {
         for (List<Pair<Node,Node>> horizontalAvenue : horizontalAvenues) {
             mainRoad = (h % mainRoadInterval == 0);
 
-            Road r = new Road("Horizontal " + Integer.toString(h + 1), mainRoad ? 1 : 2);
+            Road r = new Road("Horizontal " + Integer.toString(h + 1));
 
             for (Pair<Node,Node> pair : horizontalAvenue) {
 
