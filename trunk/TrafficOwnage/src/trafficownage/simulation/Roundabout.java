@@ -19,6 +19,7 @@ public class Roundabout extends Node
     private List<Car> cars;
     private List<Double> times; // a list of times, the cars have to spend on the roundabout
     private List<Lane> destinations; //List of destinations of the cars
+    private long carsAdded; //validation testing
 
     /**
      *  Constructs a roundabout
@@ -69,6 +70,7 @@ public class Roundabout extends Node
      */
     public void acceptCar(Car incoming)
     {
+
         if (incoming.getNextLane() == null || !incoming.getNextLane().acceptsCarAdd(incoming)) {
             System.err.println("Car did not check correctly if it could join a lane.");
             incoming.determineNextLane();
@@ -101,6 +103,7 @@ public class Roundabout extends Node
 
         time = (size * factor) / speed;
         times.add(new Double(time));
+        carsAdded++;
     }
 
     /**
@@ -272,14 +275,6 @@ public class Roundabout extends Node
     @Override
     public String toString()
     {
-        return " Cars on driverway: " + cars.size() + " Node info:" + super.toString();
-    }
-
-    /**
-     * Prints all the Cars with their respected times in the log-file
-     */
-    public void logTimePrint()
-    {
-        // FIXME in the log, have a overview of all the cars and their times
+        return "Node:" + this.getLocation() + " Cars passed through: " + carsAdded + " Cars on driverway: " + cars.size();
     }
 }
