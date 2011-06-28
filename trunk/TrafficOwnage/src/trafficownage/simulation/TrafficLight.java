@@ -17,14 +17,16 @@ import trafficownage.util.Triplet;
  */
 public class TrafficLight extends Node implements TrafficLightInterface {
 
-    private List<RoadSegment> roadSegments;
-    private HashMap<RoadSegment,RoadSegment> oppositeRoadSegments;
+    private HashMap<Road,List<Lane>> laneMap;
+
+    private List<Road> roads;
     
-    private List<Lane> activeLights;
-    private double trafficLightInterval;
-    private int activeLight = 0;
+    private double greenTime;
 
     private double timePassed;
+
+    private int greenRoadIndex;
+    private List<Lane> greenLanes;
 
     public TrafficLight(Point2D.Double location) {
         super(location);
@@ -34,36 +36,48 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     public void init(NodeListener listener) {
         super.init(listener);
 
-        activeLights = new ArrayList<Lane>();
+        greenLanes = new ArrayList<Lane>();
+        laneMap = new HashMap<Road,List<Lane>>();
+        roads = new ArrayList<Road>();
 
-        roadSegments = new ArrayList<RoadSegment>();
-        oppositeRoadSegments = new HashMap<RoadSegment,RoadSegment>();
+        greenRoadIndex = 0;
 
-        activeLight = 0;
         timePassed = 0.0;
 
         RoadSegment rs1,rs2;
 
+        List<Lane> currentLanes;
+
         for (Node n1 : getSourceNodes()) {
+            currentLanes = new ArrayList<Lane>();
+
             rs1 = getRoadSegment(n1);
-            roadSegments.add(rs1);
+
+            currentLanes.addAll(rs1.getDestinationLanes(this));
 
             for (Node n2 : getDestinationNodes()) {
                 rs2 = getRoadSegment(n2);
 
                 if (n2 != n1 && rs2.getRoad() == rs1.getRoad()) {
-                    oppositeRoadSegments.put(rs1,rs2);
+                    currentLanes.addAll(rs2.getDestinationLanes(this));
                     break;
                 }
+            }
+            
+            if (!roads.contains(rs1.getRoad())) {
+                roads.add(rs1.getRoad());
+                laneMap.put(rs1.getRoad(),currentLanes);
             }
         }
 
         setNodeType(Node.TRAFFICLIGHT_NODE);
+
+        setGreen(greenRoadIndex, MAX_GREEN_TIME);
     }
 
     
     public List<Lane> getGreenLanes() {
-        return activeLights;
+        return greenLanes;
     }
 
     @Override
@@ -73,7 +87,7 @@ public class TrafficLight extends Node implements TrafficLightInterface {
         if (l == null)
             return false;
 
-        return activeLights.contains(incoming.getLane()) && l.acceptsCarAdd(incoming);
+        return greenLanes.contains(incoming.getLane()) && l.acceptsCarAdd(incoming);
         
     }
 
@@ -87,75 +101,96 @@ public class TrafficLight extends Node implements TrafficLightInterface {
         incoming.getNextLane().addCar(incoming);
     }
 
-
-    private Road currentRoad; //TODO: it should be possible to let cars from the same road drive
-
-    private void changeTrafficLight(Road newRoad, List<Lane> lanes) {
-
-        if (currentRoad != null &&  currentRoad != newRoad)
-            activeLights.clear();
-
-        currentRoad = newRoad;
-
-        for (Lane l : lanes)
-            if (lanes.contains(l))
-                activeLights.add(l);
+    private void setGreen(int roadIndex, double greenTime) {
+        //TODO: it should be possible to let cars from the same road drive
+        timePassed = 0.0;
+        greenRoadIndex = roadIndex;
+        Road road = roads.get(roadIndex);
+        greenLanes = laneMap.get(road);
+        this.greenTime = greenTime;
     }
 
-    private Pair<Integer,Double> getQueueInfo(RoadSegment rs) {
-    	int count = 0;
-        double timeHeadway = 0.0;
-    	for (Lane l : rs.getDestinationLanes(this)) {
 
+    private static final double GREEN_TIME_PER_CAR = 5.0;
+    private static final double IGNORE_TRAFFIC_TIME = 10.0;
+    private static final double MAX_GREEN_TIME = 120.0;
+
+    private double getDesiredGreenTime(Road r) {
+    	int count = 0;
+
+        double arrivalTime;
+
+        double greenTime = 0.0;
+        double maxGreenTime = 0.0;
+
+    	for (Lane l : laneMap.get(r)) {
             if (!l.hasCars())
                 continue;
 
-            if (l.getCarCount() > count) {
-                count = l.getCarCount();
-                timeHeadway = l.getFirstCar().getDistanceToLaneEnd() * l.getFirstCar().getVelocity();
-            }
+            if (l.getFirstCar().isInQueue())
+                arrivalTime = 0.0;
+            else
+                arrivalTime = l.getFirstCar().getDistanceToLaneEnd() / l.getFirstCar().getVelocity();
+
+            if (arrivalTime > IGNORE_TRAFFIC_TIME)
+                continue;
+
+            greenTime = arrivalTime + (l.getCarCount() * GREEN_TIME_PER_CAR);
+            maxGreenTime = Math.max(maxGreenTime,greenTime);
     	}
 
-    	return new Pair<Integer,Double>(count, timeHeadway);
+        return maxGreenTime;
     }
 
+    private boolean isCarOnTime(Car car) {
+        return (car.getDistanceToLaneEnd() / car.getVelocity()) < (greenTime - timePassed);
+    }
+
+
+    private void checkForNewTraffic() {
+        int checkIndex = (greenRoadIndex + 1) % roads.size();
+
+        Road checkRoad = roads.get(checkIndex);
+        
+        double desiredGreenTime;
+
+        while (checkIndex != greenRoadIndex) {
+            desiredGreenTime = getDesiredGreenTime(checkRoad);
+
+            if (desiredGreenTime > 0.0) {
+                setGreen(checkIndex, Math.min(MAX_GREEN_TIME,desiredGreenTime));
+                return;
+            }
+
+            checkIndex = (checkIndex + 1) % roads.size();
+            checkRoad = roads.get(checkIndex);
+        }
+    }
+
+
+    private boolean checkForNextRoad;
     @Override
     public void update(double timestep) {
         super.update(timestep);
 
         timePassed += timestep;
 
-        if (timePassed > trafficLightInterval) {
-            
-            Pair<Integer,Double> next = null;
-       
-            activeLight = (activeLight + 1) % roadSegments.size();
+        checkForNextRoad = true;
+        
+        if (timePassed < greenTime) {
 
-            RoadSegment rs = roadSegments.get(activeLight);
-
-            next = getQueueInfo(rs);
-
-            if (!activeLights.isEmpty() && next.getObject1() == 0)
-                return;
-
-
-            trafficLightInterval = Math.min(120.0, next.getObject2() + (6 * next.getObject1()));//3 seconds for each car can change after with physics formulas..
-
-            timePassed = 0.0;
-
-            activeLights.clear();
-
-            RoadSegment rs1 = roadSegments.get(activeLight);
-            RoadSegment rs2;
-
-            changeTrafficLight(rs1.getRoad(),rs1.getDestinationLanes(this));
-
-            if (oppositeRoadSegments.containsKey(rs1)) {
-                rs2 = oppositeRoadSegments.get(rs1);
-                changeTrafficLight(rs1.getRoad(),rs2.getDestinationLanes(this));
+            for (Lane l : greenLanes) {
+                if (l.hasCars() && isCarOnTime(l.getFirstCar())) {
+                    //current green road is still in use, therefore do not check
+                    checkForNextRoad = false;
+                    break;
+                }
             }
-
         }
+
+        if (checkForNextRoad || timePassed > greenTime)
+                checkForNewTraffic();
+        
     }
 
 }

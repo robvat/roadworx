@@ -21,16 +21,20 @@ public class RoadSegment {
 
     private RoadSegment nextSegment, previousSegment;
 
+    private SpeedLimitUpdater speedLimitUpdater;
+
     private Road parent;
 
-    private double maxSpeed;
+    private double maxVelocity;
     private double length;
 
     public RoadSegment(Road parent, double maxSpeed, Node startNode, Node endNode) {
         this.startNode = startNode;
         this.endNode = endNode;
 
-        this.maxSpeed = maxSpeed;
+        this.maxVelocity = maxSpeed;
+
+        this.speedLimitUpdater = new DensitySpeedLimitUpdater(this);
 
         this.startLanes = new LinkedList<Lane>();
         this.endLanes = new LinkedList<Lane>();
@@ -41,7 +45,7 @@ public class RoadSegment {
     }
 
     public double getMaxVelocity() {
-        return maxSpeed;
+        return maxVelocity;
     }
 
     public Road getRoad() {
@@ -93,7 +97,7 @@ public class RoadSegment {
     }
 
     private void addLeftLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections, boolean ending) {
-        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxSpeed);
+        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity);
 
         if (laneList.size() > 0) {
             newLane.setRightNeighbour(laneList.getLast());
@@ -140,7 +144,7 @@ public class RoadSegment {
     }
 
     private void addRightLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections) {
-        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxSpeed);
+        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity);
 
         if (laneList.size() > 0) {
             newLane.setLeftNeighbour(laneList.getFirst());
@@ -175,6 +179,10 @@ public class RoadSegment {
         return previousSegment;
     }
 
+    public void init() {
+        speedLimitUpdater.init(maxVelocity);
+    }
+
     /**
      * @param previousSegment the previousSegment to set
      */
@@ -182,12 +190,8 @@ public class RoadSegment {
         this.previousSegment = previousSegment;
     }
 
-    public void update(double timestep) {
-        for (Lane l : startLanes)
-            l.update(timestep);
-
-        for (Lane l : endLanes)
-            l.update(timestep);
+    public void updateSpeedLimits(double timestep) {
+        speedLimitUpdater.update(timestep);
     }
 
 

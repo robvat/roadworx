@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import trafficownage.simulation.SpawnManager.Mapping;
 import trafficownage.util.ManhattanMapGenerator;
 
 /**
@@ -44,26 +45,33 @@ public class MainLoop implements NodeListener, CarListener {
         simulatedTime = (double) TimeUnit.HOURS.toSeconds(8);
 
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(16, 16, 100.0, 4, 5, 15);
+        gen.generate(16, 16, 100.0, 8, 5, 15);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
 
         spawnManager.init(nodes, gen.getAreas());
 
-        spawnManager.addMapping(false,
+        spawnManager.addMapping("Drivethrough traffic", false,
                 (double) (TimeUnit.HOURS.toSeconds(8)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
-                5000);
+                25000);
 
-        spawnManager.addMapping(true,
-                (double) (TimeUnit.HOURS.toSeconds(8)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
+        spawnManager.addMapping("Benchmark local outgoing traffic", true,
+                (double) (TimeUnit.HOURS.toSeconds(8)) + (double) (TimeUnit.MINUTES.toSeconds(5)),
+                (double) (TimeUnit.HOURS.toSeconds(9)) + (double) (TimeUnit.MINUTES.toSeconds(15)),
                 ManhattanMapGenerator.LOCAL_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
-                10000);
+                100);
+
+        spawnManager.addMapping("Benchmark local traffic", true,
+                (double) (TimeUnit.HOURS.toSeconds(8)) + (double) (TimeUnit.MINUTES.toSeconds(5)),
+                (double) (TimeUnit.HOURS.toSeconds(9)) + (double) (TimeUnit.MINUTES.toSeconds(15)),
+                ManhattanMapGenerator.LOCAL_NODES,
+                ManhattanMapGenerator.LOCAL_NODES,
+                100);
 
         /*spawnManager.addMapping(false,
                 (double) (TimeUnit.HOURS.toSeconds(8)),// + TimeUnit.MINUTES.toSeconds(2)),
@@ -96,6 +104,10 @@ public class MainLoop implements NodeListener, CarListener {
 
         initialized = true;
         stop = true;
+    }
+
+    public List<Mapping> getBenchmarkedMappings() {
+        return spawnManager.getBenchmarkedMappings();
     }
 
     public int getSpeedMultiplier() {
