@@ -11,24 +11,30 @@ import java.util.Random;
  *
  * @author Gerrit
  */
+
+
 public enum CarType {
-    SUPERCAR(300.0/3.6, (100.0/3.6)/6.0, 1200, 4.0, true),
-    LORRY(90.0/3.6, (100.0/3.6)/18.0, 4500, 18.0, false),
-    BIGCAR(120.0/3.6, (100.0/3.6)/13, 2000, 6.0, true),
-    CAR(150.0/3.6, (100.0/3.6)/10, 1000, 4.5, true),
-    MINICAR(120.0/3.6, (100.0/3.6)/15, 600, 2.5, true);
+    SUPERCAR(300.0/3.6, (100.0/3.6)/6.0, 1200, 4.0, 0, true),
+    LORRY(90.0/3.6, (100.0/3.6)/18.0, 4500, 18.0, 2, false),
+    BIGCAR(120.0/3.6, (100.0/3.6)/13, 2000, 6.0, 1, true),
+    CAR(150.0/3.6, (100.0/3.6)/10, 1000, 4.5, 0, true),
+    MINICAR(120.0/3.6, (100.0/3.6)/15, 600, 2.5, 0, true);
 
 
-    private double max_v, weight, length, max_acc;
+    public static final int FUEL_PETROL = 0, FUEL_DIESEL = 1, FUEL_LORRY = 2;
+    
+    private double maxVelocity, weight, length, maxAcceleration;
+    private int fuelType;
     private Boolean overtake;
     private static Random rand = new Random();
 
-    CarType(double max_v, double max_acc, double weight, double length, boolean overtake) {
-        this.max_v = max_v;
-        this.max_acc = max_acc;
+    CarType(double maxVelocity, double maxAcceleration, double weight, double length, int fuelType, boolean overtake) {
+        this.maxVelocity = maxVelocity;
+        this.maxAcceleration = maxAcceleration;
         this.weight = weight;
         this.length = length;
         this.overtake = overtake;
+        this.fuelType = fuelType;
     }
 
     public static CarType getRandomCarType() {
@@ -49,11 +55,16 @@ public enum CarType {
             return CarType.LORRY; //.randomizeParameters();
     }
 
+    
+    public int getFuelType() {
+        return fuelType;
+    }
+    
     /**
      * @return the max_v
      */
     public double getMaxVelocity() {
-        return max_v;
+        return maxVelocity;
     }
 
     /**
@@ -74,7 +85,7 @@ public enum CarType {
      * @return the max_acc
      */
     public double getMaxAcceleration() {
-        return max_acc;
+        return maxAcceleration;
     }
 
     public Boolean doesOvertake(){
@@ -90,10 +101,10 @@ public enum CarType {
         double[] firstTwo = getBoxMullerNumbers();
         double[] secondTwo = getBoxMullerNumbers();
 
-        this.max_v *= firstTwo[0];
+        this.maxVelocity *= firstTwo[0];
         this.weight *= firstTwo[1];
         this.length *= secondTwo[0];
-        this.max_acc *= secondTwo[1];
+        this.maxAcceleration *= secondTwo[1];
         return this;
     }
 
