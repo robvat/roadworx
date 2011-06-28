@@ -38,8 +38,8 @@ public class SingleTrafficNodeGenerator {
         };
 
         roadArray = new Road[] {
-            new Road("Vertical road", 1),
-            new Road("Horizontal road", 1)
+            new Road("Vertical road"),
+            new Road("Horizontal road")
         };
 
 
