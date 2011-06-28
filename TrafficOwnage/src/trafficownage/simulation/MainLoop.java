@@ -45,19 +45,22 @@ public class MainLoop implements NodeListener, CarListener {
         simulatedTime = (double) TimeUnit.HOURS.toSeconds(8);
 
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(16, 16, 100.0, 8, 5, 15);
+        gen.generate(16, 16, 100.0, new Integer[] {2,6,10,14}, new Integer[] {2,6,10,14}, new Integer[] {0,16}, new Integer[] {0,16});
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
 
+        int cityCentre = gen.requestArea(6, 6, 10, 10);
+        int cityRegion = gen.requestArea(2, 2, 14, 14);
+
         spawnManager.init(nodes, gen.getAreas());
 
-        spawnManager.addMapping("Drivethrough traffic", false,
+        /*spawnManager.addMapping("Drivethrough traffic", false,
                 (double) (TimeUnit.HOURS.toSeconds(8)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
-                25000);
+                25000);*/
 
         spawnManager.addMapping("Benchmark local outgoing traffic", true,
                 (double) (TimeUnit.HOURS.toSeconds(8)) + (double) (TimeUnit.MINUTES.toSeconds(5)),
@@ -72,6 +75,13 @@ public class MainLoop implements NodeListener, CarListener {
                 ManhattanMapGenerator.LOCAL_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
                 100);
+
+        spawnManager.addMapping("Goes to city centre", true,
+                (double) (TimeUnit.HOURS.toSeconds(8)),
+                (double) (TimeUnit.HOURS.toSeconds(9)),
+                ManhattanMapGenerator.SPAWN_NODES,
+                cityRegion,
+                10000);
 
         /*spawnManager.addMapping(false,
                 (double) (TimeUnit.HOURS.toSeconds(8)),// + TimeUnit.MINUTES.toSeconds(2)),

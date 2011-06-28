@@ -91,6 +91,11 @@ public class Pathfinding {
                             if (nodecost < n.g) {
                                 n.parent = cur_node;
                                 n.g = nodecost;
+                            } else if (Math.abs(nodecost - n.g) < COMPARE_THRESHOLD) {
+                                if (Math.random() <= .5) {
+                                    n.parent = cur_node;
+                                    n.g = nodecost;
+                                }
                             }
                         }
                     }
@@ -102,7 +107,9 @@ public class Pathfinding {
 
     }
 
-    public static List<Node> shortestRoute(Node start_node, Node end_node, List<Node> nodes) {
+    private static final double COMPARE_THRESHOLD = 0.0001;
+
+    public static Pair<Double,List<Node>> shortestRoute(Node start_node, Node end_node, List<Node> nodes) {
 
         List<Node> solution = new LinkedList<Node>();
 
@@ -173,6 +180,11 @@ public class Pathfinding {
                             if (nodecost < n.g) {
                                 n.parent = cur_node;
                                 n.g = nodecost;
+                            } else if (Math.abs(nodecost - n.g) < COMPARE_THRESHOLD) {
+                                if (Math.random() <= .5) {
+                                    n.parent = cur_node;
+                                    n.g = nodecost;
+                                }
                             }
                         }
                     }
@@ -180,7 +192,7 @@ public class Pathfinding {
             }
         }
 
-        return solution;
+        return new Pair<Double,List<Node>>(end_node.g, solution);
 
     }
 }

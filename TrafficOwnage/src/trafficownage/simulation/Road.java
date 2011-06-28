@@ -21,12 +21,8 @@ public class Road {
 
     private String roadName;
 
-    private int priority;
-
-    public Road(String roadName, int priority) {
+    public Road(String roadName) {
         this.roadName = roadName;
-
-        this.priority = priority;
 
         segments = new LinkedList<RoadSegment>();
     }
@@ -35,9 +31,6 @@ public class Road {
     public static final int MEDIUM_PRIORITY = 2;
     public static final int LOW_PRIORITY = 3;
 
-    public int getPriority() {
-        return priority;
-    }
 
     public String getRoadName() {
         return roadName;

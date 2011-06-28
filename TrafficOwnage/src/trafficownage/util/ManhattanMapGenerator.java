@@ -7,6 +7,7 @@ package trafficownage.util;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -17,11 +18,8 @@ import trafficownage.simulation.*;
  * @author Gerrit Drost <gerritdrost@gmail.com>
  */
 public class ManhattanMapGenerator {
-    private int variation;
-    private int diagonals;
     private int width,height;
     private double blockSize;
-    private int mainRoadInterval;
     private long seed;
 
     private Node[][] grid;
@@ -36,6 +34,13 @@ public class ManhattanMapGenerator {
     private List<Pair<Node,Node>>[] horizontalAvenues;
     private List<Pair<Node,Node>>[] verticalAvenues;
 
+    private List<Integer> verticalMainRoads;
+    private List<Integer> horizontalMainRoads;
+    private List<Integer> verticalHighways;
+    private List<Integer> horizontalHighways;
+    
+    private HashMap<Integer,List<Node>> areas = new HashMap<Integer, List<Node>>();
+
     public static final int ALL_NODES = -1;
     public static final int LOCAL_NODES = 0;
     public static final int SPAWN_NODES = 1;
@@ -45,22 +50,26 @@ public class ManhattanMapGenerator {
     public ManhattanMapGenerator() {
     }
 
-    public void generate(int width, int height, double blockSize, int mainRoadInterval, int diagonals, int variation) {
+    public void generate(int width, int height, double blockSize, Integer[] verticalMainRoads, Integer[] horizontalMainRoads, Integer[] verticalHighways, Integer[] horizontalHighways) {
         rand = new Random();
-        generate(rand.nextLong(),width,height,blockSize,mainRoadInterval,diagonals,variation);
+        generate(rand.nextLong(),width,height,blockSize,verticalMainRoads,horizontalMainRoads,verticalHighways,horizontalHighways);
     }
 
-    public void generate(long seed, int width, int height, double blockSize, int mainRoadInterval, int diagonals, int variation) {
+    public void generate(long seed, int width, int height, double blockSize, Integer[] verticalMainRoads, Integer[] horizontalMainRoads, Integer[] verticalHighways, Integer[] horizontalHighways) {
         this.seed = seed;
         this.width = width;
         this.height = height;
         this.blockSize = blockSize;
-        this.mainRoadInterval = mainRoadInterval;
-        this.diagonals = diagonals;
-        this.variation = variation;
+        
+        this.verticalMainRoads = Arrays.asList(verticalMainRoads);
+        this.horizontalMainRoads = Arrays.asList(horizontalMainRoads);
+
+        this.verticalHighways = Arrays.asList(verticalHighways);
+        this.horizontalHighways = Arrays.asList(horizontalHighways);
 
         rand = new Random(seed);
 
+        areas = new HashMap<Integer,List<Node>>();
         nodes = new ArrayList<Node>();
         localNodes = new ArrayList<Node>();
         spawnNodes = new ArrayList<Node>();
@@ -69,6 +78,10 @@ public class ManhattanMapGenerator {
         generateNodes();
 
         generateRoads();
+        
+        areas.put(ALL_NODES, nodes);
+        areas.put(LOCAL_NODES, localNodes);
+        areas.put(SPAWN_NODES, spawnNodes);
     }
 
     public List<Node> getNodes() {
@@ -83,12 +96,28 @@ public class ManhattanMapGenerator {
         return spawnNodes;
     }
 
-    public HashMap<Integer,List<Node>> getAreas() {
-        HashMap<Integer,List<Node>> areas = new HashMap<Integer, List<Node>>();
+    
+    
+    public int requestArea(int x1, int y1, int x2, int y2) {
+        List<Node> nodes = new ArrayList<Node>();
+        int x,y;
 
-        areas.put(ALL_NODES, nodes);
-        areas.put(LOCAL_NODES, localNodes);
-        areas.put(SPAWN_NODES, spawnNodes);
+        for (x = x1; x <= x2; x++)
+            for (y = y1; y <= y2; y++)
+                nodes.add(grid[x][y]);
+
+        int i = areas.size();
+
+        while (areas.containsKey(i))
+            i++;
+
+        areas.put(i,nodes);
+
+        return i;
+    }
+
+    public HashMap<Integer,List<Node>> getAreas() {      
+
 
         return areas;
 
@@ -122,7 +151,7 @@ public class ManhattanMapGenerator {
                 grid[x][y] = n;
                 nodes.add(n);
 
-                if (x % mainRoadInterval != 0 && y % mainRoadInterval != 0)
+                if (!horizontalMainRoads.contains(x) && !verticalMainRoads.contains(y) )
                     localNodes.add(n);
 
                 y_loc += blockSize;
@@ -140,7 +169,7 @@ public class ManhattanMapGenerator {
 
 
 
-        for (int x = 0; x <= width; x += mainRoadInterval) {
+        for (int x : horizontalHighways) {
             x_loc = grid[x][0].getLocation().getX();
 
 
@@ -160,7 +189,7 @@ public class ManhattanMapGenerator {
         }
 
 
-        for (int y = 0; y <= height; y += mainRoadInterval) {
+        for (int y : verticalHighways) {
             y_loc = grid[0][y].getLocation().getY();
 
 
@@ -180,52 +209,59 @@ public class ManhattanMapGenerator {
         }
     }
 
+
+    private static final int 
+            SMALL_ROAD = 0,
+            MAIN_ROAD = 1,
+            HIGHWAY = 2;
+    
     private void generateRoads() {
         generateRoadPairs();
 
         addSpawnNodes();
 
-        int c = 0;
-
-        int x,y;
-
-        Node vNeighbor,hNeighbor;
-
-        while (c < variation) {
-            x = rand.nextInt(width);
-            y = rand.nextInt(height);
-            
-            //TODO: IMPLEMENT THIS
-            c++;
-        }
-
-        RoadSegment rs;
+        RoadSegment rs = null;
 
         int v = 0;
-        boolean mainRoad;
+        int roadType = -1;
+
         for (List<Pair<Node,Node>> verticalAvenue : verticalAvenues) {
-            mainRoad = (v % mainRoadInterval == 0);
             
-            Road r = new Road("Vertical " + Integer.toString(v + 1), mainRoad ? 1 : 2);
+            if (verticalMainRoads.contains(v))
+                roadType = MAIN_ROAD;
+            else if (verticalHighways.contains(v))
+                roadType = HIGHWAY;
+            else
+                roadType = SMALL_ROAD;
+            
+            Road r = new Road("Vertical " + Integer.toString(v + 1));
 
             for (Pair<Node,Node> pair : verticalAvenue) {
 
-                if (mainRoad) {
+                if (roadType == HIGHWAY) {
                     rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
+
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
-//                    rs.addLeftStartLane(2, false);
-//                    rs.addLeftStartLane(3, false);
+
                     rs.addLeftEndLane(10, false);
                     rs.addLeftEndLane(11, false);
-//                    rs.addLeftEndLane(12, false);
-//                    rs.addLeftEndLane(13, false);
-                } else {
+
+                } else if (roadType == MAIN_ROAD) {
+                    rs = new RoadSegment(r, 50.0 / 3.6, pair.getObject1(), pair.getObject2());
+
+                    rs.addLeftStartLane(0, false);
+                    rs.addLeftStartLane(1, false);
+
+                    rs.addLeftEndLane(10, false);
+                    rs.addLeftEndLane(11, false);
+
+                } else if (roadType == SMALL_ROAD) {
+
                     rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
-//                    rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(10, false);
-//                    rs.addLeftEndLane(11, false);
+
                 }
                 
                 r.addLast(rs);
@@ -236,28 +272,37 @@ public class ManhattanMapGenerator {
         
         int h = 0;
         for (List<Pair<Node,Node>> horizontalAvenue : horizontalAvenues) {
-            mainRoad = (h % mainRoadInterval == 0);
 
-            Road r = new Road("Horizontal " + Integer.toString(h + 1), mainRoad ? 1 : 2);
+            if (horizontalMainRoads.contains(h))
+                roadType = MAIN_ROAD;
+            else if (horizontalHighways.contains(h))
+                roadType = HIGHWAY;
+            else
+                roadType = SMALL_ROAD;
+
+            Road r = new Road("Horizontal " + Integer.toString(h + 1));
 
             for (Pair<Node,Node> pair : horizontalAvenue) {
 
-                if (mainRoad) {
+                if (roadType == HIGHWAY) {
                     rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
-//                    rs.addLeftStartLane(2, false);
-//                    rs.addLeftStartLane(3, false);
+
                     rs.addLeftEndLane(10, false);
                     rs.addLeftEndLane(11, false);
-//                    rs.addLeftEndLane(12, false);
-//                    rs.addLeftEndLane(13, false);
-                } else {
+
+                } else if (roadType == MAIN_ROAD) {
+                    rs = new RoadSegment(r, 50.0 / 3.6, pair.getObject1(), pair.getObject2());
+                    rs.addLeftStartLane(0, false);
+                    rs.addLeftStartLane(1, false);
+
+                    rs.addLeftEndLane(10, false);
+                    rs.addLeftEndLane(11, false);
+                } else if (roadType == SMALL_ROAD) {
                     rs = new RoadSegment(r, 30.0 / 3.6, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
-//                    rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(10, false);
-//                    rs.addLeftEndLane(11, false);
                 }
 
                 r.addLast(rs);
