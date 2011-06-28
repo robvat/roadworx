@@ -154,6 +154,21 @@ public class Car
         nextLane = null;
     }
 
+    /**
+     * Set the current Lane of the car to null
+     * @return True if the switch succeeded, false if it was already null
+     */
+    public boolean setNoLane()
+    {
+        if(this.currentLane != null)
+        {
+            currentLane = null;
+            return true;
+        }
+        else
+            return false;
+    }
+
     public double getDistanceToLaneEnd()
     {
         return currentLane.getLength() - position;
@@ -284,7 +299,7 @@ public class Car
     }
 
     private Lane nextLane;
-    private void determineNextLane() {
+    public void determineNextLane() { // moet weer private worden -> debugging
         nextLane = null;
 
         List<Lane> lanes = currentNode.getRoadSegment(route.getNextNode()).getSourceLanes(currentNode);

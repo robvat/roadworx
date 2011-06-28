@@ -12,12 +12,13 @@ public class Roundabout extends Node
     /**
      * The average speed on a roundabout, used in the calculation
      */
-    public static final double speed = 9.72222222; //FIXME: turn into a function
+    public static final double speed = 6.0; //FIXME: turn into a function
     private double size; // circumference in meters
     private boolean suc;
     private List<Road> roadsConnected; // list of all the roads connected: NOT NEEDED SEE NODE
     private List<Car> cars;
     private List<Double> times; // a list of times, the cars have to spend on the roundabout
+    private List<Lane> destinations; //List of destinations of the cars
 
     /**
      *  Constructs a roundabout
@@ -33,6 +34,7 @@ public class Roundabout extends Node
 
         cars = new ArrayList<Car>();
         times = new ArrayList<Double>();
+        destinations = new ArrayList<Lane>();
         // Warning, doesn't have any roads yet at this point!
     }
 
@@ -44,6 +46,12 @@ public class Roundabout extends Node
     {
         // incoming is NOT USED!
         double chance = acceptChance();
+
+        Lane l = incoming.getNextLane();
+
+        if (l == null || !l.acceptsCarAdd(incoming))
+            return false;
+
 
         if(Math.random() <= chance)
         {
@@ -61,9 +69,18 @@ public class Roundabout extends Node
      */
     public void acceptCar(Car incoming)
     {
+        if (incoming.getNextLane() == null || !incoming.getNextLane().acceptsCarAdd(incoming)) {
+            System.err.println("Car did not check correctly if it could join a lane.");
+            incoming.determineNextLane();
+        }
+
         double time, factor = 0;
+
         // he's part of the node and gets a waiting time assigned
         cars.add(incoming);
+        destinations.add(incoming.getNextLane());
+        incoming.getCurrentLane().removeCar(incoming);
+        incoming.setNoLane();
 
         try
         {
@@ -98,8 +115,18 @@ public class Roundabout extends Node
              newTime = times.get(i) - timestep;
              if(newTime < 0)
              {
+                 Car daCar = cars.get(i);
                  //Time to put him on his new Lane
-                 getRidOfHim(i);
+                 if(destinations.get(i).acceptsCarAdd(daCar))
+                 {
+                    getRidOfHim(i);
+                    i--; // 1 is removed so the index needs to be lowered again
+                    /*
+                     * Cars.size should be less from this point on
+                     * Another car should be at the same position
+                     * so the same position needs to be checked again
+                     */
+                 }
              }
              else
              {
@@ -153,16 +180,19 @@ public class Roundabout extends Node
      */
     private void getRidOfHim(int i)
     {
-        List<Lane> possibleLanes;
+//        List<Lane> possibleLanes;
         Car rem = cars.get(i);
-        Node next = rem.getNextNode();
-        RoadSegment togo = super.getRoadSegment(next);
-        possibleLanes = togo.getDestinationLanes(next);
-        rem.setLane(possibleLanes.get(0));
+//        Node next = rem.getNextNode();
+//        RoadSegment togo = super.getRoadSegment(next);
+//        possibleLanes = togo.getDestinationLanes(next);
+//        rem.setLane(possibleLanes.get(0));
+        destinations.get(i).addCar(rem);
+        
         // FIXME Check if something is on lane 0 and put him on lane 1
         // FIXME !!! Car.advance() or not ??, time for next node
         cars.remove(i);
         times.remove(i);
+        destinations.remove(i);
     }
 
     /**
@@ -199,7 +229,7 @@ public class Roundabout extends Node
         {
             v = size - pos[1];
             v = v + pos[0];
-            outcome = (v / size);
+            outcome = ((double)v / (double)size);
         }
         else if (pos[0] == pos[1])
         {
@@ -208,7 +238,7 @@ public class Roundabout extends Node
         else
         {
             v = pos[0] - pos[1];
-            outcome = (v / size);
+            outcome = ((double)v / (double)size);
         }
 
         return outcome;
