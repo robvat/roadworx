@@ -20,10 +20,10 @@ public class Lane {
     private Lane leftNeighbour;
     private Node startNode;
     private Node endNode;
-    private double maxSpeed;
     private List<Node> allowedDirections;
     private double queueLength;
     private double carsLength;
+    private double maxVelocity;
     private int queueCount;
     private CarList cars;
 
@@ -32,8 +32,9 @@ public class Lane {
         this.roadSegment = roadSegment;
         this.startNode = startNode;
         this.endNode = endNode;
-        this.maxSpeed = maxSpeed;
         this.allowedDirections = allowedDirections;
+
+        this.maxVelocity = roadSegment.getMaxVelocity();
 
         this.cars = new CarList();
     }
@@ -96,7 +97,26 @@ public class Lane {
      * @return the maxSpeed
      */
     public double getMaxVelocity() {
-        return maxSpeed;
+        return maxVelocity;
+    }
+
+
+    public void setMaxVelocity(double maxVelocity) {
+        this.maxVelocity = maxVelocity;
+
+        if (!cars.isEmpty()) {
+            Car car = getFirstCar();
+
+            Car nextCar;
+
+            while (car != null) {
+                nextCar = car.getCarBehind();
+
+                car.setMaxLaneVelocity(maxVelocity);
+
+                car = nextCar;
+            }
+        }
     }
 
     /**
@@ -237,6 +257,10 @@ public class Lane {
 
     public double getCombinedCarLength() {
         return carsLength;
+    }
+
+    public double getDensity() {
+        return carsLength / getLength();
     }
 
     public boolean hasCars() {

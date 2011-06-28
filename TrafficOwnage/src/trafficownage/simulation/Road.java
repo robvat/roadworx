@@ -114,6 +114,7 @@ public class Road {
         nodes.addLast(rs.getStartNode());
 
         while (rs != null) {
+            rs.init();
             nodes.addLast(rs.getEndNode());
             rs = rs.getNextSegment();
         }
@@ -138,6 +139,8 @@ public class Road {
         while(!done) {
             updateLanes(timestep, rs1.getEndLanes());
             updateLanes(timestep, rs2.getStartLanes());
+
+            rs1.updateSpeedLimits(timestep);
 
             if (rs1 == endSegment && rs2 == startSegment) {
                 done = true;

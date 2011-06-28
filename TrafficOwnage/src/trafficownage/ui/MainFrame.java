@@ -11,15 +11,24 @@
 
 package trafficownage.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.swing.DefaultListModel;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.ListModel;
 import javax.swing.UIManager;
 import trafficownage.simulation.Car;
 import trafficownage.simulation.MainLoop;
 import trafficownage.simulation.MainLoopListener;
 import trafficownage.simulation.Node;
 import trafficownage.simulation.Road;
+import trafficownage.simulation.SpawnManager.Mapping;
+import trafficownage.util.Pair;
 
 /**
  *
@@ -29,17 +38,70 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
     private MainLoop m;
 
+    private HashMap<JCheckBoxMenuItem,Mapping> benchmarkMappingMap;
+    private List<Mapping> benchmarkMappings;
+
     /** Creates new form MainFrame */
     public MainFrame() {
         initComponents();
 
+        benchmarkMappingMap = new HashMap<JCheckBoxMenuItem,Mapping>();
+        benchmarkMappings = new ArrayList<Mapping>();
+
         m = new MainLoop();
         m.init(this);
+
+        updateInfo();
+
+        initResultMenu();
 
         mapComponent2.init(m);
 
         mapComponent2.repaint();
     }
+
+    private void initResultMenu() {
+        for (Mapping mapping : m.getBenchmarkedMappings()) {
+            resultsMenu.add(createMappingMenuItem(mapping));
+        }
+    }
+
+    private ActionListener mappingCheckBoxMenuItemActionListener = new ActionListener() {
+
+        public void actionPerformed(ActionEvent e) {
+            if (!(e.getSource() instanceof JCheckBoxMenuItem))
+                return;
+            
+            JCheckBoxMenuItem item = (JCheckBoxMenuItem)e.getSource();
+
+            Mapping mapping = benchmarkMappingMap.get(item);
+
+            if (mapping == null)
+                return;
+
+            if (item.isSelected() && !benchmarkMappings.contains(mapping))
+                benchmarkMappings.add(mapping);
+            else if (!item.isSelected() && benchmarkMappings.contains(mapping)) {
+                benchmarkMappings.remove(mapping);
+            }
+        }
+
+    };
+
+    private JCheckBoxMenuItem createMappingMenuItem(Mapping mapping) {
+        JCheckBoxMenuItem item = new JCheckBoxMenuItem();
+
+        item.setText(mapping.getName());
+        item.addActionListener(mappingCheckBoxMenuItemActionListener);
+        item.setSelected(true);
+
+        benchmarkMappings.add(mapping);
+
+        benchmarkMappingMap.put(item, mapping);
+
+        return item;
+    }
+
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -55,10 +117,12 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         jList1 = new javax.swing.JList();
         timeLabel1 = new javax.swing.JLabel();
         drawModeButtonGroup = new javax.swing.ButtonGroup();
+        jPanel2 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         timeLabel = new javax.swing.JLabel();
         carCountLabel = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
+        benchmarkResultLabel = new javax.swing.JLabel();
+        jPanel4 = new javax.swing.JPanel();
         mapComponent2 = new trafficownage.ui.MapComponent();
         jPanel3 = new javax.swing.JPanel();
         oldStartButton = new javax.swing.JButton();
@@ -67,7 +131,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         increaseSimSpeedButton = new javax.swing.JButton();
         decreaseSimSpeedButton = new javax.swing.JButton();
         simSpeedLabel = new javax.swing.JLabel();
-        jSeparator1 = new javax.swing.JSeparator();
+        currentViewModeLabel = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -75,6 +139,8 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         drawingEnabledCheckbox = new javax.swing.JCheckBoxMenuItem();
         drawCarsRadioButton = new javax.swing.JRadioButtonMenuItem();
         drawDensityRadioButton = new javax.swing.JRadioButtonMenuItem();
+        drawSpeedLimitsRadioButton = new javax.swing.JRadioButtonMenuItem();
+        resultsMenu = new javax.swing.JMenu();
 
         javax.swing.GroupLayout mapComponent1Layout = new javax.swing.GroupLayout(mapComponent1);
         mapComponent1.setLayout(mapComponent1Layout);
@@ -100,6 +166,9 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Roadworx");
 
+        jPanel2.setBackground(new java.awt.Color(102, 102, 102));
+        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
         jPanel1.setBackground(new java.awt.Color(51, 51, 51));
 
         timeLabel.setFont(timeLabel.getFont().deriveFont(timeLabel.getFont().getStyle() | java.awt.Font.BOLD, timeLabel.getFont().getSize()+3));
@@ -111,6 +180,11 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         carCountLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         carCountLabel.setText("     ");
 
+        benchmarkResultLabel.setFont(benchmarkResultLabel.getFont().deriveFont(benchmarkResultLabel.getFont().getStyle() | java.awt.Font.BOLD, benchmarkResultLabel.getFont().getSize()+3));
+        benchmarkResultLabel.setForeground(new java.awt.Color(255, 255, 255));
+        benchmarkResultLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        benchmarkResultLabel.setText("     ");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -118,7 +192,9 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(timeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 392, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(benchmarkResultLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(carCountLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -126,11 +202,11 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(timeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE)
-                .addComponent(carCountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE))
+                .addComponent(carCountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE)
+                .addComponent(benchmarkResultLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE))
         );
 
-        jPanel2.setBackground(new java.awt.Color(102, 102, 102));
-        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel4.setOpaque(false);
 
         javax.swing.GroupLayout mapComponent2Layout = new javax.swing.GroupLayout(mapComponent2);
         mapComponent2.setLayout(mapComponent2Layout);
@@ -140,18 +216,37 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         );
         mapComponent2Layout.setVerticalGroup(
             mapComponent2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 423, Short.MAX_VALUE)
+            .addGap(0, 412, Short.MAX_VALUE)
+        );
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 902, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 412, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(mapComponent2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         jPanel3.setBackground(new java.awt.Color(51, 51, 51));
@@ -196,6 +291,10 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         simSpeedLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         simSpeedLabel.setText("16x");
 
+        currentViewModeLabel.setFont(currentViewModeLabel.getFont().deriveFont(currentViewModeLabel.getFont().getStyle() | java.awt.Font.BOLD, currentViewModeLabel.getFont().getSize()+3));
+        currentViewModeLabel.setForeground(new java.awt.Color(255, 255, 255));
+        currentViewModeLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -207,23 +306,23 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
                 .addComponent(oldPauseButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(oldStopButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(currentViewModeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(decreaseSimSpeedButton, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(simSpeedLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(increaseSimSpeedButton)
+                .addComponent(increaseSimSpeedButton, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(currentViewModeLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(oldStopButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(oldPauseButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(oldStartButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -275,7 +374,19 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         });
         drawingMenu.add(drawDensityRadioButton);
 
+        drawModeButtonGroup.add(drawSpeedLimitsRadioButton);
+        drawSpeedLimitsRadioButton.setText("Speed limits");
+        drawSpeedLimitsRadioButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                drawSpeedLimitsRadioButtonActionPerformed(evt);
+            }
+        });
+        drawingMenu.add(drawSpeedLimitsRadioButton);
+
         jMenuBar1.add(drawingMenu);
+
+        resultsMenu.setText("Results");
+        jMenuBar1.add(resultsMenu);
 
         setJMenuBar(jMenuBar1);
 
@@ -283,10 +394,9 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(10, 10, 10)
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
@@ -296,22 +406,38 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void oldStartButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_oldStartButtonActionPerformed
-        //mapComponent2.setSelectedCar(m.addCar());
-
         m.start();
-
     }//GEN-LAST:event_oldStartButtonActionPerformed
 
+    private void updateInfo() {
+        simSpeedLabel.setText(m.getSpeedMultiplier() + "x");
+        
+        if (mapComponent2.isVisible()) {
+            switch (mapComponent2.getDrawMode()) {
+                case MapComponent.DRAW_CARS:
+                    currentViewModeLabel.setText("Individual car view");
+                    break;
+                case MapComponent.DRAW_DENSITY:
+                    currentViewModeLabel.setText("Traffic density view");
+                    break;
+                case MapComponent.DRAW_SPEEDLIMITS:
+                    currentViewModeLabel.setText("Speedlimit view");
+                    break;
+            }
+        } else {
+            currentViewModeLabel.setText("Drawing disabled.");
+        }
+    }
+
+
     private void oldPauseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_oldPauseButtonActionPerformed
-        // TODO add your handling code here:
         m.pause();
     }//GEN-LAST:event_oldPauseButtonActionPerformed
 
@@ -324,8 +450,9 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
         speed = Math.min(100, speed + (int)Math.sqrt((double)speed));
 
-        simSpeedLabel.setText(speed + "x");
         m.setSpeedMultiplier(speed);
+        
+        updateInfo();
     }//GEN-LAST:event_increaseSimSpeedButtonActionPerformed
 
     private void decreaseSimSpeedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_decreaseSimSpeedButtonActionPerformed
@@ -333,8 +460,9 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
         speed = Math.max(1, speed - (int)Math.sqrt((double)speed));
 
-        simSpeedLabel.setText(speed + "x");
         m.setSpeedMultiplier(speed);
+
+        updateInfo();
     }//GEN-LAST:event_decreaseSimSpeedButtonActionPerformed
 
     private void fileMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuActionPerformed
@@ -344,15 +472,27 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
     private void drawDensityRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawDensityRadioButtonActionPerformed
         mapComponent2.setDrawMode(MapComponent.DRAW_DENSITY);
+
+        updateInfo();
     }//GEN-LAST:event_drawDensityRadioButtonActionPerformed
 
     private void drawCarsRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawCarsRadioButtonActionPerformed
-        mapComponent2.setDrawMode(MapComponent.DRAW_CARS);        // TODO add your handling code here:
+        mapComponent2.setDrawMode(MapComponent.DRAW_CARS);
+
+        updateInfo();
     }//GEN-LAST:event_drawCarsRadioButtonActionPerformed
 
     private void drawingEnabledCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawingEnabledCheckboxActionPerformed
         mapComponent2.setVisible(drawingEnabledCheckbox.isSelected());
+
+        updateInfo();
     }//GEN-LAST:event_drawingEnabledCheckboxActionPerformed
+
+    private void drawSpeedLimitsRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawSpeedLimitsRadioButtonActionPerformed
+        mapComponent2.setDrawMode(MapComponent.DRAW_SPEEDLIMITS);
+
+        updateInfo();
+    }//GEN-LAST:event_drawSpeedLimitsRadioButtonActionPerformed
 
     /**
     * @param args the command line arguments
@@ -372,11 +512,14 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel benchmarkResultLabel;
     private javax.swing.JLabel carCountLabel;
+    private javax.swing.JLabel currentViewModeLabel;
     private javax.swing.JButton decreaseSimSpeedButton;
     private javax.swing.JRadioButtonMenuItem drawCarsRadioButton;
     private javax.swing.JRadioButtonMenuItem drawDensityRadioButton;
     private javax.swing.ButtonGroup drawModeButtonGroup;
+    private javax.swing.JRadioButtonMenuItem drawSpeedLimitsRadioButton;
     private javax.swing.JCheckBoxMenuItem drawingEnabledCheckbox;
     private javax.swing.JMenu drawingMenu;
     private javax.swing.JMenu fileMenu;
@@ -387,13 +530,14 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JSeparator jSeparator1;
     private trafficownage.ui.MapComponent mapComponent1;
     private trafficownage.ui.MapComponent mapComponent2;
     private javax.swing.JButton oldPauseButton;
     private javax.swing.JButton oldStartButton;
     private javax.swing.JButton oldStopButton;
+    private javax.swing.JMenu resultsMenu;
     private javax.swing.JLabel simSpeedLabel;
     private javax.swing.JLabel timeLabel;
     private javax.swing.JLabel timeLabel1;
@@ -405,6 +549,24 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
     public void mapLoaded() {
         mapComponent2.init(m);
+    }
+
+    public Pair<Integer,Double> getResults() {
+        double avg = 0.0;
+        int count = 0;
+        int counted = 0;
+
+        for (Mapping mapping : benchmarkMappings) {
+            if (mapping.getArrivedCarCount() > 0) {
+                avg += mapping.getBenchmarkResults();
+                count += mapping.getArrivedCarCount();
+                counted++;
+            }
+        }
+        if (counted > 0)
+            avg /= (double)counted;
+        
+        return new Pair<Integer,Double>(count,avg);
     }
 
     public void nextFrame(double timestep) {
@@ -421,9 +583,12 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         timeLabel.setText(time);
         carCountLabel.setText(m.getCarCount() + " cars");
 
+        Pair<Integer,Double> results = getResults();
+        benchmarkResultLabel.setText("Score: " + results.getObject2() + "@" + results.getObject1() + " arrived cars.");
 
         if (drawingEnabledCheckbox.isSelected())
             mapComponent2.update();
+        
     }
 
     public void logMessage(String message) {

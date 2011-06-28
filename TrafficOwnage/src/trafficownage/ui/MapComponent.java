@@ -118,13 +118,13 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             for (Road r : map_roads)
                 for (RoadSegment rs : r.getSegments())
                     drawRoadSegmentCars(gr,rs);
-
-
-            drawInfo(gr);
         }
 
     }
 
+    public int getDrawMode() {
+        return drawMode;
+    }
     public void setDrawMode(int drawMode) {
         this.drawMode = drawMode;
     }
@@ -163,8 +163,8 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
                 drawRoadSegment(gr,rs);
         
 
-        for (Node n : map_nodes)
-            drawNode(gr,n);
+//        for (Node n : map_nodes)
+//            drawNode(gr,n);
         
     }
 
@@ -284,44 +284,13 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
         repaint();
     }
-
-
-    private void drawInfo(Graphics2D gr) {
-
-        DecimalFormat twoDForm = new DecimalFormat("#.#");		 
-
-        int i = 0;
-
-        if (selected_car != null) {
-            String acc = "a: " + twoDForm.format(selected_car.getAcceleration()) + " m/s^2";
-            String vel_kph = "v(km/h): " + twoDForm.format(selected_car.getVelocity() * 3.6) + " km/h";
-            String vel_ms = "v(m/s): " + twoDForm.format(selected_car.getVelocity()) + " m/s";
-            String pos = "p: " + twoDForm.format(selected_car.getPosition()) + "m";
-        } 
-    }
-
-    private void drawText(Graphics2D gr, String... lines) {
-        // get metrics from the graphics
-        FontMetrics metrics = gr.getFontMetrics(INFO_FONT);
-        // get the height of a line of text in this font and render context
-        int line_height = metrics.getHeight();
-
-        gr.setFont(INFO_FONT);
-        gr.setColor(INFO_COLOR);
-
-        int i = 0;
-
-        for (String line : lines) {
-            gr.drawString(line,12,12 + (line_height * i) + 2);
-            i++;
-        }
-
-    }
-
+    
     private int drawMode;
 
     public final static int DRAW_CARS = 0;
     public final static int DRAW_DENSITY = 1;
+    public final static int DRAW_SPEEDLIMITS = 2;
+    public final static int DRAW_EMISSION = 3;
 
     private int drawLaneContent(Graphics2D gr, double length, List<Lane> lanes, int i) {
 
@@ -396,9 +365,12 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
                 i++;
             } else if (drawMode == DRAW_DENSITY) {
-
                 double ratio = l.getCombinedCarLength() / l.getLength();
                 gr.setColor(getColor(Math.pow(ratio,0.3)));
+                gr.draw(line);
+            } else if (drawMode == DRAW_SPEEDLIMITS) {
+                double ratio = 1.0 - (l.getMaxVelocity() / (120.0 / 3.6));
+                gr.setColor(getColor(ratio));
                 gr.draw(line);
             }
         }
@@ -438,9 +410,9 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
         
         int d = r*2;
 
-        //gr.setColor(NODE_COLOR);//n.getPriority()]);
-        //gr.setStroke(new BasicStroke((int)(ppm * NODE_STROKE_WIDTH)));
-        //gr.drawOval(x-r, y-r, d, d);
+        gr.setColor(NODE_COLOR);//n.getPriority()]);
+        gr.setStroke(new BasicStroke((int)(ppm * NODE_STROKE_WIDTH)));
+        gr.drawOval(x-r, y-r, d, d);
     }
 
     public void mouseWheelMoved(MouseWheelEvent e) {

@@ -5,6 +5,7 @@
 
 package trafficownage.simulation;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,39 +47,39 @@ public class SpawnManager {
         this.departureTimes = new HashMap<Car,Double>();
     }
 
-    public void addMapping(boolean benchmarked, int spawnArea, int targetArea, double spawnInterval) {
-        addMapping(benchmarked,null,spawnArea,targetArea,spawnInterval, null);
+    public void addMapping(String name, boolean benchmarked, int spawnArea, int targetArea, double spawnInterval) {
+        addMapping(name, benchmarked,null,spawnArea,targetArea,spawnInterval, null);
     }
 
-    public void addMapping(boolean benchmarked, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
-        addMapping(benchmarked,null,spawnArea,targetArea,spawnInterval,carType);
+    public void addMapping(String name, boolean benchmarked, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
+        addMapping(name, benchmarked,null,spawnArea,targetArea,spawnInterval,carType);
     }
 
-    public void addMapping(boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, int spawnNumber) {
-        addMapping(benchmarked, startTime,endTime,spawnArea,targetArea,spawnNumber, null);
+    public void addMapping(String name, boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, int spawnNumber) {
+        addMapping(name, benchmarked, startTime,endTime,spawnArea,targetArea,spawnNumber, null);
     }
 
-    public void addMapping(boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, int spawnNumber, CarType carType) {
+    public void addMapping(String name, boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, int spawnNumber, CarType carType) {
         double spawnInterval = (endTime - startTime) / (double)spawnNumber;
 
-        addMapping(benchmarked, startTime,endTime,spawnArea,targetArea,spawnInterval,carType);
+        addMapping(name, benchmarked, startTime,endTime,spawnArea,targetArea,spawnInterval,carType);
     }
 
-    public void addMapping(boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, double spawnInterval) {
-        addMapping(benchmarked, new Pair<Double,Double>(startTime,endTime), spawnArea, targetArea, spawnInterval, null);
+    public void addMapping(String name, boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, double spawnInterval) {
+        addMapping(name, benchmarked, new Pair<Double,Double>(startTime,endTime), spawnArea, targetArea, spawnInterval, null);
     }
 
-    public void addMapping(boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
-        addMapping(benchmarked, new Pair<Double,Double>(startTime,endTime), spawnArea, targetArea, spawnInterval, carType);
+    public void addMapping(String name, boolean benchmarked, double startTime, double endTime, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
+        addMapping(name, benchmarked, new Pair<Double,Double>(startTime,endTime), spawnArea, targetArea, spawnInterval, carType);
     }
 
-    public void addMapping(boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval) {
-        addMapping(benchmarked, timeSpan, spawnArea, targetArea, spawnInterval, null);
+    public void addMapping(String name, boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval) {
+        addMapping(name, benchmarked, timeSpan, spawnArea, targetArea, spawnInterval, null);
     }
 
-    public void addMapping(boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
+    public void addMapping(String name, boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
 
-        Mapping m = new Mapping(benchmarked, timeSpan, spawnArea, targetArea, spawnInterval, carType);
+        Mapping m = new Mapping(name, benchmarked, timeSpan, spawnArea, targetArea, spawnInterval, carType);
 
         if (benchmarked)
             benchmarkedMappings.add(m);
@@ -121,12 +122,11 @@ public class SpawnManager {
 
 
     private Node selectRandomNode(List<Node> nodes) {
-
         return nodes.get(rand.nextInt(nodes.size()));
     }
 
 
-    private class Mapping implements CarListener {
+    public class Mapping implements CarListener {
         private Pair<Double,Double> timeSpan;
         private int spawnArea, targetArea;
         private double spawnInterval;
@@ -141,7 +141,10 @@ public class SpawnManager {
 
         private CarType carType;
 
-        public Mapping(boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
+        private String name;
+
+        public Mapping(String name, boolean benchmarked, Pair<Double,Double> timeSpan, int spawnArea, int targetArea, double spawnInterval, CarType carType) {
+            this.name = name;
             this.timeSpan = timeSpan;
             this.spawnArea = spawnArea;
             this.targetArea = targetArea;
@@ -160,6 +163,10 @@ public class SpawnManager {
             determineSpawnInterval();
 
             this.activated = false;
+        }
+
+        public String getName() {
+            return name;
         }
 
         private double lambda;
@@ -222,6 +229,14 @@ public class SpawnManager {
             return result;
         }
 
+        public int getArrivedCarCount() {
+            return arrivals;
+        }
+
+        public List<Car> getBenchmarkedCars() {
+            return benchmarkedCars;
+        }
+
         private void spawnCar(CarType carType, DriverType driverType, int spawnArea, int targetArea) {
             if (!areas.containsKey(spawnArea) || !areas.containsKey(targetArea)) {
                 System.err.println("Spawn or target area does not exist.");
@@ -259,13 +274,23 @@ public class SpawnManager {
             return car;
         }
 
+        private int arrivals = 0;
         public void reachedDestination(Car car, Node destination) {
+            arrivals++;
+
             double timeTravelled = simulatedTime - departureTimes.get(car);
             double benchmarkValue = timeTravelled / car.getRoute().getOptimalTravelTime();
 
 
             result = ((result * (double)results.size()) + benchmarkValue) / (double)(results.size() + 1);
             results.put(car, benchmarkValue);
+        }
+
+        private DecimalFormat twoDForm = new DecimalFormat("#.##");
+
+        @Override
+        public String toString() {
+            return name + ": " + twoDForm.format(result);
         }
 
 
