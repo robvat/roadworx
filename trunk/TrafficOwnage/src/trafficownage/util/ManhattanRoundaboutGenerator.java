@@ -150,14 +150,14 @@ public class ManhattanRoundaboutGenerator {
 
 
             y_loc = grid[x][0].getLocation().getY() - (blockSize * 8.0);
-            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
+            n = new SpawnNode(new Point2D.Double(x_loc,y_loc));
             nodes.add(n);
             spawnNodes.add(n);
             verticalAvenues[x].add(0,new Pair<Node,Node>(n,grid[x][0]));
 
 
             y_loc = grid[x][height].getLocation().getY() + (blockSize * 8.0);
-            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
+            n = new SpawnNode(new Point2D.Double(x_loc,y_loc));
             nodes.add(n);
             spawnNodes.add(n);
             verticalAvenues[x].add(verticalAvenues[x].size(),new Pair<Node,Node>(grid[x][height],n));
@@ -170,14 +170,14 @@ public class ManhattanRoundaboutGenerator {
 
 
             x_loc = grid[0][y].getLocation().getX() - (blockSize * 8.0);
-            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
+            n = new SpawnNode(new Point2D.Double(x_loc,y_loc));
             nodes.add(n);
             spawnNodes.add(n);
             horizontalAvenues[y].add(0,new Pair<Node,Node>(n,grid[0][y]));
 
 
             x_loc = grid[width][y].getLocation().getX() + (blockSize * 8.0);
-            n = new SpawnNode(new Point2D.Double(x_loc,y_loc),5.0);
+            n = new SpawnNode(new Point2D.Double(x_loc,y_loc));
             nodes.add(n);
             spawnNodes.add(n);
             horizontalAvenues[y].add(horizontalAvenues[y].size(),new Pair<Node,Node>(grid[width][y],n));
@@ -191,18 +191,6 @@ public class ManhattanRoundaboutGenerator {
         addSpawnNodes();
 
         int c = 0;
-
-        int x,y;
-
-        Node vNeighbor,hNeighbor;
-
-        while (c < variation) {
-            x = rand.nextInt(width);
-            y = rand.nextInt(height);
-
-            //TODO: IMPLEMENT THIS
-            c++;
-        }
 
         RoadSegment rs;
 

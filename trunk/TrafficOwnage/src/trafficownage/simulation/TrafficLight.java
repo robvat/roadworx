@@ -28,6 +28,8 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     private int greenRoadIndex;
     private List<Lane> greenLanes;
 
+    private boolean needsLights;
+
     public TrafficLight(Point2D.Double location) {
         super(location);
     }
@@ -44,6 +46,13 @@ public class TrafficLight extends Node implements TrafficLightInterface {
 
         timePassed = 0.0;
 
+        if (getNeighbourNodes().size() <= 2) {
+            needsLights = false;
+            return;
+        } else {
+            needsLights = true;
+        }         
+        
         RoadSegment rs1,rs2;
 
         List<Lane> currentLanes;
@@ -82,12 +91,14 @@ public class TrafficLight extends Node implements TrafficLightInterface {
 
     @Override
     boolean drivethrough(Car incoming) {
+
+
         Lane l = incoming.getNextLane();
 
         if (l == null)
             return false;
 
-        return greenLanes.contains(incoming.getLane()) && l.acceptsCarAdd(incoming);
+        return (!needsLights || greenLanes.contains(incoming.getLane())) && l.acceptsCarAdd(incoming);
         
     }
 
@@ -172,6 +183,9 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     @Override
     public void update(double timestep) {
         super.update(timestep);
+
+        if (!needsLights)
+            return;
 
         timePassed += timestep;
 

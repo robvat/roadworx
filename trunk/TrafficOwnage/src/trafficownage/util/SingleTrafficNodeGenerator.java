@@ -31,10 +31,10 @@ public class SingleTrafficNodeGenerator {
     {
             nodeArray = new Node[] {
             new Roundabout(new Point2D.Double(0.0,0.0), 5),
-            new SpawnNode(new Point2D.Double(0.0,laneSize), 2),
-            new SpawnNode(new Point2D.Double(0.0, -laneSize), 2),
-            new SpawnNode(new Point2D.Double(laneSize, 0.0), 2),
-            new SpawnNode(new Point2D.Double(-laneSize, 0.0), 2)
+            new SpawnNode(new Point2D.Double(0.0,laneSize)),
+            new SpawnNode(new Point2D.Double(0.0, -laneSize)),
+            new SpawnNode(new Point2D.Double(laneSize, 0.0)),
+            new SpawnNode(new Point2D.Double(-laneSize, 0.0))
         };
 
         roadArray = new Road[] {

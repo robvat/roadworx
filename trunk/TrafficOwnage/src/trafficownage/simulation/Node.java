@@ -78,28 +78,35 @@ public abstract class Node
     }
 
     private void determineLaneMapping() {
-        
-        RoadSegment segment1;
-        RoadSegment segment2;
 
-        for (Node n1 : getNeighbourNodes()) {
+        if (getNeighbourNodes().size() == 2) {
+            RoadSegment segment1 = getRoadSegment(getNeighbourNodes().get(0));
+            RoadSegment segment2 = getRoadSegment(getNeighbourNodes().get(1));
 
-            segment1 = getRoadSegment(n1);
+            mapLanes(segment1,segment2);
+        } else {
+            RoadSegment segment1;
+            RoadSegment segment2;
 
-            for (Node n2 : getNeighbourNodes()) {
+            for (Node n1 : getNeighbourNodes()) {
 
-                if (n1 == n2)
-                    continue;
+                segment1 = getRoadSegment(n1);
 
-                segment2 = getRoadSegment(n2);
+                for (Node n2 : getNeighbourNodes()) {
 
-                if (segment1.getNextSegment() == segment2 || segment1.getPreviousSegment() == segment2) {
-                    mapLanes(segment1,segment2);
+                    if (n1 == n2)
+                        continue;
+
+                    segment2 = getRoadSegment(n2);
+
+                    if (segment1.getNextSegment() == segment2 || segment1.getPreviousSegment() == segment2) {
+                        mapLanes(segment1,segment2);
+                    }
                 }
-            }
-            
-        }
 
+            }            
+        }
+        
         for (Node n : getSourceNodes()) {
             RoadSegment rs = getRoadSegment(n);
             for (Lane l : rs.getDestinationLanes(this)) {
@@ -108,7 +115,7 @@ public abstract class Node
                 }
             }
         }
-    }
+}
 
     private List<Node> getAllowedDirections(Node sourceNode) {
         List<Node> directionList = new ArrayList<Node>();
