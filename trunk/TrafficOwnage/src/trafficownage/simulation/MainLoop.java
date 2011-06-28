@@ -45,7 +45,7 @@ public class MainLoop implements NodeListener, CarListener {
         simulatedTime = (double) TimeUnit.HOURS.toSeconds(8);
 
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(16, 16, 100.0, new Integer[] {2,6,10,14}, new Integer[] {2,6,10,14}, new Integer[] {0,16}, new Integer[] {0,16});
+        gen.generate(40, 40, 100.0, new Integer[] {6,20,34}, new Integer[] {6,20,34}, new Integer[] {12,28}, new Integer[] {12,28});
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
