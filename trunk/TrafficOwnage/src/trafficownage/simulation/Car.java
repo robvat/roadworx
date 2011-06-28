@@ -102,14 +102,15 @@ public class Car
      */
     public void init(CarType carType, DriverType driverType)
     {
+        
         listeners = new ArrayList<CarListener>();
 
         maxCarVelocity = Math.min(carType.getMaxVelocity(), driverType.getMaxVelocity());
 
         this.carType = carType;
         this.driverType = driverType;
+
         driverModel.init(driverType, carType);
-        //route = new Route();
 
     }
     
@@ -136,6 +137,12 @@ public class Car
     {
         this.currentLane = lane;
         nextLane = null;
+    }
+
+    public void initSpeed(double maxLaneVelocity)
+    {
+        setMaxLaneVelocity(maxLaneVelocity);
+        velocity = currentMaxVelocity;
     }
 
     public void setLane(Lane lane)

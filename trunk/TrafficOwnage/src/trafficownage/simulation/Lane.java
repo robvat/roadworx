@@ -5,7 +5,9 @@
 package trafficownage.simulation;
 
 import java.util.List;
+import trafficownage.util.Averager;
 import trafficownage.util.CarList;
+import trafficownage.util.Co2Calculator;
 import trafficownage.util.Triplet;
 
 /**
@@ -24,8 +26,17 @@ public class Lane {
     private double queueLength;
     private double carsLength;
     private double maxVelocity;
+
+    private double toKilometerRatio;
+
     private int queueCount;
+    
     private CarList cars;
+
+    private Averager co2Averager;
+
+    private static final double CO2_CYCLE_LENGTH = 60.0;
+    private static final int CO2_MEMORY_SIZE = 15;
 
     public Lane(int laneId, RoadSegment roadSegment, Node startNode, Node endNode, List<Node> allowedDirections, double maxSpeed) {
         this.laneId = laneId;
@@ -36,7 +47,13 @@ public class Lane {
 
         this.maxVelocity = roadSegment.getMaxVelocity();
 
+        this.currentCO2Emission = 0.0;
+
+        this.co2Averager = new Averager(CO2_MEMORY_SIZE);
+
         this.cars = new CarList();
+
+        this.toKilometerRatio = getLength() / 1000.0;
     }
 
     public void setLeftNeighbour(Lane leftNeighbour) {
@@ -262,6 +279,11 @@ public class Lane {
     public double getDensity() {
         return carsLength / getLength();
     }
+    
+    public double getAverageCo2EmissionPerKilometer() {
+
+        return co2Averager.getAverage() / toKilometerRatio;
+    }
 
     public boolean hasCars() {
         return !cars.isEmpty();
@@ -271,8 +293,10 @@ public class Lane {
         return cars.size();
     }
 
-    public void update(double timestep) {
+    private double currentCO2Emission;
+    private double currentCycleCounter;
 
+    public void update(double timestep) {
 
         Car car = getFirstCar();
 
@@ -292,39 +316,19 @@ public class Lane {
                 queueLength = getLength() - car.getBack();
                 queueCount++;
             }
+            
+            currentCO2Emission += Co2Calculator.calculate(car.getVelocity(), car.getAcceleration(), car.getCarType().getFuelType()) * timestep;
+
 
             car = nextCar;
         }
 
-        //Car car = firstCar;
+        currentCycleCounter += timestep;
 
-        //Car car = null;
-
-//        int size = cars.size();
-//
-//
-//        for (int i = 0; i < size; i++) {
-//
-//            car = cars.get(i);
-//            car.update(timestep);
-//
-//            if (queue && car.isInQueue()) {
-//                queueLength = getLength() - car.getBack();
-//                queueCount = i;
-//            } else {
-//                queue = false;
-//            }
-//
-//            if (size > cars.size()) {
-//                size--;
-//                i--;
-//            }
-//        }
-
-        /*while (car != null) {
-        car.update(timestep);
-        car = car.getCarBehind();
-        }*/
-
+        if (currentCycleCounter > CO2_CYCLE_LENGTH) {
+            co2Averager.addTerm(currentCO2Emission);
+            currentCO2Emission = 0.0;
+            currentCycleCounter = 0.0;
+        }
     }
 }

@@ -298,7 +298,7 @@ public abstract class Node
                 if (!car.doesOvertake() && l.getRightNeighbour() != null)
                     continue;
 
-                if (l.acceptsCarAdd(car)) {
+                if (l.acceptsCarAdd(car) && !hasToBrake(car,l)) {
                     l.addCar(car);
                     spawnCars.remove(car);
 
@@ -310,6 +310,15 @@ public abstract class Node
             }
         }
     }
+
+    private boolean hasToBrake(Car car, Lane lane) {
+        if (!lane.hasCars())
+            return false;
+         else
+            return ( lane.getLastCar().getBack() < car.getDriverType().getMinimumDistanceToLeader());
+        
+    }
+
 
 
     @Override

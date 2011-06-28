@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import trafficownage.simulation.SpawnManager.Mapping;
+import trafficownage.simulation.TrafficManager.Mapping;
 import trafficownage.util.ManhattanMapGenerator;
 
 /**
@@ -32,7 +32,7 @@ public class MainLoop implements NodeListener, CarListener {
     private double currentSpeed;
     private int carCount;
     private MainLoopListener listener = null;
-    private SpawnManager spawnManager = new SpawnManager();
+    private TrafficManager spawnManager = new TrafficManager();
     private static final double DAY = (double) TimeUnit.HOURS.toSeconds(24);
 
     public MainLoop() {
@@ -52,6 +52,7 @@ public class MainLoop implements NodeListener, CarListener {
 
         int cityCentre = gen.requestArea(6, 6, 10, 10);
         int cityRegion = gen.requestArea(2, 2, 14, 14);
+        int FUCK = gen.requestArea(20, 20, 20, 20);
 
         spawnManager.init(nodes, gen.getAreas());
 
@@ -62,26 +63,33 @@ public class MainLoop implements NodeListener, CarListener {
                 ManhattanMapGenerator.SPAWN_NODES,
                 25000);*/
 
-        spawnManager.addMapping("Benchmark local outgoing traffic", true,
+        spawnManager.addMapping(
+                "Benchmark local outgoing traffic", true,
                 (double) (TimeUnit.HOURS.toSeconds(8)) + (double) (TimeUnit.MINUTES.toSeconds(5)),
                 (double) (TimeUnit.HOURS.toSeconds(9)) + (double) (TimeUnit.MINUTES.toSeconds(15)),
                 ManhattanMapGenerator.LOCAL_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
-                100);
+                100,
+                false
+                );
 
-        spawnManager.addMapping("Benchmark local traffic", true,
+        spawnManager.addMapping(
+                "Benchmark local traffic", true,
                 (double) (TimeUnit.HOURS.toSeconds(8)) + (double) (TimeUnit.MINUTES.toSeconds(5)),
                 (double) (TimeUnit.HOURS.toSeconds(9)) + (double) (TimeUnit.MINUTES.toSeconds(15)),
                 ManhattanMapGenerator.LOCAL_NODES,
                 ManhattanMapGenerator.LOCAL_NODES,
-                100);
+                100,
+                false
+                );
 
         spawnManager.addMapping("Goes to city centre", true,
                 (double) (TimeUnit.HOURS.toSeconds(8)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
-                cityRegion,
-                10000);
+                FUCK,
+                100000,
+                true);
 
         /*spawnManager.addMapping(false,
                 (double) (TimeUnit.HOURS.toSeconds(8)),// + TimeUnit.MINUTES.toSeconds(2)),
