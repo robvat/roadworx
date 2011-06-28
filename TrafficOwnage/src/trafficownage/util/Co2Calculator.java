@@ -28,6 +28,6 @@ public class Co2Calculator {
         double calculatedemmision =  carType[0] + (carType[1]*speed) + (carType[2]*Math.pow(speed, 2)) 
                 + (carType[3]*acceleration) + (carType[4]*Math.pow(acceleration, 2)) + (carType[5]*speed*acceleration);  
                 
-        return calculatedemmision;//grams/sec
+        return Math.max(0, calculatedemmision);//grams/sec
     }
 }
