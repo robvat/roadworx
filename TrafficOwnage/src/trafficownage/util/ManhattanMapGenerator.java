@@ -183,10 +183,10 @@ public class ManhattanMapGenerator {
     }
 
     private static final int HIGHWAY_LANES = 3;
-    private static final double[] HIGHWAY_VELOCITY = new double[] {80 / 3.6, 60 / 3.6};
+    private static final double[] HIGHWAY_VELOCITY = new double[] {80 / 3.6};//, 60 / 3.6};
 
     private static final int MAINROAD_LANES = 2;
-    private static final double[] MAINROAD_VELOCITY = new double[] {50 / 3.6, 40 / 3.6};
+    private static final double[] MAINROAD_VELOCITY = new double[] {50 / 3.6};//, 40 / 3.6};
 
     private static final int SMALLROAD_LANES = 1;
     private static final double[] SMALLROAD_VELOCITY = new double[] {30 / 3.6};
