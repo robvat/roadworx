@@ -224,7 +224,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="timeLabel" min="-2" pref="256" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="benchmarkResultLabel" pref="350" max="32767" attributes="0"/>
+                      <Component id="resultLabel" pref="350" max="32767" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="carCountLabel" min="-2" pref="256" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -236,7 +236,7 @@
                   <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                       <Component id="timeLabel" alignment="3" pref="24" max="32767" attributes="1"/>
                       <Component id="carCountLabel" alignment="3" pref="24" max="32767" attributes="1"/>
-                      <Component id="benchmarkResultLabel" alignment="3" pref="24" max="32767" attributes="1"/>
+                      <Component id="resultLabel" alignment="3" pref="24" max="32767" attributes="1"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -269,11 +269,11 @@
                 <Property name="text" type="java.lang.String" value="     "/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JLabel" name="benchmarkResultLabel">
+            <Component class="javax.swing.JLabel" name="resultLabel">
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
                   <FontInfo relative="true">
-                    <Font bold="true" component="benchmarkResultLabel" property="font" relativeSize="true" size="3"/>
+                    <Font bold="true" component="resultLabel" property="font" relativeSize="true" size="3"/>
                   </FontInfo>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">

@@ -369,11 +369,11 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
                 gr.setColor(getColor(Math.pow(ratio,0.3)));
                 gr.draw(line);
             } else if (drawMode == DRAW_SPEEDLIMITS) {
-                double ratio = 1.0 - (l.getMaxVelocity() / (120.0 / 3.6));
+                double ratio = l.getRoadSegment().getLoweredSpeedLimitRatio();
                 gr.setColor(getColor(ratio));
                 gr.draw(line);
             } else if (drawMode == DRAW_EMISSION) {
-                double ratio = (l.getAverageCo2EmissionPerKilometer() / 10000.0);
+                double ratio = (l.getRoadSegment().getAverageCo2EmissionPerKilometer() / 15000.0);
                 gr.setColor(getColor(ratio));
                 gr.draw(line);
             }
@@ -386,7 +386,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
     {
         power = Math.min(1.0, power);
 
-        double H = (1.0 - power) * 0.4; // Hue (note 0.4 = Green, see huge chart below)
+        double H = (1.0 - power) * 0.35; // Hue (note 0.4 = Green, see huge chart below)
         double S = 0.9; // Saturation
         double B = 0.9; // Brightness
 

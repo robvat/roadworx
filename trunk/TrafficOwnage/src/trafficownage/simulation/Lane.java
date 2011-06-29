@@ -27,16 +27,10 @@ public class Lane {
     private double carsLength;
     private double maxVelocity;
 
-    private double toKilometerRatio;
 
     private int queueCount;
     
     private CarList cars;
-
-    private Averager co2Averager;
-
-    private static final double CO2_CYCLE_LENGTH = 60.0;
-    private static final int CO2_MEMORY_SIZE = 15;
 
     public Lane(int laneId, RoadSegment roadSegment, Node startNode, Node endNode, List<Node> allowedDirections, double maxSpeed) {
         this.laneId = laneId;
@@ -49,11 +43,7 @@ public class Lane {
 
         this.currentCO2Emission = 0.0;
 
-        this.co2Averager = new Averager(CO2_MEMORY_SIZE);
-
         this.cars = new CarList();
-
-        this.toKilometerRatio = getLength() / 1000.0;
     }
 
     public void setLeftNeighbour(Lane leftNeighbour) {
@@ -280,9 +270,10 @@ public class Lane {
         return carsLength / getLength();
     }
     
-    public double getAverageCo2EmissionPerKilometer() {
-
-        return co2Averager.getAverage() / toKilometerRatio;
+    public double pollCo2Emission() {
+        double tmp = currentCO2Emission;
+        currentCO2Emission = 0.0;
+        return tmp;
     }
 
     public boolean hasCars() {
@@ -294,7 +285,6 @@ public class Lane {
     }
 
     private double currentCO2Emission;
-    private double currentCycleCounter;
 
     public void update(double timestep) {
 
@@ -319,16 +309,7 @@ public class Lane {
             
             currentCO2Emission += Co2Calculator.calculate(car.getVelocity(), car.getAcceleration(), car.getCarType().getFuelType()) * timestep;
 
-
             car = nextCar;
-        }
-
-        currentCycleCounter += timestep;
-
-        if (currentCycleCounter > CO2_CYCLE_LENGTH) {
-            co2Averager.addTerm(currentCO2Emission);
-            currentCO2Emission = 0.0;
-            currentCycleCounter = 0.0;
         }
     }
 }

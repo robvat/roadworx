@@ -144,7 +144,7 @@ public class Roundabout extends Node
      */
     private double acceptChance()
     {
-        double defaultCar = CarType.CAR.getLength();
+        double defaultCar = CarType.MEDIUMCAR.getLength();
         int slots = (int)(size / defaultCar); // needs to be an approximation
         int carAm = cars.size();
         int[] rational = new int[2];

@@ -19,9 +19,9 @@ public enum CarType {
     COMPANYBUS(100.0/3.6, (100.0/3.6)/16.0, 2500, 7.0, 1, true),
     MINICAR(100.0/3.6, (100.0/3.6)/15.0, 700, 2.5, 0, true),
     SMALLCAR(120.0/3.6, (100.0/3.6)/12.0, 1050, 3.5, 0, true),
-    MEDIUMCAR(150.0/3.6, (100.0/3.6)/10.0, 1250, 4.5, 0, true),
-    LARGECAR(150.0/3.6, (100.0/3.6)/13.0, 1600, 5.5, 0, true),
-    VERYLARGECAR(120.0/3.6, (100.0/3.6)/16.0, 2050, 6.5, 0, true);
+    MEDIUMCAR(200.0/3.6, (100.0/3.6)/10.0, 1250, 4.5, 0, true),
+    LARGECAR(220.0/3.6, (100.0/3.6)/9.0, 1600, 4.6, 1, true),
+    VERYLARGECAR(220.0/3.6, (100.0/3.6)/9.0, 2050, 4.8, 0, true);
 
 
     public static final int FUEL_PETROL = 0, FUEL_DIESEL = 1, FUEL_LORRY = 2;

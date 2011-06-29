@@ -7,13 +7,16 @@ package trafficownage.simulation;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import trafficownage.util.Pair;
 import trafficownage.util.Pathfinding;
-import trafficownage.util.Triplet;
+import trafficownage.util.TimeString;
 
 /**
  *
@@ -24,6 +27,7 @@ public class TrafficManager {
 
     private List<Mapping> mappings;
     private List<Node> allNodes;
+
 
     private List<Mapping> benchmarkedMappings;
 
@@ -40,11 +44,23 @@ public class TrafficManager {
         rand = new Random();
     }
 
-    public void init(List<Node> allNodes, HashMap<Integer,List<Node>> areas) {
-        this.allNodes = allNodes;
-        this.areas = areas;
-
+    public void init() {
         this.departureTimes = new HashMap<Car,Double>();
+    }
+
+    public void setNodes(List<Node> nodes) {
+        this.allNodes = nodes;
+    }
+    
+    public void setAreas(HashMap<Integer,List<Node>> areas) {
+        this.areas = areas;
+    }
+
+    public void export() {
+        for (Mapping mapping : mappings) {
+            if (mapping.isBenchmarked())
+                mapping.export();
+        }
     }
 
     public void addMapping(String name, boolean benchmarked, int spawnArea, int targetArea, double spawnInterval, boolean driving) {
@@ -88,6 +104,12 @@ public class TrafficManager {
     }
 
     private static double DAY = (double)TimeUnit.DAYS.toSeconds(1);
+
+    public void resetBenchmarks() {
+        for (Mapping mapping : mappings)
+            if (mapping.isBenchmarked())
+                mapping.reset();
+    }
 
     public void update (double simulatedTime, double timeStep) {
 
@@ -138,7 +160,7 @@ public class TrafficManager {
         private List<Car> benchmarkedCars;
 
         private HashMap<Car,Double> results;
-        private double result;
+        private double meanAverageResult;
 
         private CarType carType;
 
@@ -165,6 +187,27 @@ public class TrafficManager {
             determineSpawnInterval();
 
             this.activated = false;
+        }
+
+        public void reset() {
+            this.benchmarkedCars = new ArrayList<Car>();
+            this.results = new HashMap<Car,Double>();
+            this.arrivals = 0;
+            this.meanAverageResult = 0.0;
+        }
+
+        public void export() {
+            int n = results.size();
+
+            double sdSum = 0.0;
+            for (Car car : benchmarkedCars) {
+                if (results.containsKey(car))
+                    sdSum += Math.pow(results.get(car) - meanAverageResult,2.0);
+            }
+
+            double variance = sdSum / (double)n;
+
+            System.out.println("Results from " + this.getName() + ". Mean average: " + meanAverageResult + " variance: " + variance);
         }
 
         public String getName() {
@@ -228,7 +271,7 @@ public class TrafficManager {
         }
 
         public double getBenchmarkResults() {
-            return result;
+            return meanAverageResult;
         }
 
         public int getArrivedCarCount() {
@@ -292,8 +335,8 @@ public class TrafficManager {
             double timeTravelled = simulatedTime - departureTimes.get(car);
             double benchmarkValue = timeTravelled / car.getRoute().getOptimalTravelTime();
 
-
-            result = ((result * (double)results.size()) + benchmarkValue) / (double)(results.size() + 1);
+            meanAverageResult = ((meanAverageResult * (double)results.size()) + benchmarkValue) / (double)(results.size() + 1);
+            
             results.put(car, benchmarkValue);
         }
 
@@ -301,7 +344,7 @@ public class TrafficManager {
 
         @Override
         public String toString() {
-            return name + ": " + twoDForm.format(result);
+            return name + ": " + twoDForm.format(meanAverageResult);
         }
 
 

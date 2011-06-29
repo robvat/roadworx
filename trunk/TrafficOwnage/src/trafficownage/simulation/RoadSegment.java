@@ -7,6 +7,7 @@ package trafficownage.simulation;
 
 import java.util.LinkedList;
 import java.util.List;
+import trafficownage.util.Averager;
 
 /**
  *
@@ -18,34 +19,68 @@ public class RoadSegment {
 
     private LinkedList<Lane> startLanes; //lanes originating from the startNode
     private LinkedList<Lane> endLanes; //lanes originating from the endNode
+    private LinkedList<Lane> allLanes; //all lanes
 
     private RoadSegment nextSegment, previousSegment;
 
     private SpeedLimitUpdater speedLimitUpdater;
 
+    private double avgCO2EmissionPerKilometer;
+
     private Road parent;
 
-    private double maxVelocity;
+    private double maxVelocity[];
+    private int maxVelocityIndex;
     private double length;
 
-    public RoadSegment(Road parent, double maxSpeed, Node startNode, Node endNode) {
+    public RoadSegment(Road parent, double[] maxVelocity, Node startNode, Node endNode) {
         this.startNode = startNode;
         this.endNode = endNode;
 
-        this.maxVelocity = maxSpeed;
+        this.maxVelocity = maxVelocity;
+        this.maxVelocityIndex = 0;
 
-        this.speedLimitUpdater = new DensitySpeedLimitUpdater(this);
+        this.speedLimitUpdater = new EmissionBasedSpeedLimitUpdater(this);
 
         this.startLanes = new LinkedList<Lane>();
         this.endLanes = new LinkedList<Lane>();
+        this.allLanes = new LinkedList<Lane>();
 
         this.length = startNode.distanceTo(endNode);
+        this.toKilometerRatio = this.length / 1000.0;
+
+        this.co2Averager = new Averager(CO2_MEMORY_SIZE);
+
+        overallCO2Emission = 0.0;
 
         this.parent = parent;
     }
 
     public double getMaxVelocity() {
-        return maxVelocity;
+        return maxVelocity[maxVelocityIndex];
+    }
+
+    public double getLoweredSpeedLimitRatio() {
+        return (maxVelocity.length > 1) ? (double)maxVelocityIndex / (double)(maxVelocity.length - 1) : 0.0;
+    }
+
+    public void lowerSpeedLimit() {
+        if (maxVelocityIndex < maxVelocity.length - 1)
+            maxVelocityIndex++;
+
+        updateSpeedLimits();
+    }
+    public void raiseSpeedLimit() {
+        if (maxVelocityIndex > 0)
+            maxVelocityIndex--;
+
+        updateSpeedLimits();
+    }
+
+    private void updateSpeedLimits() {
+        for (Lane l : allLanes) {
+            l.setMaxVelocity(maxVelocity[maxVelocityIndex]);
+        }
     }
 
     public Road getRoad() {
@@ -97,7 +132,7 @@ public class RoadSegment {
     }
 
     private void addLeftLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections, boolean ending) {
-        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity);
+        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity[maxVelocityIndex]);
 
         if (laneList.size() > 0) {
             newLane.setRightNeighbour(laneList.getLast());
@@ -105,6 +140,7 @@ public class RoadSegment {
         }
 
         laneList.addLast(newLane);
+        allLanes.add(newLane);
     }
 
     public List<Lane> getStartLanes() {
@@ -144,7 +180,7 @@ public class RoadSegment {
     }
 
     private void addRightLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections) {
-        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity);
+        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity[maxVelocityIndex]);
 
         if (laneList.size() > 0) {
             newLane.setLeftNeighbour(laneList.getFirst());
@@ -152,6 +188,7 @@ public class RoadSegment {
         }
 
         laneList.addFirst(newLane);
+        allLanes.add(newLane);
     }
 
     public double getLength() {
@@ -190,7 +227,47 @@ public class RoadSegment {
         this.previousSegment = previousSegment;
     }
 
-    public void updateSpeedLimits(double timestep) {
+    public double pollOveralCO2Emission() {
+        double tmp = overallCO2Emission;
+        overallCO2Emission = 0.0;
+        return tmp;
+    }
+
+    public double getAverageCo2EmissionPerKilometer() {
+        return avgCO2EmissionPerKilometer;
+    }
+
+
+    private Averager co2Averager;
+    private double toKilometerRatio;
+
+    private static final double CO2_CYCLE_LENGTH = 60.0;
+    private static final int CO2_MEMORY_SIZE = 5;
+
+    private double currentCycleTime;
+
+    private double overallCO2Emission;
+    public void updateCO2Emission(double timestep) {
+        currentCycleTime += timestep;
+
+        if (currentCycleTime >= CO2_CYCLE_LENGTH) {
+            currentCycleTime = 0.0;
+
+            double currentCo2EmissionPerKilometer = 0.0;
+
+            for (Lane l : allLanes)
+                currentCo2EmissionPerKilometer += l.pollCo2Emission();
+
+            overallCO2Emission += currentCo2EmissionPerKilometer;
+
+            co2Averager.addTerm(currentCo2EmissionPerKilometer);
+            
+            avgCO2EmissionPerKilometer = co2Averager.getAverage() / toKilometerRatio;
+            
+        }
+    }
+
+    public void updateSpeedLimits(double timestep) {  
         speedLimitUpdater.update(timestep);
     }
 

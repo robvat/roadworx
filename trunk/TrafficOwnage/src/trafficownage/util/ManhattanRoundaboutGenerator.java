@@ -204,7 +204,7 @@ public class ManhattanRoundaboutGenerator {
             for (Pair<Node,Node> pair : verticalAvenue) {
 
                 if (mainRoad) {
-                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
+                    rs = new RoadSegment(r, new double[] {70.0 / 3.6}, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
 //                    rs.addLeftStartLane(2, false);
@@ -214,7 +214,7 @@ public class ManhattanRoundaboutGenerator {
 //                    rs.addLeftEndLane(12, false);
 //                    rs.addLeftEndLane(13, false);
                 } else {
-                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
+                    rs = new RoadSegment(r, new double[] {70.0 / 3.6}, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
 //                    rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(10, false);
@@ -236,7 +236,7 @@ public class ManhattanRoundaboutGenerator {
             for (Pair<Node,Node> pair : horizontalAvenue) {
 
                 if (mainRoad) {
-                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
+                    rs = new RoadSegment(r, new double[] {70.0 / 3.6}, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
                     rs.addLeftStartLane(1, false);
 //                    rs.addLeftStartLane(2, false);
@@ -246,7 +246,7 @@ public class ManhattanRoundaboutGenerator {
 //                    rs.addLeftEndLane(12, false);
 //                    rs.addLeftEndLane(13, false);
                 } else {
-                    rs = new RoadSegment(r, 70.0 / 3.6, pair.getObject1(), pair.getObject2());
+                    rs = new RoadSegment(r, new double[] {70.0 / 3.6}, pair.getObject1(), pair.getObject2());
                     rs.addLeftStartLane(0, false);
 //                    rs.addLeftStartLane(1, false);
                     rs.addLeftEndLane(10, false);

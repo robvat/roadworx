@@ -44,10 +44,10 @@ public class SingleTrafficNodeGenerator {
 
 
         rsArray = new RoadSegment[] {
-            new RoadSegment(roadArray[0],50 / 3.6,nodeArray[1],nodeArray[0]),
-            new RoadSegment(roadArray[0],50 / 3.6,nodeArray[0],nodeArray[2]),
-            new RoadSegment(roadArray[0],50 / 3.6,nodeArray[3],nodeArray[0]),
-            new RoadSegment(roadArray[0],50 / 3.6,nodeArray[0],nodeArray[4])
+            new RoadSegment(roadArray[0],new double[] {50 / 3.6},nodeArray[1],nodeArray[0]),
+            new RoadSegment(roadArray[0],new double[] {50 / 3.6},nodeArray[0],nodeArray[2]),
+            new RoadSegment(roadArray[0],new double[] {50 / 3.6},nodeArray[3],nodeArray[0]),
+            new RoadSegment(roadArray[0],new double[] {50 / 3.6},nodeArray[0],nodeArray[4])
         };
 
         int lanesPerSide = numLanes;
