@@ -51,12 +51,41 @@ public class MainLoop implements NodeListener, CarListener {
         speedMultiplier = 16;
     }
 
+    private static double[] scale(double[] array, double scale) {
+        for (int i = 0; i < array.length; i++)
+            array[i] = array[i] * scale;
+
+        return array;
+    }
+
     public void init() {
 
         simulatedTime = (double) TimeUnit.HOURS.toSeconds(0);
 
+        double[] highwayVelocities = new double[] {80, 60};
+        double[] mainRoadVelocities = new double[] {50, 40};
+        double[] smallRoadVelocities = new double[] {30};
+
+        System.out.println("Set velocities");
+        System.out.println("Highways: " + Arrays.toString(highwayVelocities));
+        System.out.println("Main roads: " + Arrays.toString(mainRoadVelocities));
+        System.out.println("Small roads: " + Arrays.toString(smallRoadVelocities));
+        System.out.println();
+        
+        double kphMsRatio = 1.0 / 3.6;
+
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(40, 40, 100.0, new Integer[] {6,20,34}, new Integer[] {6,20,34}, new Integer[] {12,28}, new Integer[] {12,28});
+        gen.generate(40,
+                40,
+                100.0,
+                new Integer[] {6,20,34},
+                new Integer[] {6,20,34},
+                new Integer[] {12,28},
+                new Integer[] {12,28},
+                scale(highwayVelocities, kphMsRatio), //highway velocities
+                scale(mainRoadVelocities, kphMsRatio), //main road velocities
+                scale(smallRoadVelocities, kphMsRatio) //small road velocities
+        );
 
         nodes = gen.getNodes();
         roads = gen.getRoads();

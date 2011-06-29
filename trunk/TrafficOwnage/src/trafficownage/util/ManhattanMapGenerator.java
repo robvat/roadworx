@@ -37,6 +37,10 @@ public class ManhattanMapGenerator {
     private List<Integer> horizontalMainRoads;
     private List<Integer> verticalHighways;
     private List<Integer> horizontalHighways;
+
+    private double[] highwayMaxVelocity;
+    private double[] mainRoadMaxVelocity;
+    private double[] smallRoadMaxVelocity;
     
     private HashMap<Integer,List<Node>> areas = new HashMap<Integer, List<Node>>();
 
@@ -49,12 +53,12 @@ public class ManhattanMapGenerator {
     public ManhattanMapGenerator() {
     }
 
-    public void generate(int width, int height, double blockSize, Integer[] verticalMainRoads, Integer[] horizontalMainRoads, Integer[] verticalHighways, Integer[] horizontalHighways) {
+    public void generate(int width, int height, double blockSize, Integer[] verticalMainRoads, Integer[] horizontalMainRoads, Integer[] verticalHighways, Integer[] horizontalHighways, double[] highwayMaxVelocity, double[] mainRoadMaxVelocity, double[] smallRoadMaxVelocity) {
         rand = new Random();
-        generate(rand.nextLong(),width,height,blockSize,verticalMainRoads,horizontalMainRoads,verticalHighways,horizontalHighways);
+        generate(rand.nextLong(),width,height,blockSize,verticalMainRoads,horizontalMainRoads,verticalHighways,horizontalHighways, highwayMaxVelocity, mainRoadMaxVelocity, smallRoadMaxVelocity);
     }
 
-    public void generate(long seed, int width, int height, double blockSize, Integer[] verticalMainRoads, Integer[] horizontalMainRoads, Integer[] verticalHighways, Integer[] horizontalHighways) {
+    public void generate(long seed, int width, int height, double blockSize, Integer[] verticalMainRoads, Integer[] horizontalMainRoads, Integer[] verticalHighways, Integer[] horizontalHighways, double[] highwayMaxVelocity, double[] mainRoadMaxVelocity, double[] smallRoadMaxVelocity) {
         this.seed = seed;
         this.width = width;
         this.height = height;
@@ -65,6 +69,10 @@ public class ManhattanMapGenerator {
 
         this.verticalHighways = Arrays.asList(verticalHighways);
         this.horizontalHighways = Arrays.asList(horizontalHighways);
+
+        this.highwayMaxVelocity = highwayMaxVelocity;
+        this.mainRoadMaxVelocity = mainRoadMaxVelocity;
+        this.smallRoadMaxVelocity = smallRoadMaxVelocity;
 
         rand = new Random(seed);
 
@@ -183,13 +191,13 @@ public class ManhattanMapGenerator {
     }
 
     private static final int HIGHWAY_LANES = 3;
-    private static final double[] HIGHWAY_VELOCITY = new double[] {80 / 3.6};//, 60 / 3.6};
+    //private static final double[] HIGHWAY_VELOCITY = new double[] {80 / 3.6, 60 / 3.6};
 
     private static final int MAINROAD_LANES = 2;
-    private static final double[] MAINROAD_VELOCITY = new double[] {50 / 3.6};//, 40 / 3.6};
+    //private static final double[] MAINROAD_VELOCITY = new double[] {50 / 3.6, 40 / 3.6};
 
     private static final int SMALLROAD_LANES = 1;
-    private static final double[] SMALLROAD_VELOCITY = new double[] {30 / 3.6};
+    //private static final double[] SMALLROAD_VELOCITY = new double[] {30 / 3.6};
 
     private Node generateVerticalSpawnNode(int x, int y) {
         double 
@@ -274,7 +282,7 @@ public class ManhattanMapGenerator {
             r = new Road("Vertical " + Integer.toString(x + 1));
 
             if (myNodeType == HIGHWAY)
-                r.addFirst(createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,generateVerticalSpawnNode(x,0),grid[x][0]));
+                r.addFirst(createRoadSegment(r,HIGHWAY_LANES,highwayMaxVelocity,generateVerticalSpawnNode(x,0),grid[x][0]));
                         
             for (y = 0; y < height; y++) {
 
@@ -284,10 +292,10 @@ public class ManhattanMapGenerator {
                 rs = null;
 
                 if (myNodeType == HIGHWAY) {
-                    rs = createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,n1,n2);
+                    rs = createRoadSegment(r,HIGHWAY_LANES,highwayMaxVelocity,n1,n2);
                 }
                 else if (myNodeType == MAINROAD)
-                    rs = createRoadSegment(r,MAINROAD_LANES,MAINROAD_VELOCITY,n1,n2);
+                    rs = createRoadSegment(r,MAINROAD_LANES,mainRoadMaxVelocity,n1,n2);
                 else if (myNodeType == SMALLROAD) {
 
                     if (getHorizontalNodeType(y) == HIGHWAY || getHorizontalNodeType(y+1) == HIGHWAY) {
@@ -297,7 +305,7 @@ public class ManhattanMapGenerator {
 
                         r = new Road("Vertical " + Integer.toString(x + 1) + " part " + i);
                     } else {
-                        rs = createRoadSegment(r,SMALLROAD_LANES,SMALLROAD_VELOCITY,n1,n2);
+                        rs = createRoadSegment(r,SMALLROAD_LANES,smallRoadMaxVelocity,n1,n2);
                     }
                 }
                 
@@ -306,7 +314,7 @@ public class ManhattanMapGenerator {
             }
 
             if (myNodeType == HIGHWAY)
-                r.addLast(createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,generateVerticalSpawnNode(x,height),grid[x][height]));
+                r.addLast(createRoadSegment(r,HIGHWAY_LANES,highwayMaxVelocity,generateVerticalSpawnNode(x,height),grid[x][height]));
 
             if (r.getFirstSegment() != null)
                 roads.add(r);
@@ -322,7 +330,7 @@ public class ManhattanMapGenerator {
             r = new Road("Horizontal " + Integer.toString(y + 1));
 
             if (myNodeType == HIGHWAY)
-                r.addLast(createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,generateHorizontalSpawnNode(0,y),grid[0][y]));
+                r.addLast(createRoadSegment(r,HIGHWAY_LANES,highwayMaxVelocity,generateHorizontalSpawnNode(0,y),grid[0][y]));
 
             for (x = 0; x < width; x++) {
 
@@ -332,10 +340,10 @@ public class ManhattanMapGenerator {
                 rs = null;
 
                 if (myNodeType == HIGHWAY) {
-                    rs = createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,n1,n2);                    
+                    rs = createRoadSegment(r,HIGHWAY_LANES,highwayMaxVelocity,n1,n2);
                 }
                 else if (myNodeType == MAINROAD)
-                    rs = createRoadSegment(r,MAINROAD_LANES,MAINROAD_VELOCITY,n1,n2);
+                    rs = createRoadSegment(r,MAINROAD_LANES,mainRoadMaxVelocity,n1,n2);
                 else if (myNodeType == SMALLROAD) {
                     if (getVerticalNodeType(x) == HIGHWAY || getVerticalNodeType(x+1) == HIGHWAY) {
                         i++;
@@ -345,7 +353,7 @@ public class ManhattanMapGenerator {
 
                         r = new Road("Horizontal " + Integer.toString(y + 1) + " part " + i);
                     } else {
-                        rs = createRoadSegment(r,SMALLROAD_LANES,SMALLROAD_VELOCITY,n1,n2);
+                        rs = createRoadSegment(r,SMALLROAD_LANES,smallRoadMaxVelocity,n1,n2);
                     }
                 }
 
@@ -354,7 +362,7 @@ public class ManhattanMapGenerator {
             }
 
             if (myNodeType == HIGHWAY)
-                r.addLast(createRoadSegment(r,HIGHWAY_LANES,HIGHWAY_VELOCITY,generateHorizontalSpawnNode(width,y),grid[width][y]));
+                r.addLast(createRoadSegment(r,HIGHWAY_LANES,highwayMaxVelocity,generateHorizontalSpawnNode(width,y),grid[width][y]));
 
             if (r.getFirstSegment() != null)
                 roads.add(r);
