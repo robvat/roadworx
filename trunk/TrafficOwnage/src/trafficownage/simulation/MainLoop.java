@@ -43,6 +43,8 @@ public class MainLoop implements NodeListener, CarListener {
     private double[] exportMoments;
     private int currentExportMoment;
     private Double nextExportMoment;
+    
+    private int currentDay;
 
     public MainLoop() {
         initialized = false;
@@ -195,6 +197,7 @@ public class MainLoop implements NodeListener, CarListener {
 
         trafficManager.init();
 
+        currentDay = 0;
         sStep = 1.0 / (double) FPS; //Step size in seconds
         msStep = (long) ((sStep * 1000.0) / (double)speedMultiplier); //Step size in milliseconds
 
@@ -226,11 +229,14 @@ public class MainLoop implements NodeListener, CarListener {
 
             int i = 0;
 
-            while (exportMoments[i] <= simulatedTime) 
-                i = (i + 1) % exportMoments.length;
+            int checked = 0;
             
+            while (exportMoments[i] <= simulatedTime && checked != exportMoments.length) {
+                i = (i + 1) % exportMoments.length;
+                checked++;
+            }            
 
-            currentExportMoment = (i - 1) % exportMoments.length;
+            currentExportMoment = Math.max(0,(i - 1) % exportMoments.length);
             
             nextExportMoment = exportMoments[currentExportMoment];
         }
@@ -328,6 +334,8 @@ public class MainLoop implements NodeListener, CarListener {
         long span, start, end, leftover;
 
         double timetaken;
+        
+        double diff;
 
         while (!stop) {
 
@@ -338,9 +346,15 @@ public class MainLoop implements NodeListener, CarListener {
             start = System.currentTimeMillis();
 
             simulatedTime += sStep;
+            
             if (simulatedTime >= DAY) {
                 simulatedTime = 0.0;
                 co2Emission = 0.0;
+                trafficManager.resetBenchmarks();
+                currentDay++;
+                System.out.println();
+                System.out.println("Welcome to day " + currentDay + ".");
+                System.out.println();
             }
 
             synchronized (syncObject) {
@@ -356,19 +370,22 @@ public class MainLoop implements NodeListener, CarListener {
                     co2Emission += r.pollOveralCO2Emission() / 1000.0;
                 }
 
+                
+                if (nextExportMoment != null) {
+                    diff = simulatedTime - nextExportMoment;
+                        if (diff >= 0.0 & diff < (sStep * 2.0)) {
 
-                if (nextExportMoment != null && simulatedTime >= nextExportMoment) {
+                        System.out.println("Export at " + TimeString.getTimeString(nextExportMoment));
 
-                    System.out.println("Export at " + TimeString.getTimeString(nextExportMoment));
+                        System.out.println("Overall CO2 emission of today: " + (int)co2Emission);
 
-                    System.out.println("Overall CO2 emission of today: " + (int)co2Emission);
+                        trafficManager.export();
 
-                    trafficManager.export();
+                        System.out.println();
 
-                    System.out.println();
-
-                    currentExportMoment = (currentExportMoment + 1) % exportMoments.length;
-                    nextExportMoment = exportMoments[currentExportMoment];
+                        currentExportMoment = (currentExportMoment + 1) % exportMoments.length;
+                        nextExportMoment = exportMoments[currentExportMoment];
+                    }
                 }
 
                 if (listener != null)
