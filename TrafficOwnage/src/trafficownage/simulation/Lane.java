@@ -295,6 +295,7 @@ public class Lane {
         boolean queue = true;
 
         queueLength = 0.0;
+        carsLength = 0.0;
         queueCount = 0;
 
         while (car != null) {
@@ -306,6 +307,8 @@ public class Lane {
                 queueLength = getLength() - car.getBack();
                 queueCount++;
             }
+
+            carsLength += car.getLength();
             
             currentCO2Emission += Co2Calculator.calculate(car.getVelocity(), car.getAcceleration(), car.getCarType().getFuelType()) * timestep;
 
