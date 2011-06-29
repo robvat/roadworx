@@ -13,22 +13,17 @@ package trafficownage.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import javax.swing.DefaultListModel;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.ListModel;
 import javax.swing.UIManager;
 import trafficownage.simulation.Car;
 import trafficownage.simulation.MainLoop;
 import trafficownage.simulation.MainLoopListener;
-import trafficownage.simulation.Node;
-import trafficownage.simulation.Road;
 import trafficownage.simulation.TrafficManager.Mapping;
 import trafficownage.util.Pair;
+import trafficownage.util.TimeString;
 
 /**
  *
@@ -121,7 +116,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         jPanel1 = new javax.swing.JPanel();
         timeLabel = new javax.swing.JLabel();
         carCountLabel = new javax.swing.JLabel();
-        benchmarkResultLabel = new javax.swing.JLabel();
+        resultLabel = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         mapComponent2 = new trafficownage.ui.MapComponent();
         jPanel3 = new javax.swing.JPanel();
@@ -181,10 +176,10 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         carCountLabel.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         carCountLabel.setText("     ");
 
-        benchmarkResultLabel.setFont(benchmarkResultLabel.getFont().deriveFont(benchmarkResultLabel.getFont().getStyle() | java.awt.Font.BOLD, benchmarkResultLabel.getFont().getSize()+3));
-        benchmarkResultLabel.setForeground(new java.awt.Color(255, 255, 255));
-        benchmarkResultLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        benchmarkResultLabel.setText("     ");
+        resultLabel.setFont(resultLabel.getFont().deriveFont(resultLabel.getFont().getStyle() | java.awt.Font.BOLD, resultLabel.getFont().getSize()+3));
+        resultLabel.setForeground(new java.awt.Color(255, 255, 255));
+        resultLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        resultLabel.setText("     ");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -194,7 +189,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
                 .addContainerGap()
                 .addComponent(timeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(benchmarkResultLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
+                .addComponent(resultLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(carCountLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -204,7 +199,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(timeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE)
                 .addComponent(carCountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE)
-                .addComponent(benchmarkResultLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE))
+                .addComponent(resultLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE))
         );
 
         jPanel4.setOpaque(false);
@@ -440,6 +435,9 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
                 case MapComponent.DRAW_SPEEDLIMITS:
                     currentViewModeLabel.setText("Speedlimit view");
                     break;
+                case MapComponent.DRAW_EMISSION:
+                    currentViewModeLabel.setText("CO2 emission view");
+                    break;
             }
         } else {
             currentViewModeLabel.setText("Drawing disabled.");
@@ -458,7 +456,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     private void increaseSimSpeedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_increaseSimSpeedButtonActionPerformed
         int speed = m.getSpeedMultiplier();
 
-        speed = Math.min(100, speed + (int)Math.sqrt((double)speed));
+        speed = Math.min(256, speed + (int)Math.sqrt((double)speed));
 
         m.setSpeedMultiplier(speed);
         
@@ -528,7 +526,6 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel benchmarkResultLabel;
     private javax.swing.JLabel carCountLabel;
     private javax.swing.JLabel currentViewModeLabel;
     private javax.swing.JButton decreaseSimSpeedButton;
@@ -554,6 +551,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     private javax.swing.JButton oldPauseButton;
     private javax.swing.JButton oldStartButton;
     private javax.swing.JButton oldStopButton;
+    private javax.swing.JLabel resultLabel;
     private javax.swing.JMenu resultsMenu;
     private javax.swing.JLabel simSpeedLabel;
     private javax.swing.JLabel timeLabel;
@@ -587,21 +585,15 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     }
 
     public void nextFrame(double timestep) {
-
-        long seconds = (long)m.getSimulatedTime();
-        long minutes = TimeUnit.SECONDS.toMinutes(seconds);
-        long hours = TimeUnit.MINUTES.toHours(minutes);
-
-        seconds -= TimeUnit.MINUTES.toSeconds(minutes);
-        minutes -= TimeUnit.HOURS.toMinutes(hours);
-
-        String time = "Time: " + String.format("%02d:%02d:%02d", hours, minutes, seconds);
-
-        timeLabel.setText(time);
+        timeLabel.setText(TimeString.getTimeString(m.getSimulatedTime()));
         carCountLabel.setText(m.getCarCount() + " cars");
 
-        Pair<Integer,Double> results = getResults();
-        benchmarkResultLabel.setText("Score: " + results.getObject2() + "@" + results.getObject1() + " arrived cars.");
+        if (mapComponent2.getDrawMode() == MapComponent.DRAW_EMISSION) {
+            resultLabel.setText("Todays CO2 emission: " + (int)m.getCO2Emission() + " kg");
+        } else {
+            Pair<Integer,Double> results = getResults();
+            resultLabel.setText("Score: " + results.getObject2() + "@" + results.getObject1() + " arrived cars.");
+        }
 
         if (drawingEnabledCheckbox.isSelected())
             mapComponent2.update();

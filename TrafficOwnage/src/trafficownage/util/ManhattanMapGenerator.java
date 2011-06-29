@@ -5,6 +5,7 @@
 
 package trafficownage.util;
 
+import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,13 +97,15 @@ public class ManhattanMapGenerator {
 
     
     
-    public int requestArea(int x1, int y1, int x2, int y2) {
-        List<Node> nodes = new ArrayList<Node>();
-        int x,y;
+    public int requestArea(Rectangle[] rectangles) {
 
-        for (x = x1; x <= x2; x++)
-            for (y = y1; y <= y2; y++)
-                nodes.add(grid[x][y]);
+        List<Node> nodes = new ArrayList<Node>();
+        
+        int x,y;
+        for (Rectangle r : rectangles)
+            for (x = r.x; x <= r.x + r.width; x++)
+                for (y = r.y; y <= r.y + r.height; y++)
+                    nodes.add(grid[x][y]);
 
         int i = areas.size();
 
@@ -168,7 +171,7 @@ public class ManhattanMapGenerator {
             MAINROAD = 1,
             HIGHWAY = 2;
 
-    private RoadSegment createRoadSegment(Road r, int lanesPerSide, double velocity, Node n1, Node n2) {
+    private RoadSegment createRoadSegment(Road r, int lanesPerSide, double[] velocity, Node n1, Node n2) {
         RoadSegment rs = new RoadSegment(r, velocity, n1, n2);
 
         for (int i = 0; i < lanesPerSide; i++) {
@@ -180,13 +183,13 @@ public class ManhattanMapGenerator {
     }
 
     private static final int HIGHWAY_LANES = 3;
-    private static final double HIGHWAY_VELOCITY = 80 / 3.6;
+    private static final double[] HIGHWAY_VELOCITY = new double[] {80 / 3.6, 60 / 3.6};
 
     private static final int MAINROAD_LANES = 2;
-    private static final double MAINROAD_VELOCITY = 50 / 3.6;
+    private static final double[] MAINROAD_VELOCITY = new double[] {50 / 3.6, 40 / 3.6};
 
     private static final int SMALLROAD_LANES = 1;
-    private static final double SMALLROAD_VELOCITY = 30 / 3.6;
+    private static final double[] SMALLROAD_VELOCITY = new double[] {30 / 3.6};
 
     private Node generateVerticalSpawnNode(int x, int y) {
         double 

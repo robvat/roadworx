@@ -5,6 +5,7 @@
 
 package trafficownage.simulation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,36 +14,44 @@ import java.util.List;
  */
 public abstract class SpeedLimitUpdater {
 
-    private List<Lane>[] laneLists;
+    private List<Lane> laneList;
 
     private RoadSegment rs;
-    private double maxAllowedVelocity;
+    private double maxAllowedVelocity[];
+    private int currentMaxAllowedVelocityIndex;
 
     public SpeedLimitUpdater(RoadSegment rs) {
         this.rs = rs;        
     }
 
-    public void init(double maxAllowedVelocity) {
+    public void init(double maxAllowedVelocity[]) {
         this.maxAllowedVelocity = maxAllowedVelocity;
+        this.currentMaxAllowedVelocityIndex = 0;
 
-        this.laneLists = new List[2];
-        this.laneLists[0] = rs.getStartLanes();
-        this.laneLists[1] = rs.getEndLanes();
+        this.laneList = new ArrayList<Lane>();
+        this.laneList.addAll(rs.getStartLanes());
+        this.laneList.addAll(rs.getEndLanes());
     }
 
     protected double getMaxAllowedVelocity() {
-        return maxAllowedVelocity;
+        return maxAllowedVelocity[currentMaxAllowedVelocityIndex];
     }
 
-    protected List<Lane>[] getLaneLists() {
-        return laneLists;
+    protected RoadSegment getRoadSegment() {
+        return rs;
     }
 
-    protected void updateSpeedLimits(List<Lane> lanes, double multiplier) {
-        for (Lane lane : lanes)
-            lane.setMaxVelocity(Math.min(lane.getMaxVelocity() * multiplier, maxAllowedVelocity));
-        
+    protected List<Lane> getLaneList() {
+        return laneList;
     }
+
+    protected void lowerSpeedLimit() {
+        rs.lowerSpeedLimit();
+    }
+    protected void raiseSpeedLimit() {
+        rs.raiseSpeedLimit();
+    }
+
 
     public abstract void update(double timestep);
 }

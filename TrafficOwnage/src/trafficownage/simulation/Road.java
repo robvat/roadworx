@@ -25,6 +25,7 @@ public class Road {
         this.roadName = roadName;
 
         segments = new LinkedList<RoadSegment>();
+        overallCO2Emission = 0.0;
     }
 
     public static final int HIGH_PRIORITY = 1;
@@ -115,6 +116,14 @@ public class Road {
         roadNodes = nodes;
     }
 
+    private double overallCO2Emission;
+
+    public double pollOveralCO2Emission() {
+        double tmp = overallCO2Emission;
+        overallCO2Emission = 0.0;
+        return tmp;
+    }
+
     public void update(double timestep) {
 
         RoadSegment rs1 = startSegment;
@@ -126,7 +135,6 @@ public class Road {
             rs2 = rs2.getPreviousSegment();
         }
 
-
         boolean done = false;
 
         while(!done) {
@@ -134,6 +142,8 @@ public class Road {
             updateLanes(timestep, rs2.getStartLanes());
 
             rs1.updateSpeedLimits(timestep);
+            rs1.updateCO2Emission(timestep);
+            overallCO2Emission += rs1.pollOveralCO2Emission();
 
             if (rs1 == endSegment && rs2 == startSegment) {
                 done = true;
