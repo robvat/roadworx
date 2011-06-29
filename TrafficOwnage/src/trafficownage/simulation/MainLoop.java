@@ -28,7 +28,7 @@ public class MainLoop implements NodeListener, CarListener {
     private boolean initialized;
     private boolean run;
     private boolean stop;
-    private boolean realtime = false;
+    private boolean realtime = true;
     private long msStep;
     private double sStep;
     private double currentSpeed;
@@ -48,7 +48,7 @@ public class MainLoop implements NodeListener, CarListener {
 
     public MainLoop() {
         initialized = false;
-        speedMultiplier = 16;
+        speedMultiplier = 256;
     }
 
     private static double[] scale(double[] array, double scale) {
@@ -113,10 +113,25 @@ public class MainLoop implements NodeListener, CarListener {
 
         trafficManager.addMapping("Random evening traffic", false,
                 (double) (TimeUnit.HOURS.toSeconds(18)),
+                (double) (TimeUnit.HOURS.toSeconds(20)),
+                ManhattanMapGenerator.ALL_NODES,
+                ManhattanMapGenerator.ALL_NODES,
+                .5,
+                false);
+
+        trafficManager.addMapping("Random evening traffic", false,
+                (double) (TimeUnit.HOURS.toSeconds(20)),
+                (double) (TimeUnit.HOURS.toSeconds(21)),
+                ManhattanMapGenerator.ALL_NODES,
+                ManhattanMapGenerator.ALL_NODES,
+                1.0,
+                false);
+        trafficManager.addMapping("Random evening traffic", false,
+                (double) (TimeUnit.HOURS.toSeconds(21)),
                 (double) (TimeUnit.HOURS.toSeconds(23)) + (TimeUnit.MINUTES.toSeconds(59)) + (TimeUnit.SECONDS.toSeconds(59)),
                 ManhattanMapGenerator.ALL_NODES,
                 ManhattanMapGenerator.ALL_NODES,
-                2.0,
+                1.5,
                 false);
 
         trafficManager.addMapping("Random early morning traffic", false,
@@ -124,7 +139,7 @@ public class MainLoop implements NodeListener, CarListener {
                 (double) (TimeUnit.HOURS.toSeconds(6)),
                 ManhattanMapGenerator.ALL_NODES,
                 ManhattanMapGenerator.ALL_NODES,
-                2.0,
+                1.5,
                 false);
         
         trafficManager.addMapping("Random noon traffic", false,
@@ -132,7 +147,7 @@ public class MainLoop implements NodeListener, CarListener {
                 (double) (TimeUnit.HOURS.toSeconds(15)),
                 ManhattanMapGenerator.ALL_NODES,
                 ManhattanMapGenerator.ALL_NODES,
-                3.0,
+                .5,
                 false);
 
         trafficManager.addMapping("Random morning rush hour traffic", false,
@@ -172,14 +187,14 @@ public class MainLoop implements NodeListener, CarListener {
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 residentialAreas,
                 innerCity,
-                3000,
+                4000,
                 false);
         trafficManager.addMapping("Residential to commercial traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
+                (double) (TimeUnit.HOURS.toSeconds(15)),
+                (double) (TimeUnit.HOURS.toSeconds(18)),
                 innerCity,
                 residentialAreas,
-                3000,
+                4000,
                 false);
 
         trafficManager.addMapping("Commuters passing through city", false,
@@ -190,8 +205,8 @@ public class MainLoop implements NodeListener, CarListener {
                 5000,
                 true);
         trafficManager.addMapping("Commuters passing through city", false,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
+                (double) (TimeUnit.HOURS.toSeconds(15)),
+                (double) (TimeUnit.HOURS.toSeconds(18)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
                 5000,

@@ -285,7 +285,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         simSpeedLabel.setFont(simSpeedLabel.getFont().deriveFont(simSpeedLabel.getFont().getStyle() | java.awt.Font.BOLD, simSpeedLabel.getFont().getSize()+1));
         simSpeedLabel.setForeground(new java.awt.Color(255, 255, 255));
         simSpeedLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        simSpeedLabel.setText("16x");
+        simSpeedLabel.setText("256x");
 
         currentViewModeLabel.setFont(currentViewModeLabel.getFont().deriveFont(currentViewModeLabel.getFont().getStyle() | java.awt.Font.BOLD, currentViewModeLabel.getFont().getSize()+3));
         currentViewModeLabel.setForeground(new java.awt.Color(255, 255, 255));
