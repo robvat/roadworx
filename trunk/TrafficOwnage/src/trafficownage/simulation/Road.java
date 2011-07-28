@@ -20,6 +20,7 @@ public class Road {
     private List<Node> roadNodes;
 
     private String roadName;
+    private boolean vertical;
 
     public Road(String roadName) {
         this.roadName = roadName;

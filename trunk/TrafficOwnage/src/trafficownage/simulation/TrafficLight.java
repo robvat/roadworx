@@ -125,6 +125,8 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     private static final double GREEN_TIME_PER_CAR = 5.0;
     private static final double IGNORE_TRAFFIC_TIME = 10.0;
     private static final double MAX_GREEN_TIME = 120.0;
+    private static final double MAX_CARS = 25; // interchangeable with MAX_GREEN_TIME
+    private static final double MIN_WAITING_CARS = 7; //minimal waiting cars in front of trafficlight for it to turn green
 
     private double getDesiredGreenTime(Road r) {
     	int count = 0;
