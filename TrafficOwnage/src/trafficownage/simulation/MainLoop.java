@@ -11,6 +11,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import trafficownage.simulation.TrafficManager.Mapping;
 import trafficownage.util.ManhattanMapGenerator;
+import trafficownage.util.SingleNodeGenerator;
 import trafficownage.util.StringFormatter;
 
 /**
@@ -74,143 +75,149 @@ public class MainLoop implements NodeListener, CarListener {
         
         double kphMsRatio = 1.0 / 3.6;
 
-        ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(40,
-                40,
-                100.0,
-                new Integer[] {6,20,34},
-                new Integer[] {6,20,34},
-                new Integer[] {12,28},
-                new Integer[] {12,28},
-                scale(highwayVelocities, kphMsRatio), //highway velocities
-                scale(mainRoadVelocities, kphMsRatio), //main road velocities
-                scale(smallRoadVelocities, kphMsRatio) //small road velocities
-        );
+//        ManhattanMapGenerator gen = new ManhattanMapGenerator();
+//        gen.generate(40,
+//                40,
+//                100.0,
+//                new Integer[] {6,20,34},
+//                new Integer[] {6,20,34},
+//                new Integer[] {12,28},
+//                new Integer[] {12,28},
+//                scale(highwayVelocities, kphMsRatio), //highway velocities
+//                scale(mainRoadVelocities, kphMsRatio), //main road velocities
+//                scale(smallRoadVelocities, kphMsRatio) //small road velocities
+//        );
+
+        SingleNodeGenerator gen = new SingleNodeGenerator();
+
+        gen.generate(SingleNodeGenerator.NODE_NORMAL_JUNCTION,new double[] {500.0,500.0,500.0,500.0},new int[][] {{0,2},{1,3}},50.0 / 3.6,1);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
 
-        int residentialAreas = gen.requestArea(new Rectangle[] {
-            new Rectangle(0,0,11,11),
-            new Rectangle(13,0,14,11),
-            new Rectangle(29,0,11,11),
-
-            new Rectangle(0,13,11,14),
-            new Rectangle(29,13,11,14),
-
-            new Rectangle(0,29,11,11),
-            new Rectangle(13,29,14,11),
-            new Rectangle(29,29,11,11)
-        });
-
-        int innerCity = gen.requestArea(new Rectangle[] {
-            new Rectangle(13,13,14,14)
-        });
+//        int residentialAreas = gen.requestArea(new Rectangle[] {
+//            new Rectangle(0,0,11,11),
+//            new Rectangle(13,0,14,11),
+//            new Rectangle(29,0,11,11),
+//
+//            new Rectangle(0,13,11,14),
+//            new Rectangle(29,13,11,14),
+//
+//            new Rectangle(0,29,11,11),
+//            new Rectangle(13,29,14,11),
+//            new Rectangle(29,29,11,11)
+//        });
+//
+//        int innerCity = gen.requestArea(new Rectangle[] {
+//            new Rectangle(13,13,14,14)
+//        });
 
 
         trafficManager.setNodes(nodes);
         trafficManager.setAreas(gen.getAreas());
 
-        trafficManager.addMapping("Random evening traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(18)),
-                (double) (TimeUnit.HOURS.toSeconds(20)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                .5,
-                false);
+        trafficManager.addMapping("A lot of traffic on the first road",true, 0, 2, 5.0, true);
 
-        trafficManager.addMapping("Random evening traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(20)),
-                (double) (TimeUnit.HOURS.toSeconds(21)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                1.0,
-                false);
-        trafficManager.addMapping("Random evening traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(21)),
-                (double) (TimeUnit.HOURS.toSeconds(23)) + (TimeUnit.MINUTES.toSeconds(59)) + (TimeUnit.SECONDS.toSeconds(59)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                1.5,
-                false);
-
-        trafficManager.addMapping("Random early morning traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(0)),
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                1.5,
-                false);
-        
-        trafficManager.addMapping("Random noon traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(9)),
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                .5,
-                false);
-
-        trafficManager.addMapping("Random morning rush hour traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                .75,
-                false);
-
-        trafficManager.addMapping("Random evening rush hour traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                (double) (TimeUnit.HOURS.toSeconds(18)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                .75,
-                false);
-
-        trafficManager.addMapping("Residential commuters", false,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
-                ManhattanMapGenerator.SPAWN_NODES,
-                innerCity,
-                8000,
-                true);
-
-        trafficManager.addMapping("Residential commuters", false,
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                (double) (TimeUnit.HOURS.toSeconds(18)),
-                innerCity,
-                ManhattanMapGenerator.SPAWN_NODES,
-                8000,
-                true);
-
-        trafficManager.addMapping("Residential to commercial traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
-                residentialAreas,
-                innerCity,
-                4000,
-                false);
-        trafficManager.addMapping("Residential to commercial traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                (double) (TimeUnit.HOURS.toSeconds(18)),
-                innerCity,
-                residentialAreas,
-                4000,
-                false);
-
-        trafficManager.addMapping("Commuters passing through city", false,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
-                ManhattanMapGenerator.SPAWN_NODES,
-                ManhattanMapGenerator.SPAWN_NODES,
-                5000,
-                true);
-        trafficManager.addMapping("Commuters passing through city", false,
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                (double) (TimeUnit.HOURS.toSeconds(18)),
-                ManhattanMapGenerator.SPAWN_NODES,
-                ManhattanMapGenerator.SPAWN_NODES,
-                5000,
-                true);
+//        trafficManager.addMapping("Random evening traffic", false,
+//                (double) (TimeUnit.HOURS.toSeconds(18)),
+//                (double) (TimeUnit.HOURS.toSeconds(20)),
+//                ManhattanMapGenerator.ALL_NODES,
+//                ManhattanMapGenerator.ALL_NODES,
+//                .5,
+//                false);
+//
+//        trafficManager.addMapping("Random evening traffic", false,
+//                (double) (TimeUnit.HOURS.toSeconds(20)),
+//                (double) (TimeUnit.HOURS.toSeconds(21)),
+//                ManhattanMapGenerator.ALL_NODES,
+//                ManhattanMapGenerator.ALL_NODES,
+//                1.0,
+//                false);
+//        trafficManager.addMapping("Random evening traffic", false,
+//                (double) (TimeUnit.HOURS.toSeconds(21)),
+//                (double) (TimeUnit.HOURS.toSeconds(23)) + (TimeUnit.MINUTES.toSeconds(59)) + (TimeUnit.SECONDS.toSeconds(59)),
+//                ManhattanMapGenerator.ALL_NODES,
+//                ManhattanMapGenerator.ALL_NODES,
+//                1.5,
+//                false);
+//
+//        trafficManager.addMapping("Random early morning traffic", false,
+//                (double) (TimeUnit.HOURS.toSeconds(0)),
+//                (double) (TimeUnit.HOURS.toSeconds(6)),
+//                ManhattanMapGenerator.ALL_NODES,
+//                ManhattanMapGenerator.ALL_NODES,
+//                1.5,
+//                false);
+//
+//        trafficManager.addMapping("Random noon traffic", false,
+//                (double) (TimeUnit.HOURS.toSeconds(9)),
+//                (double) (TimeUnit.HOURS.toSeconds(15)),
+//                ManhattanMapGenerator.ALL_NODES,
+//                ManhattanMapGenerator.ALL_NODES,
+//                .5,
+//                false);
+//
+//        trafficManager.addMapping("Random morning rush hour traffic", false,
+//                (double) (TimeUnit.HOURS.toSeconds(6)),
+//                (double) (TimeUnit.HOURS.toSeconds(9)),
+//                ManhattanMapGenerator.ALL_NODES,
+//                ManhattanMapGenerator.ALL_NODES,
+//                .75,
+//                false);
+//
+//        trafficManager.addMapping("Random evening rush hour traffic", false,
+//                (double) (TimeUnit.HOURS.toSeconds(15)),
+//                (double) (TimeUnit.HOURS.toSeconds(18)),
+//                ManhattanMapGenerator.ALL_NODES,
+//                ManhattanMapGenerator.ALL_NODES,
+//                .75,
+//                false);
+//
+//        trafficManager.addMapping("Residential commuters", false,
+//                (double) (TimeUnit.HOURS.toSeconds(6)),
+//                (double) (TimeUnit.HOURS.toSeconds(9)),
+//                ManhattanMapGenerator.SPAWN_NODES,
+//                innerCity,
+//                8000,
+//                true);
+//
+//        trafficManager.addMapping("Residential commuters", false,
+//                (double) (TimeUnit.HOURS.toSeconds(15)),
+//                (double) (TimeUnit.HOURS.toSeconds(18)),
+//                innerCity,
+//                ManhattanMapGenerator.SPAWN_NODES,
+//                8000,
+//                true);
+//
+//        trafficManager.addMapping("Residential to commercial traffic", false,
+//                (double) (TimeUnit.HOURS.toSeconds(6)),
+//                (double) (TimeUnit.HOURS.toSeconds(9)),
+//                residentialAreas,
+//                innerCity,
+//                4000,
+//                false);
+//        trafficManager.addMapping("Residential to commercial traffic", false,
+//                (double) (TimeUnit.HOURS.toSeconds(15)),
+//                (double) (TimeUnit.HOURS.toSeconds(18)),
+//                innerCity,
+//                residentialAreas,
+//                4000,
+//                false);
+//
+//        trafficManager.addMapping("Commuters passing through city", false,
+//                (double) (TimeUnit.HOURS.toSeconds(6)),
+//                (double) (TimeUnit.HOURS.toSeconds(9)),
+//                ManhattanMapGenerator.SPAWN_NODES,
+//                ManhattanMapGenerator.SPAWN_NODES,
+//                5000,
+//                true);
+//        trafficManager.addMapping("Commuters passing through city", false,
+//                (double) (TimeUnit.HOURS.toSeconds(15)),
+//                (double) (TimeUnit.HOURS.toSeconds(18)),
+//                ManhattanMapGenerator.SPAWN_NODES,
+//                ManhattanMapGenerator.SPAWN_NODES,
+//                5000,
+//                true);
 
         setExportMoments(new double[] {
             (TimeUnit.HOURS.toSeconds(0)),
