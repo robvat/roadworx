@@ -23,7 +23,7 @@ import trafficownage.simulation.MainLoop;
 import trafficownage.simulation.MainLoopListener;
 import trafficownage.simulation.TrafficManager.Mapping;
 import trafficownage.util.Pair;
-import trafficownage.util.TimeString;
+import trafficownage.util.StringFormatter;
 
 /**
  *
@@ -585,7 +585,7 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     }
 
     public void nextFrame(double timestep) {
-        timeLabel.setText(TimeString.getTimeString(m.getSimulatedTime()));
+        timeLabel.setText(StringFormatter.getTimeString(m.getSimulatedTime()));
         carCountLabel.setText(m.getCarCount() + " cars");
 
         if (mapComponent2.getDrawMode() == MapComponent.DRAW_EMISSION) {

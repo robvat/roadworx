@@ -159,12 +159,21 @@ public class Lane {
             return false;
         }
     }
-
-    public Triplet<Boolean, Car, Car> acceptsCarInsert(Car car) {
+    /**
+     * This method returns if the car is allowed to join this lane, only taking into account space available,
+     * not taking into account velocities.
+     * @param previousResult the results of previous time. These are checked first for performances sake (very often, nothing changes)
+     * @param car the car that wants to change to this lane
+     * @return a triplet containing 
+     *          1) a boolean telling whether it is possible for the car to change to this lane
+     *          2) the car in front of the space where the car would end up
+     *          3) the car behind the space where the car would end up
+     */
+    public Triplet<Boolean, Car, Car> acceptsCarInsert(Triplet<Boolean, Car, Car> previousResult, Car car) {
 
         Car firstCar = getFirstCar();
         Car lastCar = getLastCar();
-
+        
         if (lastCar == null && firstCar == null) {
             return new Triplet<Boolean, Car, Car>(true, null, null);
         }
@@ -177,6 +186,23 @@ public class Lane {
             return new Triplet<Boolean, Car, Car>(true, null, firstCar);
         }
 
+        
+        if (previousResult != null) {
+            Car carInFront = previousResult.getObject2();
+            Car carBehind = previousResult.getObject3();
+            
+            if ((carInFront == null || carInFront.getLane() == this) && (carBehind == null || carBehind.getLane() == this)) {
+                if (
+                        carInFront != null && 
+                        carInFront.getBack() > car.getFront() && 
+                        carInFront.hasCarBehind() && 
+                        car.getBack() > carInFront.getCarBehind().getFront()) {
+                    
+                    return previousResult;
+                }
+            }
+        }
+        
         Car otherCar = firstCar;
 
         while (otherCar != null) {

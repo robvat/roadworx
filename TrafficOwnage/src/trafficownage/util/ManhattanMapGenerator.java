@@ -190,7 +190,7 @@ public class ManhattanMapGenerator {
         return rs;
     }
 
-    private static final int HIGHWAY_LANES = 3;
+    private static final int HIGHWAY_LANES = 2;
     //private static final double[] HIGHWAY_VELOCITY = new double[] {80 / 3.6, 60 / 3.6};
 
     private static final int MAINROAD_LANES = 2;
