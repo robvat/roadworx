@@ -11,11 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import trafficownage.simulation.Node;
-import trafficownage.simulation.NormalJunction;
-import trafficownage.simulation.Road;
-import trafficownage.simulation.RoadSegment;
-import trafficownage.simulation.SpawnNode;
+import trafficownage.simulation.*;
 
 /**
  *
@@ -34,6 +30,7 @@ public class SingleNodeGenerator {
     public static final int NODE_PRIORITY_JUNCTION = 1;
     public static final int NODE_DYNAMIC_TRAFFICLIGHT = 2;
     public static final int NODE_RANDOM_TRAFFICLIGHT = 3;
+    public static final int NODE_ROUNDABOUT = 4;
 
     private List<Node> nodes;
     private List<Road> roads;
@@ -65,16 +62,23 @@ public class SingleNodeGenerator {
         switch (nodeType)
         {
             case NODE_NORMAL_JUNCTION:
+                //TODO: Warning, not fully functional!
                 middleNode = new NormalJunction(new Point2D.Double(0.0,0.0));
                 break;
             case NODE_PRIORITY_JUNCTION:
-                middleNode = new NormalJunction(new Point2D.Double(0.0,0.0));
+                //TODO: Warning, not fully functional!
+                middleNode = new PriorityJunction(new Point2D.Double(0.0,0.0));
                 break;
             case NODE_DYNAMIC_TRAFFICLIGHT:
-                middleNode = new NormalJunction(new Point2D.Double(0.0,0.0));
+                middleNode = new TrafficLight(new Point2D.Double(0.0,0.0));
                 break;
             case NODE_RANDOM_TRAFFICLIGHT:
-                middleNode = new NormalJunction(new Point2D.Double(0.0,0.0));
+                // Time between light switches also random!
+                middleNode = new RandomTrafficLight(new Point2D.Double(0.0,0.0), RandomTrafficLight.RANDOMINTERVAL);
+                break;
+            case NODE_ROUNDABOUT:
+                // Radius = 10 meters
+                middleNode = new Roundabout(new Point2D.Double(0.0,0.0), 10.0);
                 break;
         }
 
