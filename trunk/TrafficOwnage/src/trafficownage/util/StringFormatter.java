@@ -5,13 +5,21 @@
 
 package trafficownage.util;
 
+import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 
 /**
  *
  * @author Gerrit
  */
-public class TimeString {
+public class StringFormatter {
+    
+    private static final DecimalFormat DECIMALFORMAT = new DecimalFormat("#.##");
+    
+    public static String getTwoDecimalDoubleString(double value) {
+        return DECIMALFORMAT.format(value);
+    }
+    
     public static String getTimeString(double simulatedTime) {
         long seconds = (long)simulatedTime;
         long minutes = TimeUnit.SECONDS.toMinutes(seconds);

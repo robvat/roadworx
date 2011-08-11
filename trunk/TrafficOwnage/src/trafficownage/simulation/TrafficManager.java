@@ -16,7 +16,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import trafficownage.util.Pair;
 import trafficownage.util.Pathfinding;
-import trafficownage.util.TimeString;
+import trafficownage.util.StringFormatter;
 
 /**
  *

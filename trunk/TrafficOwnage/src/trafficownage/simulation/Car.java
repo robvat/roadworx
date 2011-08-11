@@ -453,6 +453,11 @@ public class Car
         position += velocity * timestep;
     }
 
+    public boolean hasCarBehind()
+    {
+        return container.getNext() != null;
+    }
+    
     public Car getCarBehind()
     {
         return container.getNext().getCar();
@@ -465,6 +470,7 @@ public class Car
 
     public static final int UNNECESSARY = 0, DESIRABLE = 1, ESSENTIAL = 2;
 
+    private Triplet<Boolean,Car,Car> laneChangeParameters;
     private boolean laneChanging(Car nextCar, double distanceToNextCar)
     {
         Lane leftLane, rightLane;
@@ -625,8 +631,8 @@ public class Car
             //System.err.println("The lane it wants to change to doesn't exist.");
             return false;
         }
-
-        Triplet<Boolean,Car,Car> laneChangeParameters = desiredLane.acceptsCarInsert(this);
+        
+        laneChangeParameters = desiredLane.acceptsCarInsert(laneChangeParameters, this);
 
         Car carInFront = laneChangeParameters.getObject2();
         Car carBehind = laneChangeParameters.getObject3();

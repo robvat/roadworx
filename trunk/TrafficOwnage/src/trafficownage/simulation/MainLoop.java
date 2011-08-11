@@ -5,15 +5,13 @@
 package trafficownage.simulation;
 
 import java.awt.Rectangle;
-import java.awt.geom.Point2D;
-import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import trafficownage.simulation.TrafficManager.Mapping;
 import trafficownage.util.ManhattanMapGenerator;
-import trafficownage.util.TimeString;
+import trafficownage.util.StringFormatter;
 
 /**
  *
@@ -39,6 +37,8 @@ public class MainLoop implements NodeListener, CarListener {
     private MainLoopListener listener = null;
     private TrafficManager trafficManager = new TrafficManager();
     private static final double DAY = (double) TimeUnit.HOURS.toSeconds(24);
+    
+    private static final long MEASURE_SPEED_INTERVAL = 10000;
 
     private double[] exportMoments;
     private int currentExportMoment;
@@ -60,7 +60,7 @@ public class MainLoop implements NodeListener, CarListener {
 
     public void init() {
 
-        simulatedTime = (double) TimeUnit.HOURS.toSeconds(0);
+        simulatedTime = (double) TimeUnit.HOURS.toSeconds(7);
 
         double[] highwayVelocities = new double[] {80, 60};
         double[] mainRoadVelocities = new double[] {50, 40};
@@ -377,9 +377,13 @@ public class MainLoop implements NodeListener, CarListener {
 
         long span, start, end, leftover;
 
-        double timetaken;
+        //double timetaken;
         
         double diff;
+        
+        long measureSpeedCounter = 0;
+        double measureSpeedInterval = (double)MEASURE_SPEED_INTERVAL / 1000;
+        double measureSpeedStart = simulatedTime;
 
         while (!stop) {
 
@@ -419,7 +423,7 @@ public class MainLoop implements NodeListener, CarListener {
                     diff = simulatedTime - nextExportMoment;
                         if (diff >= 0.0 & diff < (sStep * 2.0)) {
 
-                        System.out.println("Export at " + TimeString.getTimeString(nextExportMoment));
+                        System.out.println("Export at " + StringFormatter.getTimeString(nextExportMoment));
 
                         System.out.println("Overall CO2 emission of today: " + (int)co2Emission);
 
@@ -440,14 +444,22 @@ public class MainLoop implements NodeListener, CarListener {
             end = System.currentTimeMillis();
 
             span = end - start;
+            
+            measureSpeedCounter += span;
+            if (measureSpeedCounter >= MEASURE_SPEED_INTERVAL) {
+                measureSpeedCounter = 0;
+                System.out.println("Speed: " + StringFormatter.getTwoDecimalDoubleString((simulatedTime - measureSpeedStart) / measureSpeedInterval) + "x");
+                measureSpeedStart = simulatedTime;
+            }
 
             leftover = Math.max(0, msStep - span);
-
-            timetaken = Math.max(.1,(double)span + leftover);
             
-            currentSpeed = sStep / ((double)timetaken / 1000.0);
-            if (Double.POSITIVE_INFINITY == currentSpeed)
-                System.err.println("MAY NOT HAPPEND!");
+            
+            
+//            currentSpeed = sStep / ((double)timetaken / 1000.0);
+//            
+//            if (Double.POSITIVE_INFINITY == currentSpeed)
+//                System.err.println("MAY NOT HAPPEN!");
 
             if (realtime && leftover > 0) {
                 try {
