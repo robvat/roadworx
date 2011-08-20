@@ -18,6 +18,7 @@ public abstract class Node
 {
     private Point2D.Double location;
     private List<RoadSegment> roads;
+    private Road priorityRoad = null;
 
     private List<Node> neighbourNodes;
     private List<Node> destinationNodes;
@@ -311,6 +312,43 @@ public abstract class Node
         }
     }
 
+    /**
+     * Returns the priority road set first on this node
+     */
+    public Road getPriorityRoad()
+    {
+        return priorityRoad;
+    }
+
+    /**
+     * Sets a priorityRoad on this node (used in PriorityJunction
+     * @param r The road which is a priority road
+     * @return Wether it could be added (or if the road is not part of the whole
+     *  or if there already is a priority road)
+     */
+    public boolean setPriorityRoad(Road r)
+    {
+        if(priorityRoad != null)
+        {
+            System.err.print("Already a priority road there!");
+            return false;
+        }
+        /* Check all roads and see if 1 is part of a priorityroad (and
+         * Hope another is too!)
+         */
+        for (RoadSegment n : roads)
+        {
+            if(r.equals(n.getRoad()))
+            {
+                priorityRoad = r;
+                return true;
+            }
+        }
+        System.err.print("Road isn't part of node");
+        priorityRoad = r; //Same function on request of Gerrit
+        return false;
+    }
+
     private boolean hasToBrake(Car car, Lane lane) {
         if (!lane.hasCars())
             return false;
@@ -318,8 +356,6 @@ public abstract class Node
             return ( lane.getLastCar().getBack() < car.getDriverType().getMinimumDistanceToLeader());
         
     }
-
-
 
     @Override
     public String toString() {
