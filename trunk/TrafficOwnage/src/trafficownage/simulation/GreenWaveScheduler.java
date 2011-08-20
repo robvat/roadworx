@@ -27,6 +27,13 @@ public class GreenWaveScheduler {
         for (Road r : roads) {
                 nodeLists.add(r.getNodes());
             }
+        
+        greenWaves = new ArrayList<GreenWave>();
+        for (List<Node> ln : nodeLists){
+            GreenWave gv = new GreenWave();
+            gv.init(ln);
+            greenWaves.add(gv);
+        }
 
     }
 
