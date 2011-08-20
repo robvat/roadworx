@@ -209,4 +209,16 @@ public class TrafficLight extends Node implements TrafficLightInterface {
         
     }
 
+    public void setGreen(){
+        
+    }
+
+    public void setRed(){
+        
+    }
+
+    public double getGreenTime(){
+        return greenTime;
+    }
+
 }
