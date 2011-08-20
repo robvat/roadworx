@@ -57,16 +57,23 @@ public class TrafficLight extends Node implements TrafficLightInterface {
 
         List<Lane> currentLanes;
 
+        //for all sourcenodes
         for (Node n1 : getSourceNodes()) {
             currentLanes = new ArrayList<Lane>();
 
+            //get the road segment connected to that source node
             rs1 = getRoadSegment(n1);
 
+            //add all lanes that have this node as destination to the list
             currentLanes.addAll(rs1.getDestinationLanes(this));
 
+            //for all nodes that this node connects to
             for (Node n2 : getDestinationNodes()) {
+                //get the roadsegment to those nodes
                 rs2 = getRoadSegment(n2);
 
+                //if the roadsegments aren't the from same node, but they are on the same road,
+                //add the lanes to the 
                 if (n2 != n1 && rs2.getRoad() == rs1.getRoad()) {
                     currentLanes.addAll(rs2.getDestinationLanes(this));
                     break;
@@ -125,9 +132,7 @@ public class TrafficLight extends Node implements TrafficLightInterface {
     private static final double GREEN_TIME_PER_CAR = 5.0;
     private static final double IGNORE_TRAFFIC_TIME = 10.0;
     private static final double MAX_GREEN_TIME = 120.0;
-    private static final double MAX_CARS = 25; // interchangeable with MAX_GREEN_TIME
-    private static final double MIN_WAITING_CARS = 7; //minimal waiting cars in front of trafficlight for it to turn green
-
+    
     private double getDesiredGreenTime(Road r) {
     	int count = 0;
 
