@@ -38,7 +38,8 @@ public class Junction extends Node
     @Override
     boolean drivethrough(Car incoming)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        super.getPriorityRoad().equals(incoming.getCurrentLane().getRoadSegment().getRoad());
+
     }
 
     @Override
