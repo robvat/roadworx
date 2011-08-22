@@ -44,7 +44,6 @@ public class GreenWaveScheduler
     private class GreenWave
     {
 
-        private int redNode = 0;
         private int nextNode = 0;
         private double counter;
         private double greenTime; // The greentime at each of the TrafficLights
@@ -52,11 +51,10 @@ public class GreenWaveScheduler
         private List<TrafficLight> trafficLightList;
 
         private List<Double> trafficLightGreen;//list of when a certain traffic light becomes green
-        private List<Double> trafficLightRed; //list of when a certain traffic light becomes red
 
-        public void init(List<Node> ln)
+        public void init(List<Node> nodeList)
         {
-            for(Node p : ln)
+            for(Node p : nodeList)
             {
                 if(p instanceof TrafficLight)
                     trafficLightList.add((TrafficLight) p);
@@ -64,26 +62,25 @@ public class GreenWaveScheduler
                     System.err.print("A non-trafficlight node was found in greenwave");
             }
             trafficLightGreen = new ArrayList<Double>();
-            trafficLightRed = new ArrayList<Double>();
             counter = 0;
             double trafficTime = 0.0; //time traffic needs between two node
-            for (Node n : ln)
+            for (Node n : nodeList)
             {
-                if (ln.get(0) == n)
+                if (nodeList.get(0) == n)
                 {
                     counter = 0;
-                    trafficTime = n.distanceTo(ln.get(1)) / n.getRoadSegment(ln.get(1)).getMaxVelocity();
+                    trafficTime = n.getRoadSegment(nodeList.get(1)).getLength() / n.getRoadSegment(nodeList.get(1)).getMaxVelocity();
                     trafficLightGreen.add(0.0);
                 } else
                 {
-                    trafficLightGreen.add((ln.indexOf(n) * trafficTime) - OVERLAP_TIME);
+                    trafficLightGreen.add((nodeList.indexOf(n) * trafficTime) - OVERLAP_TIME);
                 }
             }
 
             // Quicksolve to determine the greentime of the first node (and the nodes after that
-            if(ln.size() >= 2)
+            if(nodeList.size() >= 2)
             {
-                Road waveRoad = ln.get(0).getRoadSegment(ln.get(1)).getRoad();
+                Road waveRoad = trafficLightList.get(0).getRoadSegment(trafficLightList.get(1)).getRoad();
                 greenTime = trafficLightList.get(0).getDesiredGreenTime(waveRoad);
             }
             else
@@ -98,13 +95,9 @@ public class GreenWaveScheduler
         {
             counter = 0;
             nextNode = 0;
-            redNode = 0;
-            TrafficLight x = (TrafficLight) trafficLightList.get(nextNode);
-            double redTime = x.getGreenTime();
-            for (Node n : trafficLightList)
-            {
-                trafficLightRed.add(trafficLightGreen.get(trafficLightList.indexOf(n)) + redTime + OVERLAP_TIME);
-            }
+            Road waveRoad  = trafficLightList.get(0).getRoadSegment(trafficLightList.get(1)).getRoad();
+            greenTime = trafficLightList.get(0).getDesiredGreenTime(waveRoad);
+            
         }
 
         public void update(double timeStep)
@@ -119,20 +112,7 @@ public class GreenWaveScheduler
                 nextNode++;
             }
 
-            /*
-             * Dont think we need redNodes, they get turned back to normal
-             * after the greentime is done
-             *
-            if (counter >= trafficLightGreen.get(redNode))
-            {
-                {
-                    TrafficLight x = trafficLightList.get(redNode);
-                    x.setRed();
-                    redNode++;
-                }
-            }
-            */
-
+            
         }
     }
 }
