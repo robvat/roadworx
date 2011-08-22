@@ -80,6 +80,8 @@ public class NormalJunction extends Node {
                 overlap = car.getVelocity() * OVERLAP_CONSTANT;
             else
                 overlap = 0.0;
+            
+            overlap = Math.max(MIN_OVERLAP, overlap);
 
             //determine the start time and end time of the overlap timespan
             arrivalStart = otherCarArrivalTime - overlap;
@@ -139,10 +141,9 @@ public class NormalJunction extends Node {
     
     //this constant is important!!! it is multiplied with the speed of the other cars
     //from a waiting cars perspective. The outcome is the number of seconds the car will
-    //take into account as overlap in arrival times.
-    //So:
-    
+    //take into account as overlap in arrival times.    
     private static final double OVERLAP_CONSTANT = 0.1;
+    private static final double MIN_OVERLAP = 1.0;
     private static final double VELOCITY_THRESHOLD = 2.0;
 
     
