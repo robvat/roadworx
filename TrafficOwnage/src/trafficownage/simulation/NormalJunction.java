@@ -6,177 +6,156 @@
 package trafficownage.simulation;
 
 import java.awt.geom.Point2D;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import trafficownage.util.Pair;
-import trafficownage.util.Triplet;
 
 /**
  *
- * @author Stefan
+ * @author Gerrit Drost <gerritdrost@gmail.com>
  */
 public class NormalJunction extends Node {
 
-    private static final double INTERNAL_LANE_LENGTH = 5.0; //5 metres seems reasonable as the diameter of a small intesection. TODO: Investigate this.
-    private static final double INTERNAL_LANE_SPEED = 8.4;
-    private static final double INTERNAL_TRAVEL_ESTIMATE = INTERNAL_LANE_LENGTH / INTERNAL_LANE_SPEED;
-
-    private HashMap<Lane,Boolean> lane_passthrough;
 
     public NormalJunction(Point2D.Double location){
         super(location);
     }
 
     @Override
-    public boolean drivethrough(Car incoming) {
-        // TODO: first check if the junction is clear
-        // if so return false, else continue
-        Node destination = incoming.getNextNode();
-
-        Lane incomingLane = incoming.getLane();
+    public boolean drivethrough(Car incoming) { 
         
-        if (lane_passthrough.get(incomingLane)) {           
-
-            Lane lane = getLaneMapping(incomingLane);
-
-            if (lane == null || !(lane.getRoadSegment().getStartNode() == this || lane.getRoadSegment().getEndNode() == this && lane.acceptsCarAdd(incoming))) {
-                lane = getRoadSegment(destination).getSourceLanes(this).get(0);
-            }
-
-
-            if (lane != null && lane.acceptsCarAdd(incoming))
-                return true;
-            else
-                return false;
-            
-        } else {
-
+        double arrivalTime;
+        
+        //this car is destined for this node, no need to check further
+        if (incoming.getNextLane() == null)
             return false;
+        
+        //determine its arrival time
+        //if the car is in queue, its velocity is 0.0, leading to a divByZeroException.
+        if (!incoming.isInQueue())
+            arrivalTime = incoming.getDistanceToLaneEnd() / incoming.getVelocity();
+        else
+            arrivalTime = 0.0;
+        
+        
+        
+        double otherCarArrivalTime;
+        double arrivalStart;
+        double arrivalEnd;
+        
+        double overlap;
+        
+        Road priorityRoad = getPriorityRoad();
+        
+        //am I currently on a priority road?
+        boolean mePriority = 
+                (
+                    priorityRoad != null 
+                && 
+                    priorityRoad == incoming.getLane().getRoadSegment().getRoad() 
+                );
+        boolean otherCarPriority;
+        
+        boolean laneIntersect;
+        
+        //loop through all other cars
+        for (Car car : cars) {
+            
+            //if its the same car, don't check
+            if (car == incoming)
+                continue;
+            
+            //is the other car currently on the priority road?
+            otherCarPriority = 
+                    (
+                        priorityRoad != null 
+                    &&
+                        priorityRoad == car.getLane().getRoadSegment().getRoad()
+                    );
+            
+            //lets see when the other car will arrive
+            otherCarArrivalTime = car.getDistanceToLaneEnd() / car.getVelocity();
+
+            //determine the time overlap we are looking at
+            if (!car.isInQueue())
+                overlap = car.getVelocity() * OVERLAP_CONSTANT;
+            else
+                overlap = 0.0;
+
+            //determine the start time and end time of the overlap timespan
+            arrivalStart = otherCarArrivalTime - overlap;
+            arrivalEnd = otherCarArrivalTime + overlap;
+
+            //look if there is an overlap
+            if (arrivalTime >= arrivalStart && arrivalTime <= arrivalEnd) {
+                //there is an overlap!!!111ONE
+                
+                //theres no use in checking when the other car isnt going anywhere
+                if (car.getNextLane() == null)
+                    continue;
+                
+                //check if there is an intersect
+                laneIntersect = intersects(incoming.getLane(), incoming.getNextLane(), car.getLane(), car.getNextLane());
+                
+                if (laneIntersect) {
+                
+                    //If i am not on a priority road and the other car isnt, he can drive and I have to stop!
+                    if (!mePriority && otherCarPriority)
+                        return false;
+                    
+                    if (mePriority == otherCarPriority) {
+                        //check if one of the two cars comes from the right for the other
+                        boolean otherCarFromRight = (rightDistance(incoming.getLane(), car.getLane()) == 1);
+                        boolean meFromRight = (rightDistance(car.getLane(), incoming.getLane()) == 1);
+
+                        //the other car comes from the right, or the other car does not come from the right but it arrives earlier
+                        if (otherCarFromRight || (!meFromRight && arrivalTime > arrivalStart))
+                            return false;
+                    }
+                }
+            }
             
         }
+        
+        //if we found no overlapping car that gets priority, the only check that is left
+        //before we can drive through is whether the new lane has space for us.
+        return incoming.getNextLane().acceptsCarAdd(incoming);
+        
     }
 
     @Override
     void acceptCar(Car incoming) {
-        Lane incomingLane = incoming.getLane();
+        if (incoming.getNextLane() == null || !incoming.getNextLane().acceptsCarAdd(incoming))
+            System.err.println("Car did not check correctly if it could join a lane.");
 
-        //if (lane_passthrough.get(incomingLane)) {
-            //TODO: instead of immediate passthrough, a timer has to be built-in.
-            //TODO: advance node should be in the lane class, probably.
-            Node n = incoming.getNextNode();
-            
-            Lane mapped = getLaneMapping(incomingLane);
-            
-            if (mapped != null && (mapped.getRoadSegment().getStartNode() == n || mapped.getRoadSegment().getEndNode() == n))
-                mapped.addCar(incoming);
-            else
-                getRoadSegment(n).getSourceLanes(this).get(0).addCar(incoming);
-        //}
-    }
-
-    private class ArrivalTime {
-        private double arrival_time;
-        private double leave_time;
-
-        public ArrivalTime(double arrival_time) {
-            this.arrival_time = arrival_time;
-            this.leave_time = arrival_time + INTERNAL_TRAVEL_ESTIMATE;
-        }
-
-        public boolean intersects(ArrivalTime at) {
-
-            if (leave_time < at.arrival_time || arrival_time > at.leave_time)
-                return false;
-            else
-                return true;
-
-        }
+        incoming.getNextLane().addCar(incoming);
     }
 
     @Override
     public void init(NodeListener listener) {
         super.init(listener);
-
-        lane_passthrough = new HashMap<Lane,Boolean>();
+        
+        cars = new ArrayList<Car>();
     }
+    
+    //this constant is important!!! it is multiplied with the speed of the other cars
+    //from a waiting cars perspective. The outcome is the number of seconds the car will
+    //take into account as overlap in arrival times.
+    //So:
+    
+    private static final double OVERLAP_CONSTANT = 0.1;
+    private static final double VELOCITY_THRESHOLD = 2.0;
 
+    
+    private List<Car> cars;
     @Override
     public void update(double timestep) {
-        super.update(timestep);
-
-        Car c;
-
-        HashMap<Lane,ArrivalTime> arrival_times = new HashMap<Lane,ArrivalTime>();
-
-        List<Lane> lanes = getIncomingLanes();
-
-        for (Lane l : lanes) {
-            lane_passthrough.put(l, true);
-
-            c = l.getFirstCar();
-
-            if (c != null) {
-
-                if (c.isInQueue())
-                    arrival_times.put(l, new ArrivalTime(0.0));
-                else
-                    arrival_times.put(l, new ArrivalTime(c.getDistanceToLaneEnd() / c.getVelocity()));
-            }
-        }
+        cars.clear();
         
-        Lane l1,l2;
-        int i,j;
-
-        Triplet<Double,Lane,Lane> overlap = null;
-        ArrivalTime a1,a2;
-
-
-        for (i = 0; i < lanes.size() - 1; i++) {
-
-            l1 = getIncomingLanes().get(i);
-
-            if (!arrival_times.containsKey(l1))
-                continue;
-
-            a1 = arrival_times.get(l1);
-
-            for (j = i + 1; j < lanes.size(); j++) {
-
-                l2 = getIncomingLanes().get(j);
-
-                if (!arrival_times.containsKey(l2))
-                    continue;
-
-                a2 = arrival_times.get(l2);
-
-                if (a1.intersects(a2)) {
-                    //we have an overlap
-                    double arrival_time = Math.min(a1.arrival_time,a2.arrival_time);
-
-                    if (overlap == null || overlap.getObject1() > arrival_time) {
-
-                        if (j % lanes.size() == (i - 1) % lanes.size()) {
-                            //if l2 is right of l1
-                            if (true) {
-                                //TODO: Change this into the intersection check!!!
-                                lane_passthrough.put(l1, false);
-                            }
-                        } else if (i % lanes.size() == (j - 1) % lanes.size()) {
-                            //if l1 is right of l2
-                            if (true) {
-                                //TODO: Change this into the intersection check!!!
-                                lane_passthrough.put(l2, false);
-
-                            }
-                        }
-
-                    }
-
-                }
-            }
+        for (Lane l : getIncomingLanes()) {
+            Car c = l.getFirstCar();
+            
+            if (c != null)
+                cars.add(c);
         }
-
-
     }
-
 }

@@ -49,7 +49,7 @@ public class MainLoop implements NodeListener, CarListener {
 
     public MainLoop() {
         initialized = false;
-        speedMultiplier = 256;
+        speedMultiplier = 1;
     }
 
     private static double[] scale(double[] array, double scale) {
@@ -63,8 +63,8 @@ public class MainLoop implements NodeListener, CarListener {
 
         simulatedTime = (double) TimeUnit.HOURS.toSeconds(7);
 
-        double[] highwayVelocities = new double[] {80, 60};
-        double[] mainRoadVelocities = new double[] {50, 40};
+        double[] highwayVelocities = new double[] {80};
+        double[] mainRoadVelocities = new double[] {50};
         double[] smallRoadVelocities = new double[] {30};
 
         System.out.println("Set velocities");
@@ -90,7 +90,7 @@ public class MainLoop implements NodeListener, CarListener {
 
         SingleNodeGenerator gen = new SingleNodeGenerator();
 
-        gen.generate(SingleNodeGenerator.NODE_NORMAL_JUNCTION,new double[] {500.0,500.0,500.0,500.0},new int[][] {{0,2},{1,3}},50.0 / 3.6,1);
+        gen.generate(SingleNodeGenerator.NODE_NORMAL_JUNCTION,new double[] {500.0,500.0,500.0,500.0,500.0},new int[][] {{0,2},{1,3}},50.0 / 3.6,1);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
@@ -117,6 +117,7 @@ public class MainLoop implements NodeListener, CarListener {
         trafficManager.setAreas(gen.getAreas());
 
         trafficManager.addMapping("A lot of traffic on the first road",true, 0, 2, 5.0, true);
+        trafficManager.addMapping("A lot of traffic on the second road",true, 2, 0, 5.0, true);
 
 //        trafficManager.addMapping("Random evening traffic", false,
 //                (double) (TimeUnit.HOURS.toSeconds(18)),

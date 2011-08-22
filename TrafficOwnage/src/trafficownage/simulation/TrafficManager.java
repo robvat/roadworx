@@ -7,16 +7,12 @@ package trafficownage.simulation;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import trafficownage.util.Pair;
 import trafficownage.util.Pathfinding;
-import trafficownage.util.StringFormatter;
 
 /**
  *
