@@ -27,10 +27,9 @@ public class SingleNodeGenerator {
      * These static ints represent the type of node placed in the middle of the system
      */
     public static final int NODE_NORMAL_JUNCTION = 0;
-    public static final int NODE_PRIORITY_JUNCTION = 1;
-    public static final int NODE_DYNAMIC_TRAFFICLIGHT = 2;
-    public static final int NODE_RANDOM_TRAFFICLIGHT = 3;
-    public static final int NODE_ROUNDABOUT = 4;
+    public static final int NODE_DYNAMIC_TRAFFICLIGHT = 1;
+    public static final int NODE_RANDOM_TRAFFICLIGHT = 2;
+    public static final int NODE_ROUNDABOUT = 3;
 
     private List<Node> nodes;
     private List<Road> roads;
@@ -64,10 +63,6 @@ public class SingleNodeGenerator {
             case NODE_NORMAL_JUNCTION:
                 //TODO: Warning, not fully functional!
                 middleNode = new NormalJunction(new Point2D.Double(0.0,0.0));
-                break;
-            case NODE_PRIORITY_JUNCTION:
-                //TODO: Warning, not fully functional!
-                middleNode = new PriorityJunction(new Point2D.Double(0.0,0.0));
                 break;
             case NODE_DYNAMIC_TRAFFICLIGHT:
                 middleNode = new TrafficLight(new Point2D.Double(0.0,0.0));

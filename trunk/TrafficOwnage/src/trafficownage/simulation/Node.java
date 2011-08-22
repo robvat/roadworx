@@ -30,7 +30,8 @@ public abstract class Node
 
     private HashMap<Node,RoadSegment> neighbourRoads;
     
-    private int[][][][] intersectionArray;
+    private int nodeSize;
+    private static int[][][][][] INTERSECTION_ARRAY;
 
     private List<Lane> incomingLanes;
     private HashMap<Lane,Lane> laneMap;
@@ -76,6 +77,8 @@ public abstract class Node
 
     public void init(NodeListener listener) {
         this.listener = listener;
+        
+        this.nodeSize = neighbourNodes.size();
 
         sortNodes();
 
@@ -113,35 +116,81 @@ public abstract class Node
                 
                 int destinationIndex = neighbourNodes.indexOf(destionation);
                 
-                if (sourceIndex != destinationIndex) {
+                if (sourceIndex != destinationIndex)
                     couples.add(new Integer[] {sourceIndex, destinationIndex});  
-                }
+                
                 
             }
         }
         
-        intersectionArray = new int[roadCount][roadCount][roadCount][roadCount];
+        if (INTERSECTION_ARRAY == null)
+            INTERSECTION_ARRAY = new int[256][][][][];
         
-        //we filled the array, lets start checking for possible        
-        for (Integer[] couple1 : couples) {            
-            for (Integer[] couple2 : couples) {
-                if (!Arrays.equals(couple1, couple2)) {
-                    intersectionArray[couple1[0]][couple1[1]][couple2[0]][couple2[1]] = getIntersectionType(couple1[0], couple1[1], couple2[0], couple2[1]);
+        if (INTERSECTION_ARRAY[nodeSize] == null) {
+        
+            INTERSECTION_ARRAY[nodeSize] = new int[roadCount][roadCount][roadCount][roadCount];
+
+            //we filled the array, lets start checking for possible        
+            for (Integer[] couple1 : couples) {            
+                for (Integer[] couple2 : couples) {
+                    INTERSECTION_ARRAY[nodeSize][couple1[0]][couple1[1]][couple2[0]][couple2[1]] = getIntersectionType(couple1[0], couple1[1], couple2[0], couple2[1]);
                     System.out.println(
                             "Route 1: " + couple1[0] + " to " + couple1[1] + ", " + 
                             "Route 2: " + couple2[0] + " to " + couple2[1] + 
                             ". Intersection type: " + getIntersectionTypeString(getIntersectionType(couple1[0], couple1[1], couple2[0], couple2[1]))
                             );
+                    
                 }
             }
         }
     }
     
+    public boolean intersects(Lane startLane1, Lane endLane1, Lane startLane2, Lane endLane2) {
+        int s1 = neighbourNodes.indexOf(startLane1.getStartNode());
+        int e1 = neighbourNodes.indexOf(endLane1.getEndNode());
+        int s2 = neighbourNodes.indexOf(startLane2.getStartNode());
+        int e2 = neighbourNodes.indexOf(endLane2.getEndNode());
+        
+        int intersects = INTERSECTION_ARRAY[nodeSize][s1][e1][s2][e2];
+        
+        if (intersects == INTERSECTION_NONE)
+            return false;
+        else if (intersects == INTERSECTION_ALWAYS)
+            return true;
+        else if (intersects == INTERSECTION_SAME_DESTINATION) {
+            //TODO: Here we need to check which lane is more right or left
+            int rightDistance1 = rightDistance(endLane1, startLane1);
+            int rightDistance2 = rightDistance(endLane1, startLane2);
+            
+            //if the first route is closer to the right of the destination,
+            //it intersects if its lane is more right than the lane of the second route
+            if (rightDistance1 < rightDistance2 && endLane1.getLaneId() <= endLane2.getLaneId())
+                return true;
+            //if the first route is further to the right of the destination,
+            //it intersects if its lane is more left than the lane of the second route
+            else if (rightDistance1 > rightDistance2 && endLane1.getLaneId() >= endLane2.getLaneId())
+                return true;
+            //if the source is the same, we just have to make sure we're not crossing lane id
+            else if (rightDistance1 == rightDistance2 && Math.signum(startLane1.getLaneId() - startLane2.getLaneId()) != Math.signum(endLane1.getLaneId() - endLane2.getLaneId()))
+                return true;
+            //all of the above is not the case: happy driving!
+            else
+                return false;
+        } else if (intersects == INTERSECTION_SAME_SOURCE) {
+            //TODO: check this too
+            return true;
+        } else {
+            //in case of doubt/exception: interssection
+            return true;
+        }
+        
+        
+    }
+    
     public final static int INTERSECTION_NONE = 0;
     public final static int INTERSECTION_SAME_DESTINATION = 1;
     public final static int INTERSECTION_SAME_SOURCE = 2;
-    public final static int INTERSECTION_DESTINATION_IS_SOURCE = 3;
-    public final static int INTERSECTION_ALWAYS = 4;    
+    public final static int INTERSECTION_ALWAYS = 3;    
     
     public String getIntersectionTypeString(int intersectionType) {
         switch (intersectionType) {
@@ -153,8 +202,6 @@ public abstract class Node
                 return "Possible intersection: same destination node";
             case INTERSECTION_SAME_SOURCE:
                 return "Possible intersection: same source node";
-            case INTERSECTION_DESTINATION_IS_SOURCE:
-                return "Possible intersection: a source node of the one route equals the destination node of another route";
             default:
                 return "Unknown intersection type";
                 
@@ -173,6 +220,9 @@ public abstract class Node
         
         //int roadCount = neighbourNodes.size();
         
+        //THIS ORDER IS IMPORTANT, WE FIRST CHECK FOR DESTINATIONS SINCE THIS WILL ENSURE
+        //THAT IN THE LANE INTERSECTION CHECK, IT CHECKS IF THERE IS NO LANE CROSSING WHEN
+        //BOTH ROUTES TRAVEL FROM THE SAME SOURCE TO THE SAME DESTINATION
         if (destinationIndex1 == destinationIndex2) {
             //they have the same destination, always intersect
             return INTERSECTION_SAME_DESTINATION;
@@ -213,6 +263,11 @@ public abstract class Node
                 return INTERSECTION_NONE;
         }
         
+    }
+    
+    public int rightDistance(Lane l1, Lane l2) {
+        return rightDistance(neighbourNodes.indexOf(l1.getStartNode()), 
+                neighbourNodes.indexOf(l2.getStartNode()));
     }
     
     private int rightDistance(int a, int b) {
