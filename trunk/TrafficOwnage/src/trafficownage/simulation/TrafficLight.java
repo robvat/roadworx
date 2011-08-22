@@ -164,7 +164,7 @@ public class TrafficLight extends Node implements TrafficLightInterface
     private static final double IGNORE_TRAFFIC_TIME = 10.0;
     private static final double MAX_GREEN_TIME = 120.0;
 
-    private double getDesiredGreenTime(Road r)
+    public double getDesiredGreenTime(Road r)
     {
         int count = 0;
 
@@ -300,6 +300,7 @@ public class TrafficLight extends Node implements TrafficLightInterface
      */
     public double getGreenTime()
     {
+
         return greenTime;
     }
 }
