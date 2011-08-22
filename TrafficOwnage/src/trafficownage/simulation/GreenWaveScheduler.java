@@ -47,8 +47,10 @@ public class GreenWaveScheduler
         private int redNode = 0;
         private int nextNode = 0;
         private double counter;
+        private double greenTime; // The greentime at each of the TrafficLights
         private static final double OVERLAP_TIME = 3.0;
         private List<TrafficLight> trafficLightList;
+
         private List<Double> trafficLightGreen;//list of when a certain traffic light becomes green
         private List<Double> trafficLightRed; //list of when a certain traffic light becomes red
 
@@ -78,6 +80,17 @@ public class GreenWaveScheduler
                 }
             }
 
+            // Quicksolve to determine the greentime of the first node (and the nodes after that
+            if(ln.size() >= 2)
+            {
+                Road waveRoad = ln.get(0).getRoadSegment(ln.get(1)).getRoad();
+                greenTime = trafficLightList.get(0).getDesiredGreenTime(waveRoad);
+            }
+            else
+            {
+                System.err.print("GWSerr 1: Not enough nodes to have a green wave !!");
+            }
+
         }
 
         //this method initializes the green wave, which means it starts the counter of a green wave
@@ -101,9 +114,7 @@ public class GreenWaveScheduler
             if (counter >= trafficLightGreen.get(nextNode))
             {
                 TrafficLight x = trafficLightList.get(nextNode);
-                List<Lane> greenLanes = null;
-                double greenTime = 0.0;
-                // TODO: Time to find out what these 2 need to be!
+                List<Lane> greenLanes = trafficLightList.get(nextNode - 1).getRoadSegment((Node) x).getDestinationLanes(x);
                 x.setGreen(greenLanes, greenTime);
                 nextNode++;
             }
