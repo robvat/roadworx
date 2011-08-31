@@ -213,14 +213,14 @@ public class GreenWaveScheduler
             nextNode = 1; //since the node 0 in the trafficlightlist is a dynamic light, and is used for determining green time
             if (!reverse){
                 Road waveRoad = trafficLightList.get(0).getRoadSegment(trafficLightList.get(1)).getRoad();
-                greenTime = trafficLightList.get(0).getDesiredGreenTime(waveRoad);
+                greenTime = 10;//greenTime = trafficLightList.get(0).getDesiredGreenTime(waveRoad);
                 TrafficLight x = trafficLightList.get(trafficLightList.size()-1);
                 List<Lane> greenLanes = endNode.getRoadSegment((Node) x).getDestinationLanes(x);
                 x.setGreen(greenLanes, greenTime);
             }
             else{
                 Road waveRoad = trafficLightList.get(trafficLightList.size()-1).getRoadSegment(trafficLightList.get(trafficLightList.size()-2)).getRoad();
-                greenTime = trafficLightList.get(trafficLightList.size()-1).getDesiredGreenTime(waveRoad);
+                greenTime = 10;//greenTime = trafficLightList.get(trafficLightList.size()-1).getDesiredGreenTime(waveRoad);
                 TrafficLight x = trafficLightList.get(0);
                 List<Lane> greenLanes = startNode.getRoadSegment((Node) x).getDestinationLanes(x);
                 x.setGreen(greenLanes, greenTime);

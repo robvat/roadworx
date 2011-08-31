@@ -13,6 +13,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import trafficownage.util.Pair;
 import trafficownage.util.Pathfinding;
+import trafficownage.util.StringFormatter;
 
 /**
  *
@@ -143,8 +144,98 @@ public class TrafficManager {
         return nodes.get(rand.nextInt(nodes.size()));
     }
 
+    public class CarStatistics implements CarListener {
 
-    public class Mapping implements CarListener {
+        private Mapping parentMapping;
+        private double departureTime;
+        private double arrivalTime;
+        private double timeTravelled;
+        private double benchmarkValue;
+        private double queueTime;
+        private double distanceTravelled;
+        private double averageVelocity;
+        private double currentPosition;
+
+        public CarStatistics(Mapping parentMapping, double departureTime) {
+            this.parentMapping = parentMapping;
+            this.departureTime = departureTime;
+
+            currentPosition = Double.MAX_VALUE;
+        }
+
+        public void reachedDestination(Car car, Node destination) {
+            //store the time of arrival
+            arrivalTime = simulatedTime;
+
+            //determine how long we travelled
+            timeTravelled = getArrivalTime() - getDepartureTime();
+
+            //now we know the time travelled AND the distance travelled, lets find out the average velocity
+            averageVelocity = distanceTravelled / timeTravelled;
+
+            //calculate and store the benchmark value
+            benchmarkValue = getTimeTravelled() / car.getRoute().getOptimalTravelTime();
+
+            queueTime = car.getQueueTime();
+
+            parentMapping.carReachedDestination(getBenchmarkValue(), getQueueTime(), getAverageVelocity());
+        }
+
+
+        public void positionChanged(Car car) {
+            double newPosition = car.getPosition();
+
+            if (newPosition > currentPosition)
+                distanceTravelled += (newPosition - currentPosition);
+
+            currentPosition = newPosition;
+        }
+
+        public double getDistanceTravelled() {
+            return distanceTravelled;
+        }
+
+        public double getDepartureTime() {
+            return departureTime;
+        }
+
+        /**
+         * @return the averageVelocity
+         */
+        public double getAverageVelocity() {
+            return averageVelocity;
+        }
+        /**
+         * @return the arrivalTime
+         */
+        public double getArrivalTime() {
+            return arrivalTime;
+        }
+
+        /**
+         * @return the queueTime
+         */
+        public double getQueueTime() {
+            return queueTime;
+        }
+
+        /**
+         * @return the timeTravelled
+         */
+        public double getTimeTravelled() {
+            return timeTravelled;
+        }
+
+        /**
+         * @return the benchmarkValue
+         */
+        public double getBenchmarkValue() {
+            return benchmarkValue;
+        }
+
+    }
+
+    public class Mapping {
         private Pair<Double,Double> timeSpan;
         private int spawnArea, targetArea;
         private double spawnInterval;
@@ -155,8 +246,9 @@ public class TrafficManager {
 
         private List<Car> benchmarkedCars;
 
-        private HashMap<Car,Double> results;
-        private double meanAverageResult;
+        private double meanAverageIndexValue;
+        private double meanAverageQueueTime;
+        private double meanAverageVelocity;
 
         private CarType carType;
 
@@ -173,7 +265,6 @@ public class TrafficManager {
             this.driving = driving;
 
             this.benchmarkedCars = new ArrayList<Car>();
-            this.results = new HashMap<Car,Double>();
             
             this.carType = carType;
 
@@ -187,23 +278,30 @@ public class TrafficManager {
 
         public void reset() {
             this.benchmarkedCars = new ArrayList<Car>();
-            this.results = new HashMap<Car,Double>();
             this.arrivals = 0;
-            this.meanAverageResult = 0.0;
+            this.meanAverageIndexValue = 0.0;
         }
 
         public void export() {
-            int n = results.size();
+            int n = arrivals;
 
-            double sdSum = 0.0;
+            double indexValueSdSum = 0.0;
+            double queueTimeSdSum = 0.0;
+            double averageVelocitySdSum = 0.0;
             for (Car car : benchmarkedCars) {
-                if (results.containsKey(car))
-                    sdSum += Math.pow(results.get(car) - meanAverageResult,2.0);
+                indexValueSdSum += Math.pow(car.getCarStatisticsListener().getBenchmarkValue() - meanAverageIndexValue,2.0);
+                queueTimeSdSum += Math.pow(car.getCarStatisticsListener().getQueueTime() - meanAverageQueueTime,2.0);
+                averageVelocitySdSum += Math.pow(car.getCarStatisticsListener().getAverageVelocity() - meanAverageVelocity,2.0);
             }
 
-            double variance = sdSum / (double)n;
+            double indexValueVariance = indexValueSdSum / (double)n;
+            double queueTimeVariance = queueTimeSdSum / (double)n;
+            double averageVelocityVariance = averageVelocitySdSum / (double)n;
 
-            System.out.println("Results from " + this.getName() + ". Mean average: " + meanAverageResult + " variance: " + variance);
+            System.out.println("Results from " + this.getName() + ".");
+            System.out.println("-Average index value: " + StringFormatter.getTwoDecimalDoubleString(meanAverageIndexValue) + ". variance: " + StringFormatter.getTwoDecimalDoubleString(indexValueVariance));
+            System.out.println("-Average queue time: " + StringFormatter.getTimeString(meanAverageQueueTime) + ". variance: " + StringFormatter.getTimeString(queueTimeVariance));
+            System.out.println("-Average velocity: " + StringFormatter.getTwoDecimalDoubleString(meanAverageVelocity * 3.6) + "kph. variance: " + StringFormatter.getTwoDecimalDoubleString(averageVelocityVariance * 3.6) + "kph.");
         }
 
         public String getName() {
@@ -267,7 +365,7 @@ public class TrafficManager {
         }
 
         public double getBenchmarkResults() {
-            return meanAverageResult;
+            return meanAverageIndexValue;
         }
 
         public int getArrivedCarCount() {
@@ -301,8 +399,6 @@ public class TrafficManager {
 
         private Car generateCar(CarType carType, DriverType driverType, Node spawnNode, Node targetNode) {
             Car car = new Car();
-
-
             
             car.init(carType, driverType);
 
@@ -318,32 +414,26 @@ public class TrafficManager {
             if (benchmarked) {
                 benchmarkedCars.add(car);
                 departureTimes.put(car,simulatedTime);
-                car.addListener(this);
+                car.addCarStatisticsListener(new CarStatistics(this, simulatedTime));
             }
 
             return car;
         }
 
         private int arrivals = 0;
-        public void reachedDestination(Car car, Node destination) {
+        public void carReachedDestination(double benchmarkIndexValue, double queueTime, double averageVelocity) {
+            meanAverageIndexValue = ((meanAverageIndexValue * (double)arrivals) + benchmarkIndexValue) / (double)(arrivals + 1);
+            meanAverageQueueTime = ((meanAverageQueueTime * (double)arrivals) + queueTime) / (double)(arrivals + 1);
+            meanAverageVelocity = ((averageVelocity * (double)arrivals) + averageVelocity) / (double)(arrivals + 1);
+
             arrivals++;
-
-            double timeTravelled = simulatedTime - departureTimes.get(car);
-            double benchmarkValue = timeTravelled / car.getRoute().getOptimalTravelTime();
-
-            meanAverageResult = ((meanAverageResult * (double)results.size()) + benchmarkValue) / (double)(results.size() + 1);
-            
-            results.put(car, benchmarkValue);
         }
 
         private DecimalFormat twoDForm = new DecimalFormat("#.##");
 
         @Override
         public String toString() {
-            return name + ": " + twoDForm.format(meanAverageResult);
+            return name + ": " + twoDForm.format(meanAverageIndexValue);
         }
-
-
-
     }
 }

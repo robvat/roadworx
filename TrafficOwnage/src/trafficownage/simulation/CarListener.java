@@ -7,8 +7,9 @@ package trafficownage.simulation;
 
 /**
  *
- * @author Gerrit
+ * @author Gerrit Drost <gerritdrost@gmail.com>
  */
 public interface CarListener {
-    void reachedDestination(Car c, Node destination);
+    void reachedDestination(Car car, Node destination);
+    void positionChanged(Car car);
 }

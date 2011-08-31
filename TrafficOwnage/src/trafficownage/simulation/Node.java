@@ -6,6 +6,7 @@
 package trafficownage.simulation;
 
 import java.awt.geom.Point2D;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +28,8 @@ public abstract class Node
     private List<Node> neighbourNodes;
     private List<Node> destinationNodes;
     private List<Node> sourceNodes;
+    
+    private LinkedList<List<Lane>> simultaneousLaneSets;
 
     private HashMap<Node,RoadSegment> neighbourRoads;
     
@@ -87,6 +90,100 @@ public abstract class Node
         determineLaneMapping();
         
         determineDrivePermissions();
+        
+        determineLaneSets();
+    }
+    
+
+    public LinkedList<List<Lane>> getLaneSets() {
+        return simultaneousLaneSets;
+    }
+
+    private ArrayDeque<ArrayDeque<Integer>> searchSpace;
+    private void determineLaneSets() {
+        
+        simultaneousLaneSets = new LinkedList<List<Lane>>();
+        
+        searchSpace = new ArrayDeque<ArrayDeque<Integer>>();
+        
+        List<Lane> incomingLanes = getIncomingLanes();        
+        
+        for (int i = 0; i < incomingLanes.size(); i++) 
+            searchSpace.add(new ArrayDeque<Integer>(Arrays.asList(new Integer[] {i})));
+        
+        
+        int lastLaneIndex;
+        boolean isEndNode;
+        
+        ArrayDeque<Integer> currentLaneDeque;
+        
+        while (!searchSpace.isEmpty()) {
+            currentLaneDeque = searchSpace.pollLast();
+            
+            lastLaneIndex = currentLaneDeque.getLast();
+            
+            isEndNode = true;
+            
+            if (lastLaneIndex + 1 < incomingLanes.size()) {
+                for (int i = lastLaneIndex + 1; i < incomingLanes.size(); i++) {
+                    
+                    if (!intersects(i,currentLaneDeque)) {
+                        isEndNode = false;
+                        
+                        ArrayDeque<Integer> newLaneDeque = currentLaneDeque.clone();
+                        newLaneDeque.add(i);
+
+                        searchSpace.add(newLaneDeque);
+                    }
+                }
+            } 
+            
+            if (isEndNode) {
+                List<Lane> lanes = new ArrayList<Lane>();
+                
+                for (Integer i : currentLaneDeque) {
+                    lanes.add(incomingLanes.get(i));
+                }
+                
+                System.out.println(Arrays.deepToString(currentLaneDeque.toArray(new Integer[0])));
+                simultaneousLaneSets.add(lanes);
+            }
+        }
+    }
+    
+    private boolean intersects(Integer newLaneIndex, ArrayDeque<Integer> otherLaneIndices) {
+        
+        Lane newLane = getIncomingLanes().get(newLaneIndex);
+        
+        Lane otherLane;
+        
+        for (Integer otherLaneIndex : otherLaneIndices) {
+            otherLane = getIncomingLanes().get(otherLaneIndex);
+            
+            if (intersects(newLane, otherLane))
+                return true;
+        }
+        
+        return false;
+    }
+    
+    private boolean intersects(Lane startLane1, Lane startLane2) {
+        List<Node> nodes1 = startLane1.getAllowedDirections();
+        List<Node> nodes2 = startLane2.getAllowedDirections();
+        
+        for (Node node1 : nodes1) {
+            for (Lane endLane1 : node1.getRoadSegment(this).getSourceLanes(this)) {
+                for (Node node2 : nodes2) {
+                    for (Lane endLane2 : node2.getRoadSegment(this).getSourceLanes(this)) {
+                        if (this.intersects(startLane1, endLane1, startLane2, endLane2)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false;
     }
     
     private void determineDrivePermissions() {
