@@ -28,6 +28,6 @@ public class StringFormatter {
         seconds -= TimeUnit.MINUTES.toSeconds(minutes);
         minutes -= TimeUnit.HOURS.toMinutes(hours);
 
-        return("Time: " + String.format("%02d:%02d:%02d", hours, minutes, seconds));
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
 }

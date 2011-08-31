@@ -6,10 +6,10 @@ package trafficownage.simulation;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
-import trafficownage.util.Pair;
-import trafficownage.util.Triplet;
 
 /**
  *
@@ -18,15 +18,14 @@ import trafficownage.util.Triplet;
 public class TrafficLight extends Node implements TrafficLightInterface
 {
 
-    private HashMap<Road, List<Lane>> laneMap;
-    private List<Road> roads;
     private double greenTime;
     private double timePassed;
-    private int greenRoadIndex;
     private List<Lane> greenLanes;
     private boolean needsLights;
     // Determines if the GreenwaveScheduler can override the lights
     private boolean greenWaveActive;
+
+    private LinkedList<List<Lane>> laneSets;
 
     public TrafficLight(Point2D.Double location)
     {
@@ -40,10 +39,6 @@ public class TrafficLight extends Node implements TrafficLightInterface
         super.init(listener);
 
         greenLanes = new ArrayList<Lane>();
-        laneMap = new HashMap<Road, List<Lane>>();
-        roads = new ArrayList<Road>();
-
-        greenRoadIndex = 0;
 
         timePassed = 0.0;
 
@@ -57,46 +52,12 @@ public class TrafficLight extends Node implements TrafficLightInterface
             needsLights = true;
         }
 
-        RoadSegment rs1, rs2;
-
-        List<Lane> currentLanes;
-
-        //for all sourcenodes
-        for (Node n1 : getSourceNodes())
-        {
-            currentLanes = new ArrayList<Lane>();
-
-            //get the road segment connected to that source node
-            rs1 = getRoadSegment(n1);
-
-            //add all lanes that have this node as destination to the list
-            currentLanes.addAll(rs1.getDestinationLanes(this));
-
-            //for all nodes that this node connects to
-            for (Node n2 : getDestinationNodes())
-            {
-                //get the roadsegment to those nodes
-                rs2 = getRoadSegment(n2);
-
-                //if the roadsegments aren't the from same node, but they are on the same road,
-                //add the lanes to the 
-                if (n2 != n1 && rs2.getRoad() == rs1.getRoad())
-                {
-                    currentLanes.addAll(rs2.getDestinationLanes(this));
-                    break;
-                }
-            }
-
-            if (!roads.contains(rs1.getRoad()))
-            {
-                roads.add(rs1.getRoad());
-                laneMap.put(rs1.getRoad(), currentLanes);
-            }
-        }
-
         setNodeType(Node.TRAFFICLIGHT_NODE);
 
-        setGreen(greenRoadIndex, MAX_GREEN_TIME);
+        laneSets = (LinkedList<List<Lane>>)getLaneSets().clone();
+
+        List<Lane> lanes = laneSets.pop();
+        setGreen(lanes, MIN_GREEN_TIME);
     }
 
     public List<Lane> getGreenLanes()
@@ -107,8 +68,6 @@ public class TrafficLight extends Node implements TrafficLightInterface
     @Override
     boolean drivethrough(Car incoming)
     {
-
-
         Lane l = incoming.getNextLane();
 
         if (l == null)
@@ -132,16 +91,6 @@ public class TrafficLight extends Node implements TrafficLightInterface
         incoming.getNextLane().addCar(incoming);
     }
 
-    private void setGreen(int roadIndex, double greenTime)
-    {
-        //TODO: it should be possible to let cars from the same road drive
-        timePassed = 0.0;
-        greenRoadIndex = roadIndex;
-        Road road = roads.get(roadIndex);
-        greenLanes = laneMap.get(road);
-        this.greenTime = greenTime;
-    }
-
     /**
      * Special setGreen for greenwaves! Doesn't do anyting if not part of greenwave!
      * Sets lights greeeeen
@@ -150,21 +99,18 @@ public class TrafficLight extends Node implements TrafficLightInterface
      */
     public void setGreen(List<Lane> greenLanes, double greenTime)
     {
-        if (greenWaveActive)
-        {
-            this.greenLanes = greenLanes;
-            this.greenTime = greenTime;
-        }
-        else
-        {
-            System.err.print("Oh noes, you are using special greenWaveFunctions without activating them");
-        }
+        this.greenLanes = greenLanes;
+        this.greenTime = greenTime;
+
+        timePassed = 0.0;
     }
+
     private static final double GREEN_TIME_PER_CAR = 5.0;
     private static final double IGNORE_TRAFFIC_TIME = 10.0;
+    private static final double MIN_GREEN_TIME = 10.0;
     private static final double MAX_GREEN_TIME = 120.0;
 
-    public double getDesiredGreenTime(Road r)
+    public double getDesiredGreenTime(List<Lane> lanes)
     {
         int count = 0;
 
@@ -173,7 +119,7 @@ public class TrafficLight extends Node implements TrafficLightInterface
         double greenTime = 0.0;
         double maxGreenTime = 0.0;
 
-        for (Lane l : laneMap.get(r))
+        for (Lane l : lanes)
         {
             if (!l.hasCars())
             {
@@ -206,28 +152,40 @@ public class TrafficLight extends Node implements TrafficLightInterface
         return (car.getDistanceToLaneEnd() / car.getVelocity()) < (greenTime - timePassed);
     }
 
-    private void checkForNewTraffic()
+
+    private Comparator<List<Lane>> laneSetComparator = new Comparator<List<Lane>>() {
+
+        public int compare(List<Lane> o1, List<Lane> o2) {
+            return (int)Math.signum(getDesiredGreenTime(o2) - getDesiredGreenTime(o1));
+        }
+
+    };
+
+    private void checkForNewTraffic(boolean mustChange)
     {
-        int checkIndex = (greenRoadIndex + 1) % roads.size();
-
-        Road checkRoad = roads.get(checkIndex);
-
         double desiredGreenTime;
 
-        while (checkIndex != greenRoadIndex)
-        {
-            desiredGreenTime = getDesiredGreenTime(checkRoad);
+        Collections.sort(laneSets, laneSetComparator);
 
-            if (desiredGreenTime > 0.0)
-            {
-                setGreen(checkIndex, Math.min(MAX_GREEN_TIME, desiredGreenTime));
-                return;
-            }
+        List<Lane> greenLanes = laneSets.getFirst();
 
-            checkIndex = (checkIndex + 1) % roads.size();
-            checkRoad = roads.get(checkIndex);
-        }
+        desiredGreenTime = getDesiredGreenTime(greenLanes);
+
+        //TODO: MAGIC NUMBER!!!!!1111
+        //if there is no noticable change and we do not HAVE to change, return
+        if (desiredGreenTime < 0.5 && !mustChange)
+            return;
+
+        laneSets.poll();
+
+        desiredGreenTime = Math.min(MAX_GREEN_TIME, Math.max(MIN_GREEN_TIME, desiredGreenTime));
+
+        setGreen(greenLanes, desiredGreenTime);
+
+        if (laneSets.isEmpty())
+            laneSets.addAll(getLaneSets());
     }
+
     private boolean checkForNextRoad;
 
     @Override
@@ -235,26 +193,24 @@ public class TrafficLight extends Node implements TrafficLightInterface
     {
         super.update(timestep);
 
+        //no lights, no update!
         if (!needsLights)
-        {
             return;
-        }
+       
 
+        //update our local time var
         timePassed += timestep;
 
+        //if there is a green wave, we never check for a next road.
+        //if the green wave is off, we might check.
         if (!greenWaveActive)
-        {
             checkForNextRoad = true;
-        }
         else
-        {
-            // Greenwave is active so lets not ruin everything
             checkForNextRoad = false;
-        }
 
-        if (timePassed < greenTime)
+
+        if (checkForNextRoad && timePassed < greenTime)
         {
-
             for (Lane l : greenLanes)
             {
                 if (l.hasCars() && isCarOnTime(l.getFirstCar()))
@@ -266,12 +222,13 @@ public class TrafficLight extends Node implements TrafficLightInterface
             }
         }
 
-        if (checkForNextRoad || timePassed > greenTime)
+        if (checkForNextRoad)
         {
             // Ok the Wave is over, time for normal work to resume
             greenWaveActive = false;
-            
-            checkForNewTraffic();
+
+            //if we are past due, we have to force the change of traffic light
+            checkForNewTraffic(timePassed > greenTime);
         }
 
     }

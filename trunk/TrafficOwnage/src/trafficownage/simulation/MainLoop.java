@@ -39,7 +39,7 @@ public class MainLoop implements NodeListener, CarListener {
     private TrafficManager trafficManager = new TrafficManager();
     private static final double DAY = (double) TimeUnit.HOURS.toSeconds(24);
     
-    private static final long MEASURE_SPEED_INTERVAL = 10000;
+    private static final long MEASURE_SPEED_INTERVAL = 5000;
 
     private double[] exportMoments;
     private int currentExportMoment;
@@ -90,7 +90,7 @@ public class MainLoop implements NodeListener, CarListener {
 
         SingleNodeGenerator gen = new SingleNodeGenerator();
 
-        gen.generate(SingleNodeGenerator.NODE_NORMAL_JUNCTION,new double[] {500.0,500.0,500.0,500.0,500.0},new int[][] {{0,2},{1,3}},50.0 / 3.6,1);
+        gen.generate(SingleNodeGenerator.NODE_DYNAMIC_TRAFFICLIGHT, new double[] {500.0,500.0,500.0,500.0},new int[][] {{0,2},{1,3}},50.0 / 3.6,1);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
@@ -116,8 +116,10 @@ public class MainLoop implements NodeListener, CarListener {
         trafficManager.setNodes(nodes);
         trafficManager.setAreas(gen.getAreas());
 
-        trafficManager.addMapping("A lot of traffic on the first road",true, 0, 2, 5.0, true);
-        trafficManager.addMapping("A lot of traffic on the second road",true, 2, 0, 5.0, true);
+        trafficManager.addMapping("A lot of traffic on the first road",true, 0, 2, 15.0, true);
+        trafficManager.addMapping("A lot of traffic on the first road",true, 2, 0, 15.0, true);
+        trafficManager.addMapping("A lot of traffic on the second road",true, 3, 1, 2.0, true);
+        trafficManager.addMapping("A lot of traffic on the second road",true, 1, 3, 2.0, true);
 
 //        trafficManager.addMapping("Random evening traffic", false,
 //                (double) (TimeUnit.HOURS.toSeconds(18)),
@@ -389,9 +391,9 @@ public class MainLoop implements NodeListener, CarListener {
         
         double diff;
         
-        long measureSpeedCounter = 0;
-        double measureSpeedInterval = (double)MEASURE_SPEED_INTERVAL / 1000;
-        double measureSpeedStart = simulatedTime;
+        long measureSpeedRealStart = System.currentTimeMillis();
+        double measureSpeedSimInterval = (double)MEASURE_SPEED_INTERVAL / 1000;
+        double measureSpeedSimStart = simulatedTime;
 
         while (!stop) {
 
@@ -400,6 +402,13 @@ public class MainLoop implements NodeListener, CarListener {
             }
 
             start = System.currentTimeMillis();
+            
+            //FOR TEH AVERAGES WE NEED DIS!
+            carsUpdated = 0;
+            storedAvgAcceleration = avgAcceleration;
+            storedAvgVelocity = avgVelocity;
+            avgVelocity = 0.0;
+            avgAcceleration = 0.0;
 
             simulatedTime += sStep;
             
@@ -450,15 +459,16 @@ public class MainLoop implements NodeListener, CarListener {
 
 
             end = System.currentTimeMillis();
-
-            span = end - start;
             
-            measureSpeedCounter += span;
-            if (measureSpeedCounter >= MEASURE_SPEED_INTERVAL) {
-                measureSpeedCounter = 0;
-                System.out.println("Speed: " + StringFormatter.getTwoDecimalDoubleString((simulatedTime - measureSpeedStart) / measureSpeedInterval) + "x");
-                measureSpeedStart = simulatedTime;
+            if ((end - measureSpeedRealStart) >= MEASURE_SPEED_INTERVAL) {
+                measureSpeedRealStart = end;
+                System.out.println("Speed: " + StringFormatter.getTwoDecimalDoubleString((simulatedTime - measureSpeedSimStart) / measureSpeedSimInterval) + "x");
+
+                System.out.println("Average Car Speed: " + getAverageVelocity());
+                measureSpeedSimStart = simulatedTime;
             }
+
+            span = end - start;            
 
             leftover = Math.max(0, msStep - span);
             
@@ -500,5 +510,29 @@ public class MainLoop implements NodeListener, CarListener {
 
     public void reachedDestination(Car car, Node destination) {
         carCount--;
+    }
+
+    int carsUpdated = 0;
+    private double avgVelocity;
+    private double avgAcceleration;
+    private double storedAvgVelocity;
+    private double storedAvgAcceleration;
+
+    public void positionChanged(Car car) {
+        if (Double.isInfinite(car.getAcceleration()) || Double.isNaN(car.getAcceleration()))
+            return;
+
+        avgVelocity = ((avgVelocity * carsUpdated) + car.getVelocity()) / (carsUpdated + 1);
+        avgAcceleration = ((avgAcceleration * carsUpdated) + car.getAcceleration()) / (carsUpdated + 1);
+
+        carsUpdated++;
+    }
+
+    public double getAverageVelocity() {
+        return storedAvgVelocity;
+    }
+
+    public double getAverageAcceleration() {
+        return storedAvgAcceleration;
     }
 }

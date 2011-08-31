@@ -6,9 +6,8 @@ package trafficownage.simulation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import trafficownage.simulation.TrafficManager.CarStatistics;
 import trafficownage.util.Container;
-import trafficownage.util.Pair;
 import trafficownage.util.Triplet;
 
 /**
@@ -19,6 +18,7 @@ public class Car
 {
 
     private CarType carType;
+    private CarStatistics carStatistics;
     private DriverType driverType;
     private Route route;
     private boolean inQueue = false;
@@ -91,6 +91,15 @@ public class Car
         driverModel = new DriverModel();
     }
 
+    public void addCarStatisticsListener(CarStatistics carStatistics) {
+        this.carStatistics = carStatistics;
+        listeners.add(carStatistics);
+    }
+
+    public CarStatistics getCarStatisticsListener() {
+        return carStatistics;
+    }
+
     public void addListener(CarListener listener) {
         listeners.add(listener);
     }
@@ -102,7 +111,6 @@ public class Car
      */
     public void init(CarType carType, DriverType driverType)
     {
-        
         listeners = new ArrayList<CarListener>();
 
         maxCarVelocity = Math.min(carType.getMaxVelocity(), driverType.getMaxVelocity());
@@ -111,6 +119,8 @@ public class Car
         this.driverType = driverType;
 
         driverModel.init(driverType, carType);
+
+        queueTime = 0.0;
 
     }
     
@@ -246,9 +256,16 @@ public class Car
         return currentLane;
     }
 
-    public void putInQueue(boolean in_queue)
+    private double queueTime;
+    public void putInQueue(boolean inQueue)
     {
-        this.inQueue = in_queue;
+        if (!this.inQueue) {
+            this.inQueue = inQueue;
+        }
+    }
+
+    public double getQueueTime() {
+        return queueTime;
     }
 
     public boolean isInQueue()
@@ -418,7 +435,8 @@ public class Car
                     currentLane.removeCar(this);
 
                 } else {
-                    inQueue = true;
+                    putInQueue(true);
+                    queueTime += timestep;
                 }
             }
         }
@@ -431,6 +449,10 @@ public class Car
         }
 
         updated = true;
+
+        for (CarListener listener : listeners)
+            listener.positionChanged(this);
+
     }
 
     private final static double DISTANCE_THRESHOLD = 0.0;
@@ -449,6 +471,7 @@ public class Car
         {
             acceleration = driverModel.update(leaderVelocity, distanceToLeader);
         }
+        
         velocity = Math.max(0.0, velocity + (acceleration * timestep));
         position += velocity * timestep;
     }
