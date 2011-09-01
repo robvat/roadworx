@@ -280,6 +280,8 @@ public class TrafficManager {
             this.benchmarkedCars = new ArrayList<Car>();
             this.arrivals = 0;
             this.meanAverageIndexValue = 0.0;
+            this.meanAverageQueueTime = 0.0;
+            this.meanAverageVelocity = 0.0;
         }
 
         public void export() {
@@ -424,7 +426,7 @@ public class TrafficManager {
         public void carReachedDestination(double benchmarkIndexValue, double queueTime, double averageVelocity) {
             meanAverageIndexValue = ((meanAverageIndexValue * (double)arrivals) + benchmarkIndexValue) / (double)(arrivals + 1);
             meanAverageQueueTime = ((meanAverageQueueTime * (double)arrivals) + queueTime) / (double)(arrivals + 1);
-            meanAverageVelocity = ((averageVelocity * (double)arrivals) + averageVelocity) / (double)(arrivals + 1);
+            meanAverageVelocity = ((meanAverageVelocity * (double)arrivals) + averageVelocity) / (double)(arrivals + 1);
 
             arrivals++;
         }

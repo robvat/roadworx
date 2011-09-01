@@ -115,11 +115,13 @@ public class MainLoop implements NodeListener, CarListener {
 
         trafficManager.setNodes(nodes);
         trafficManager.setAreas(gen.getAreas());
-
-        trafficManager.addMapping("A lot of traffic on the first road",true, 0, 2, 15.0, true);
-        trafficManager.addMapping("A lot of traffic on the first road",true, 2, 0, 15.0, true);
-        trafficManager.addMapping("A lot of traffic on the second road",true, 3, 1, 2.0, true);
-        trafficManager.addMapping("A lot of traffic on the second road",true, 1, 3, 2.0, true);
+        
+        //                          NAME                                    BENCHMARKED     STARTNODE   ENDNODE     SPAWNINTERVAL(s)    DRIVING
+        //                          string                                  boolean         int(area)   int(area)   double(in sec.)     boolean
+        trafficManager.addMapping(  "A lot of traffic on the first road",   true,           0,          2,          8.0,                true);
+        trafficManager.addMapping(  "A lot of traffic on the first road",   true,           2,          0,          16.0,               true);
+        trafficManager.addMapping(  "A little traffic on the second road",  true,           3,          1,          32.0,               true);
+        trafficManager.addMapping(  "A little traffic on the second road",  true,           1,          3,          64.0,               true);
 
 //        trafficManager.addMapping("Random evening traffic", false,
 //                (double) (TimeUnit.HOURS.toSeconds(18)),
