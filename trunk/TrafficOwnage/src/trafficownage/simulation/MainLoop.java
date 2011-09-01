@@ -90,7 +90,7 @@ public class MainLoop implements NodeListener, CarListener {
 
         SingleNodeGenerator gen = new SingleNodeGenerator();
 
-        gen.generate(SingleNodeGenerator.NODE_DYNAMIC_TRAFFICLIGHT, new double[] {500.0,500.0,500.0,500.0},new int[][] {{0,2},{1,3}},50.0 / 3.6,1);
+        gen.generate(SingleNodeGenerator.NODE_DYNAMIC_TRAFFICLIGHT, new double[] {5000.0,5000.0,5000.0,5000.0},new int[][] {{0,2},{1,3}},50.0 / 3.6,1);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
@@ -118,10 +118,10 @@ public class MainLoop implements NodeListener, CarListener {
         
         //                          NAME                                    BENCHMARKED     STARTNODE   ENDNODE     SPAWNINTERVAL(s)    DRIVING
         //                          string                                  boolean         int(area)   int(area)   double(in sec.)     boolean
-        trafficManager.addMapping(  "A lot of traffic on the first road",   true,           0,          2,          8.0,                true);
-        trafficManager.addMapping(  "A lot of traffic on the first road",   true,           2,          0,          16.0,               true);
-        trafficManager.addMapping(  "A little traffic on the second road",  true,           3,          1,          32.0,               true);
-        trafficManager.addMapping(  "A little traffic on the second road",  true,           1,          3,          64.0,               true);
+        trafficManager.addMapping(  "Most congested road",                  true,           0,          2,          8.0,                true);
+        trafficManager.addMapping(  "A little less congested road",         true,           2,          0,          16.0,                true);
+        trafficManager.addMapping(  "Even less congested road",             true,           3,          1,          32.0,               true);
+        trafficManager.addMapping(  "Almost not congested road",            true,           1,          3,          64.0,               true);
 
 //        trafficManager.addMapping("Random evening traffic", false,
 //                (double) (TimeUnit.HOURS.toSeconds(18)),
@@ -406,11 +406,13 @@ public class MainLoop implements NodeListener, CarListener {
             start = System.currentTimeMillis();
             
             //FOR TEH AVERAGES WE NEED DIS!
+            avgVelocity = velocitySum / (double)carsUpdated;
+            avgAcceleration = accelerationSum / (double)carsUpdated;
+
+            accelerationSum = 0.0;
+            velocitySum = 0.0;
+
             carsUpdated = 0;
-            storedAvgAcceleration = avgAcceleration;
-            storedAvgVelocity = avgVelocity;
-            avgVelocity = 0.0;
-            avgAcceleration = 0.0;
 
             simulatedTime += sStep;
             
@@ -515,26 +517,26 @@ public class MainLoop implements NodeListener, CarListener {
     }
 
     int carsUpdated = 0;
+    private double velocitySum;
+    private double accelerationSum;
     private double avgVelocity;
     private double avgAcceleration;
-    private double storedAvgVelocity;
-    private double storedAvgAcceleration;
 
     public void positionChanged(Car car) {
         if (Double.isInfinite(car.getAcceleration()) || Double.isNaN(car.getAcceleration()))
             return;
 
-        avgVelocity = ((avgVelocity * carsUpdated) + car.getVelocity()) / (carsUpdated + 1);
-        avgAcceleration = ((avgAcceleration * carsUpdated) + car.getAcceleration()) / (carsUpdated + 1);
+        velocitySum += car.getVelocity();
+        accelerationSum += car.getAcceleration();
 
         carsUpdated++;
     }
 
     public double getAverageVelocity() {
-        return storedAvgVelocity;
+        return avgVelocity;
     }
 
     public double getAverageAcceleration() {
-        return storedAvgAcceleration;
+        return avgAcceleration;
     }
 }
