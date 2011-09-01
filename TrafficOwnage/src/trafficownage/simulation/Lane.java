@@ -318,7 +318,7 @@ public class Lane {
 
         Car nextCar;
 
-        boolean queue = true;
+        //boolean queue = true;
 
         queueLength = 0.0;
         carsLength = 0.0;
@@ -329,7 +329,7 @@ public class Lane {
 
             car.update(timestep);
 
-            if (car.getCurrentLane() == this && queue && car.isInQueue()) {
+            if (car.getCurrentLane() == this && car.isInQueue()) {
                 queueLength = getLength() - car.getBack();
                 queueCount++;
             }

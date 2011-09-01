@@ -18,6 +18,11 @@ import java.util.List;
 public class TrafficLight extends Node implements TrafficLightInterface
 {
 
+    private static final double GREEN_TIME_PER_CAR = 5.0;
+    private static final double IGNORE_TRAFFIC_TIME = 10.0;
+    private static final double MIN_GREEN_TIME = 10.0;
+    private static final double MAX_GREEN_TIME = 120.0;
+    
     private double greenTime;
     private double timePassed;
     private List<Lane> greenLanes;
@@ -105,10 +110,6 @@ public class TrafficLight extends Node implements TrafficLightInterface
         timePassed = 0.0;
     }
 
-    private static final double GREEN_TIME_PER_CAR = 5.0;
-    private static final double IGNORE_TRAFFIC_TIME = 10.0;
-    private static final double MIN_GREEN_TIME = 10.0;
-    private static final double MAX_GREEN_TIME = 120.0;
 
     public double getDesiredGreenTime(List<Lane> lanes)
     {
@@ -121,25 +122,17 @@ public class TrafficLight extends Node implements TrafficLightInterface
         for (Lane l : lanes)
         {
             if (!l.hasCars())
-            {
                 continue;
-            }
 
             if (l.getFirstCar().isInQueue())
-            {
                 arrivalTime = 0.0;
-            }
             else
-            {
                 arrivalTime = l.getFirstCar().getDistanceToLaneEnd() / l.getFirstCar().getVelocity();
-            }
 
             if (arrivalTime > IGNORE_TRAFFIC_TIME)
-            {
                 continue;
-            }
 
-            greenTime = arrivalTime + (l.getCarCount() * GREEN_TIME_PER_CAR);
+            greenTime = arrivalTime + (l.getQueueLength() * GREEN_TIME_PER_CAR);
         }
 
         return greenTime;
