@@ -17,15 +17,17 @@ import java.util.List;
  */
 public class TrafficLight extends Node implements TrafficLightInterface
 {
-    public static final double GREEN_TIME_PER_CAR = 5.0;
-    public static final double IGNORE_TRAFFIC_TIME = 10.0;
-    public static final double MIN_GREEN_TIME = 10.0;
-    public static final double MAX_GREEN_TIME = 120.0;
+    public static final double GREEN_TIME_PER_CAR = 1.0;
+    public static final double IGNORE_TRAFFIC_TIME = 5.0;
+    public static final double MIN_GREEN_TIME = 3.0;
+    public static final double MAX_GREEN_TIME = 60.0;
+    public static final double MAX_RECEIVE_DISTANCE = 100.0;
     
     private double greenTime;
     private double timePassed;
     private List<Lane> greenLanes;
     private boolean needsLights;
+    
     // Determines if the GreenwaveScheduler can override the lights
     private boolean greenWaveActive;
 
@@ -121,7 +123,7 @@ public class TrafficLight extends Node implements TrafficLightInterface
             if (!l.hasCars())
                 continue;
 
-            greenTime = Math.max(greenTime, l.getQueueLength() * GREEN_TIME_PER_CAR);
+            greenTime = Math.max(greenTime, (double)l.getQueueCount() * GREEN_TIME_PER_CAR);
         }
 
         return greenTime;
@@ -129,7 +131,10 @@ public class TrafficLight extends Node implements TrafficLightInterface
 
     private boolean isCarOnTime(Car car)
     {
-        return (car.getDistanceToLaneEnd() / car.getVelocity()) < (greenTime - timePassed);
+        if (car.getDistanceToLaneEnd() >= MAX_RECEIVE_DISTANCE)
+            return false;
+        else
+            return (car.getDistanceToLaneEnd() / car.getVelocity()) < (greenTime - timePassed);
     }
 
 
@@ -156,6 +161,8 @@ public class TrafficLight extends Node implements TrafficLightInterface
 
         if (greenLanes != null && (desiredGreenTime >= GREEN_TIME_PER_CAR || mustChange)) {
             desiredGreenTime = Math.min(MAX_GREEN_TIME, Math.max(MIN_GREEN_TIME, desiredGreenTime));
+
+            //System.out.println("Green time: " + desiredGreenTime);
             setGreen(greenLanes, desiredGreenTime);
         }
 

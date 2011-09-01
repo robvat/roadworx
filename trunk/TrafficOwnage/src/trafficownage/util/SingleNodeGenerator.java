@@ -31,7 +31,7 @@ public class SingleNodeGenerator {
     public static final int NODE_RANDOM_TRAFFICLIGHT = 2;
     public static final int NODE_ROUNDABOUT = 3;
 
-    private List<Node> nodes;
+    private ArrayList<Node> nodes;
     private List<Road> roads;
 
     private HashMap<Integer,List<Node>> areas;
@@ -117,6 +117,9 @@ public class SingleNodeGenerator {
             //increment the angle for the next node
             currentAngle += angle;
         }
+
+        //add all ring nodes as an area as well
+        areas.put(nodes.size(), (ArrayList<Node>)nodes.clone());
         
         
         

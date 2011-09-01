@@ -5,10 +5,16 @@
 package trafficownage.simulation;
 
 import java.awt.Rectangle;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import trafficownage.simulation.TrafficManager.Mapping;
 import trafficownage.util.ManhattanMapGenerator;
 import trafficownage.util.SingleNodeGenerator;
@@ -44,6 +50,11 @@ public class MainLoop implements NodeListener, CarListener {
     private double[] exportMoments;
     private int currentExportMoment;
     private Double nextExportMoment;
+
+    private double overallSimulatedTime;
+    private double currentDaySimulatedTime;
+    private double overallEndTime;
+    private boolean eternalLoop = true;
     
     private int currentDay;
 
@@ -59,15 +70,69 @@ public class MainLoop implements NodeListener, CarListener {
         return array;
     }
 
+    public void setStartTime(double startTime) {
+        overallSimulatedTime = startTime;
+        currentDaySimulatedTime = overallSimulatedTime % DAY;
+    }
+
+    public void setEndTime(double endTime) {
+        overallEndTime = endTime;
+        eternalLoop = false;
+    }
+
+    public void enableFileOutput() {
+        String directoryString = System.getenv("USERPROFILE") + "\\TrafficOwnage";
+        String resultFileString = directoryString + "\\" + StringFormatter.getDateTimeFileString() + "_results.txt";
+        String errorFileString = directoryString + "\\" + StringFormatter.getDateTimeFileString() + "_errors.txt";
+
+        File directory = new File(directoryString);
+
+        if (!directory.exists())
+            directory.mkdir();
+
+        File resultFile = new File(resultFileString);
+        File errorFile = new File(resultFileString);
+
+        if (!resultFile.exists())
+            resultFile.delete();
+
+        if (!errorFile.exists())
+            errorFile.delete();
+
+        try {
+            resultFile.createNewFile();
+            errorFile.createNewFile();
+            FileOutputStream resultOutput = new FileOutputStream(resultFileString);
+            FileOutputStream errorOutput = new FileOutputStream(errorFileString);
+
+            System.setOut(new PrintStream(resultOutput));
+            System.setErr(new PrintStream(errorOutput));
+
+        } catch (IOException ex) {
+            System.err.println("Logging to file failed, therefore logging to stdout.");
+        }
+
+    }
+
     public void init() {
 
-        overallSimulatedTime = (double) TimeUnit.HOURS.toSeconds(7);
-        currentDaySimulatedTime = overallSimulatedTime % DAY;
+        setStartTime((double) TimeUnit.HOURS.toSeconds(0));
+//        overallSimulatedTime = (double) TimeUnit.HOURS.toSeconds(6) + (double) TimeUnit.MINUTES.toSeconds(55);
+//        currentDaySimulatedTime = overallSimulatedTime % DAY;
 
+        //commenting the setEndTime line will make the application loop eternally
+        setEndTime((double) TimeUnit.HOURS.toSeconds(12) + (double) TimeUnit.MINUTES.toSeconds(5));
+        
+        //Sends console output to text files in a TrafficOwnage folder in your profile folder.
+        //the file name is based on the date and time.
+        //Example folder: C:\Users\Jonathan\TrafficOwnage\
+        //comment this to see the output in NetBeans.
+        enableFileOutput();
+
+        
         double[] highwayVelocities = new double[] {80};
         double[] mainRoadVelocities = new double[] {50};
         double[] smallRoadVelocities = new double[] {30};
-
         
         double kphMsRatio = 1.0 / 3.6;
 
@@ -112,16 +177,12 @@ public class MainLoop implements NodeListener, CarListener {
         trafficManager.setNodes(nodes);
         trafficManager.setAreas(gen.getAreas());
         
-        //                          NAME                                    BENCHMARKED     STARTNODE   ENDNODE     SPAWNINTERVAL(s)    DRIVING
+        //                          NAME                                    BENCHMARKED     STARTAREA   ENDAREA     SPAWNINTERVAL(s)    DRIVING
         //                          string                                  boolean         int(area)   int(area)   double(in sec.)     boolean
-        trafficManager.addMapping(  "Most congested road",                  false,          0,          2,          8.0,                true);
-        trafficManager.addMapping(  "Llittle less congested road",          false,          2,          0,          16.0,               true);
-        trafficManager.addMapping(  "Even less congested road",             false,          3,          1,          32.0,               true);
-        trafficManager.addMapping(  "Almost not congested road",            false,          1,          3,          64.0,               true);
-        trafficManager.addMapping(  "Most congested road benchmark",        true,           0,          2,          120.0,              true);
-        trafficManager.addMapping(  "Little less congested road benchmark", true,           2,          0,          120.0,              true);
-        trafficManager.addMapping(  "Even less congested road benchmark",   true,           3,          1,          120.0,              true);
-        trafficManager.addMapping(  "Almost not congested road benchmark",  true,           1,          3,          120.0,              true);
+        trafficManager.addMapping(  "Most congested road",                  true,           0,          4,          7.0,                true);
+        trafficManager.addMapping(  "Llittle less congested road",          true,           1,          4,          16.0,               true);
+        trafficManager.addMapping(  "Even less congested road",             true,           2,          4,          30.0,               true);
+        trafficManager.addMapping(  "Almost not congested road",            true,           3,          4,          60.0,               true);
 
 //        trafficManager.addMapping("Random evening traffic", false,
 //                (double) (TimeUnit.HOURS.toSeconds(18)),
@@ -305,7 +366,7 @@ public class MainLoop implements NodeListener, CarListener {
                 checked++;
             }            
 
-            currentExportMoment = Math.max(0,(i - 1) % exportMoments.length);
+            currentExportMoment = Math.max(0,i % exportMoments.length);
             
             nextExportMoment = exportMoments[currentExportMoment];
         }
@@ -346,8 +407,6 @@ public class MainLoop implements NodeListener, CarListener {
         this.realtime = realtime;
     }
 
-    private double overallSimulatedTime;
-    private double currentDaySimulatedTime;
 
     public double getSimulationDayTime() {
         return currentDaySimulatedTime;
@@ -432,17 +491,6 @@ public class MainLoop implements NodeListener, CarListener {
             overallSimulatedTime += sStep;
             currentDaySimulatedTime += sStep;
             
-            if (overallSimulatedTime >= ((double)currentDay * DAY)) {
-
-                currentDaySimulatedTime = overallSimulatedTime % DAY;
-                co2Emission = 0.0;
-                trafficManager.resetBenchmarks();
-                currentDay++;
-
-                System.out.println();
-                System.out.println("Welcome to day " + currentDay + ".");
-                System.out.println();
-            }
 
             synchronized (syncObject) {
 
@@ -481,14 +529,31 @@ public class MainLoop implements NodeListener, CarListener {
                     listener.nextFrame(sStep);
             }
 
+            
+            if (!eternalLoop) {
+                if (overallSimulatedTime > overallEndTime)
+                    //TODO: FUGLY!!!
+                    System.exit(1);
+            }
+
+            if (overallSimulatedTime >= ((double)currentDay * DAY)) {
+
+                currentDaySimulatedTime = overallSimulatedTime % DAY;
+                co2Emission = 0.0;
+                trafficManager.resetBenchmarks();
+                currentDay++;
+
+                System.out.println();
+                System.out.println("Welcome to day " + currentDay + ".");
+                System.out.println();
+            }
 
             end = System.currentTimeMillis();
             
             if ((end - measureSpeedRealStart) >= MEASURE_SPEED_INTERVAL) {
                 measureSpeedRealStart = end;
 
-                System.out.println("Speed: " + StringFormatter.getTwoDecimalDoubleString((currentDaySimulatedTime - measureSpeedSimStart) / measureSpeedSimInterval) + "x");
-                System.out.println("Average Car Speed: " + getAverageVelocity());
+                currentSpeed = (currentDaySimulatedTime - measureSpeedSimStart) / measureSpeedSimInterval;
 
                 measureSpeedSimStart = currentDaySimulatedTime;
             }

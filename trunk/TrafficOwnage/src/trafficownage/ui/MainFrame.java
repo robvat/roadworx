@@ -597,6 +597,8 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
             timeLabel.setText(StringFormatter.getTimeString(m.getSimulationDayTime()));
             carCountLabel.setText(m.getCarCount() + " cars");
 
+            resultLabel.setText("Current speed: " + StringFormatter.getTwoDecimalDoubleString(m.getCurrentSpeed()) + "x");
+
             /*if (mapComponent2.getDrawMode() == MapComponent.DRAW_EMISSION) {
                 resultLabel.setText("Todays CO2 emission: " + (int)m.getCO2Emission() + " kg");
             } else {
