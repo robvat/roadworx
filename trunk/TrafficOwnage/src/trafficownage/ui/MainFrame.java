@@ -584,15 +584,25 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         return new Pair<Integer,Double>(count,avg);
     }
 
-    public void nextFrame(double timestep) {
-        timeLabel.setText(StringFormatter.getTimeString(m.getSimulatedTime()));
-        carCountLabel.setText(m.getCarCount() + " cars");
+    private static final long UPDATE_TEXT_INTERVAL = 1000;
+    private long previousUpdateTime = 0;
+    private long currentUpdateTime = 0;
 
-        if (mapComponent2.getDrawMode() == MapComponent.DRAW_EMISSION) {
-            resultLabel.setText("Todays CO2 emission: " + (int)m.getCO2Emission() + " kg");
-        } else {
-            Pair<Integer,Double> results = getResults();
-            resultLabel.setText("Score: " + results.getObject2() + "@" + results.getObject1() + " arrived cars.");
+    public void nextFrame(double timestep) {
+        currentUpdateTime = System.currentTimeMillis();
+
+        if (currentUpdateTime - previousUpdateTime > UPDATE_TEXT_INTERVAL) {            
+            previousUpdateTime = currentUpdateTime;
+
+            timeLabel.setText(StringFormatter.getTimeString(m.getSimulationDayTime()));
+            carCountLabel.setText(m.getCarCount() + " cars");
+
+            /*if (mapComponent2.getDrawMode() == MapComponent.DRAW_EMISSION) {
+                resultLabel.setText("Todays CO2 emission: " + (int)m.getCO2Emission() + " kg");
+            } else {
+                Pair<Integer,Double> results = getResults();
+                resultLabel.setText("Score: " + results.getObject2() + "@" + results.getObject1() + " arrived cars.");
+            }*/
         }
 
         if (drawingEnabledCheckbox.isSelected())
