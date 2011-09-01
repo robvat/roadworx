@@ -8,6 +8,7 @@ package trafficownage.simulation;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -28,9 +29,8 @@ public class TrafficManager {
 
     private List<Mapping> benchmarkedMappings;
 
-    private double simulatedTime;
-
-    private HashMap<Car,Double> departureTimes;
+    private double overallSimulatedTime;
+    private double currentDaySimulatedTime;
 
     private Random rand;
 
@@ -42,7 +42,7 @@ public class TrafficManager {
     }
 
     public void init() {
-        this.departureTimes = new HashMap<Car,Double>();
+
     }
 
     public void setNodes(List<Node> nodes) {
@@ -108,18 +108,19 @@ public class TrafficManager {
                 mapping.reset();
     }
 
-    public void update (double simulatedTime, double timeStep) {
+    public void update (double overallSimulatedTime, double currentDaySimulatedTime, double timeStep) {
 
-        if (simulatedTime < this.simulatedTime) {
-            //what a beautiful new day
-            for (Car c : departureTimes.keySet())
-                departureTimes.put(c,departureTimes.get(c) - DAY);
-        }
+//        if (simulatedTime < this.simulatedTime) {
+//            //what a beautiful new day
+//            for (Car c : departureTimes.keySet())
+//                departureTimes.put(c,departureTimes.get(c) - DAY);
+//        }
 
-        this.simulatedTime = simulatedTime;
+        this.overallSimulatedTime = overallSimulatedTime;
+        this.currentDaySimulatedTime = currentDaySimulatedTime;
 
         for (Mapping m : mappings) {
-            if (isActive(simulatedTime, m)) {
+            if (isActive(currentDaySimulatedTime, m)) {
                 
                 if (!m.isActivated())
                     m.activate();
@@ -165,7 +166,7 @@ public class TrafficManager {
 
         public void reachedDestination(Car car, Node destination) {
             //store the time of arrival
-            arrivalTime = simulatedTime;
+            arrivalTime = overallSimulatedTime;
 
             //determine how long we travelled
             timeTravelled = getArrivalTime() - getDepartureTime();
@@ -244,9 +245,9 @@ public class TrafficManager {
         private boolean benchmarked;
         private boolean driving;
 
-        private List<Car> benchmarkedCars;
+        private List<CarStatistics> benchmarkedCarStats;
 
-        private double meanAverageIndexValue;
+        private double meanAverageBenchmarkIndexValue;
         private double meanAverageQueueTime;
         private double meanAverageVelocity;
 
@@ -264,7 +265,7 @@ public class TrafficManager {
             this.benchmarked = benchmarked;
             this.driving = driving;
 
-            this.benchmarkedCars = new ArrayList<Car>();
+            this.benchmarkedCarStats = new LinkedList<CarStatistics>();
             
             this.carType = carType;
 
@@ -277,31 +278,40 @@ public class TrafficManager {
         }
 
         public void reset() {
-            this.benchmarkedCars = new ArrayList<Car>();
+            this.benchmarkedCarStats = new ArrayList<CarStatistics>();
             this.arrivals = 0;
-            this.meanAverageIndexValue = 0.0;
+            this.meanAverageBenchmarkIndexValue = 0.0;
             this.meanAverageQueueTime = 0.0;
             this.meanAverageVelocity = 0.0;
+
+            this.averageBenchmarkIndexSum = 0.0;
+            this.averageQueueTimeSum = 0.0;
+            this.averageVelocitySum = 0.0;
         }
 
         public void export() {
-            int n = arrivals;
+            double n = arrivals;
+
+            meanAverageBenchmarkIndexValue = averageBenchmarkIndexSum / n;
+            meanAverageQueueTime = averageQueueTimeSum / n;
+            meanAverageVelocity = averageVelocitySum / n;
 
             double indexValueSdSum = 0.0;
             double queueTimeSdSum = 0.0;
             double averageVelocitySdSum = 0.0;
-            for (Car car : benchmarkedCars) {
-                indexValueSdSum += Math.pow(car.getCarStatisticsListener().getBenchmarkValue() - meanAverageIndexValue,2.0);
-                queueTimeSdSum += Math.pow(car.getCarStatisticsListener().getQueueTime() - meanAverageQueueTime,2.0);
-                averageVelocitySdSum += Math.pow(car.getCarStatisticsListener().getAverageVelocity() - meanAverageVelocity,2.0);
+            for (CarStatistics carStats : benchmarkedCarStats) {
+                indexValueSdSum += Math.pow(carStats.getBenchmarkValue() - meanAverageBenchmarkIndexValue,2.0);
+                queueTimeSdSum += Math.pow(carStats.getQueueTime() - meanAverageQueueTime,2.0);
+                averageVelocitySdSum += Math.pow(carStats.getAverageVelocity() - meanAverageVelocity,2.0);
             }
 
-            double indexValueVariance = indexValueSdSum / (double)n;
-            double queueTimeVariance = queueTimeSdSum / (double)n;
-            double averageVelocityVariance = averageVelocitySdSum / (double)n;
+            double indexValueVariance = indexValueSdSum / n;
+            double queueTimeVariance = queueTimeSdSum / n;
+            double averageVelocityVariance = averageVelocitySdSum / n;
 
             System.out.println("Results from " + this.getName() + ".");
-            System.out.println("-Average index value: " + StringFormatter.getTwoDecimalDoubleString(meanAverageIndexValue) + ". variance: " + StringFormatter.getTwoDecimalDoubleString(indexValueVariance));
+            System.out.println("-Cars arrived: " + n + ".");
+            System.out.println("-Average index value: " + StringFormatter.getTwoDecimalDoubleString(meanAverageBenchmarkIndexValue) + ". variance: " + StringFormatter.getTwoDecimalDoubleString(indexValueVariance));
             System.out.println("-Average queue time: " + StringFormatter.getTimeString(meanAverageQueueTime) + ". variance: " + StringFormatter.getTimeString(queueTimeVariance));
             System.out.println("-Average velocity: " + StringFormatter.getTwoDecimalDoubleString(meanAverageVelocity * 3.6) + "kph. variance: " + StringFormatter.getTwoDecimalDoubleString(averageVelocityVariance * 3.6) + "kph.");
         }
@@ -367,15 +377,15 @@ public class TrafficManager {
         }
 
         public double getBenchmarkResults() {
-            return meanAverageIndexValue;
+            return meanAverageBenchmarkIndexValue;
         }
 
         public int getArrivedCarCount() {
             return arrivals;
         }
 
-        public List<Car> getBenchmarkedCars() {
-            return benchmarkedCars;
+        public List<CarStatistics> getBenchmarkedCarStatistics() {
+            return benchmarkedCarStats;
         }
 
         private void spawnCar(CarType carType, DriverType driverType, int spawnArea, int targetArea) {
@@ -414,19 +424,28 @@ public class TrafficManager {
             car.setRoute(new Route(route.getObject1(),route.getObject2()));
 
             if (benchmarked) {
-                benchmarkedCars.add(car);
-                departureTimes.put(car,simulatedTime);
-                car.addCarStatisticsListener(new CarStatistics(this, simulatedTime));
+                CarStatistics carStats = new CarStatistics(this, overallSimulatedTime);
+                car.addCarStatisticsListener(carStats);
+                benchmarkedCarStats.add(carStats);
             }
 
             return car;
         }
 
+        private double averageBenchmarkIndexSum;
+        private double averageQueueTimeSum;
+        private double averageVelocitySum;
+
         private int arrivals = 0;
         public void carReachedDestination(double benchmarkIndexValue, double queueTime, double averageVelocity) {
-            meanAverageIndexValue = ((meanAverageIndexValue * (double)arrivals) + benchmarkIndexValue) / (double)(arrivals + 1);
-            meanAverageQueueTime = ((meanAverageQueueTime * (double)arrivals) + queueTime) / (double)(arrivals + 1);
-            meanAverageVelocity = ((meanAverageVelocity * (double)arrivals) + averageVelocity) / (double)(arrivals + 1);
+            
+            averageBenchmarkIndexSum += benchmarkIndexValue;
+            averageQueueTimeSum += queueTime;
+            averageVelocitySum += averageVelocity;
+
+//            meanAverageIndexValue = ((meanAverageIndexValue * (double)arrivals) + benchmarkIndexValue) / (double)(arrivals + 1);
+//            meanAverageQueueTime = ((meanAverageQueueTime * (double)arrivals) + queueTime) / (double)(arrivals + 1);
+//            meanAverageVelocity = ((meanAverageVelocity * (double)arrivals) + averageVelocity) / (double)(arrivals + 1);
 
             arrivals++;
         }
@@ -435,7 +454,7 @@ public class TrafficManager {
 
         @Override
         public String toString() {
-            return name + ": " + twoDForm.format(meanAverageIndexValue);
+            return name + ": " + twoDForm.format(meanAverageBenchmarkIndexValue);
         }
     }
 }
