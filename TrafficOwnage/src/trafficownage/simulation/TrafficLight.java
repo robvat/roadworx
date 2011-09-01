@@ -17,11 +17,10 @@ import java.util.List;
  */
 public class TrafficLight extends Node implements TrafficLightInterface
 {
-
-    private static final double GREEN_TIME_PER_CAR = 5.0;
-    private static final double IGNORE_TRAFFIC_TIME = 10.0;
-    private static final double MIN_GREEN_TIME = 10.0;
-    private static final double MAX_GREEN_TIME = 120.0;
+    public static final double GREEN_TIME_PER_CAR = 5.0;
+    public static final double IGNORE_TRAFFIC_TIME = 10.0;
+    public static final double MIN_GREEN_TIME = 10.0;
+    public static final double MAX_GREEN_TIME = 120.0;
     
     private double greenTime;
     private double timePassed;

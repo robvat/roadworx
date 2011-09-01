@@ -67,11 +67,6 @@ public class MainLoop implements NodeListener, CarListener {
         double[] mainRoadVelocities = new double[] {50};
         double[] smallRoadVelocities = new double[] {30};
 
-        System.out.println("Set velocities");
-        System.out.println("Highways: " + Arrays.toString(highwayVelocities));
-        System.out.println("Main roads: " + Arrays.toString(mainRoadVelocities));
-        System.out.println("Small roads: " + Arrays.toString(smallRoadVelocities));
-        System.out.println();
         
         double kphMsRatio = 1.0 / 3.6;
 
@@ -269,6 +264,19 @@ public class MainLoop implements NodeListener, CarListener {
         if (listener != null) {
             listener.mapLoaded();
         }
+        
+        System.out.println("===SETTINGS===");
+        System.out.println("DYNAMIC TRAFFIC LIGHTS");        
+        System.out.println("-Green time per car: " + TrafficLight.GREEN_TIME_PER_CAR);        
+        System.out.println("-First car arrival ignorance time: " + TrafficLight.IGNORE_TRAFFIC_TIME);    
+        System.out.println("-Maximum green time: " + TrafficLight.MAX_GREEN_TIME);    
+        System.out.println("-Minimum green time: " + TrafficLight.MIN_GREEN_TIME);  
+        System.out.println();
+        System.out.println("===VELOCITIES===");
+        System.out.println("-Highways: " + Arrays.toString(highwayVelocities));
+        System.out.println("-Main roads: " + Arrays.toString(mainRoadVelocities));
+        System.out.println("-Small roads: " + Arrays.toString(smallRoadVelocities));
+        System.out.println();
 
         initialized = true;
         stop = true;
