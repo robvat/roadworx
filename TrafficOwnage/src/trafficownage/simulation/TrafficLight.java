@@ -117,7 +117,6 @@ public class TrafficLight extends Node implements TrafficLightInterface
         double arrivalTime;
 
         double greenTime = 0.0;
-        double maxGreenTime = 0.0;
 
         for (Lane l : lanes)
         {
@@ -141,10 +140,9 @@ public class TrafficLight extends Node implements TrafficLightInterface
             }
 
             greenTime = arrivalTime + (l.getCarCount() * GREEN_TIME_PER_CAR);
-            maxGreenTime = Math.max(maxGreenTime, greenTime);
         }
 
-        return maxGreenTime;
+        return greenTime;
     }
 
     private boolean isCarOnTime(Car car)
@@ -163,30 +161,27 @@ public class TrafficLight extends Node implements TrafficLightInterface
 
     private void checkForNewTraffic(boolean mustChange)
     {
-        double desiredGreenTime;
+        double desiredGreenTime = 0.0;
 
         Collections.sort(laneSets, laneSetComparator);
 
-        List<Lane> greenLanes = laneSets.getFirst();
+        List<Lane> greenLanes = null;
 
-        desiredGreenTime = getDesiredGreenTime(greenLanes);
+        while (!laneSets.isEmpty() && desiredGreenTime == 0.0) {
+            greenLanes = laneSets.poll();
+            desiredGreenTime = getDesiredGreenTime(greenLanes);
+        }
 
-        //TODO: MAGIC NUMBER!!!!!1111
-        //if there is no noticable change and we do not HAVE to change, return
-        if (desiredGreenTime < 0.5 && !mustChange)
-            return;
-
-        laneSets.poll();
-
-        desiredGreenTime = Math.min(MAX_GREEN_TIME, Math.max(MIN_GREEN_TIME, desiredGreenTime));
-
-        setGreen(greenLanes, desiredGreenTime);
+        if (greenLanes != null && (desiredGreenTime >= GREEN_TIME_PER_CAR || mustChange)) {
+            desiredGreenTime = Math.min(MAX_GREEN_TIME, Math.max(MIN_GREEN_TIME, desiredGreenTime));
+            setGreen(greenLanes, desiredGreenTime);
+        }
 
         if (laneSets.isEmpty())
             laneSets.addAll(getLaneSets());
     }
 
-    private boolean checkForNextRoad;
+    //private boolean checkForNextRoad;
 
     @Override
     public void update(double timestep)
@@ -197,38 +192,38 @@ public class TrafficLight extends Node implements TrafficLightInterface
         if (!needsLights)
             return;
        
-
+        
         //update our local time var
         timePassed += timestep;
+        
+        //disable the green wave if necessary
+        if (timePassed >= greenTime && greenWaveActive)
+            greenWaveActive = false;
 
         //if there is a green wave, we never check for a next road.
         //if the green wave is off, we might check.
-        if (!greenWaveActive)
-            checkForNextRoad = true;
-        else
-            checkForNextRoad = false;
-
-
-        if (checkForNextRoad && timePassed < greenTime)
+        
+        
+        boolean greenRoadsEmpty = true;
+        //if there is no green wave active and the green time has not passed yet
+        //check if all active roads are empty. If so, switch to the next light.
+        if (!greenWaveActive && timePassed < greenTime)
         {
             for (Lane l : greenLanes)
             {
                 if (l.hasCars() && isCarOnTime(l.getFirstCar()))
                 {
                     //current green road is still in use, therefore do not check
-                    checkForNextRoad = false;
+                    greenRoadsEmpty = false;
                     break;
                 }
             }
         }
 
-        if (checkForNextRoad)
+        if (timePassed >= greenTime || (!greenWaveActive && greenRoadsEmpty))
         {
-            // Ok the Wave is over, time for normal work to resume
-            greenWaveActive = false;
-
             //if we are past due, we have to force the change of traffic light
-            checkForNewTraffic(timePassed > greenTime);
+            checkForNewTraffic(timePassed >= greenTime);
         }
 
     }
