@@ -6,6 +6,8 @@
 package trafficownage.util;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -29,5 +31,12 @@ public class StringFormatter {
         minutes -= TimeUnit.HOURS.toMinutes(hours);
 
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
+    
+    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy'_'MM'_'dd'_'HH'_'mm'_'ss");
+    
+    public static String getDateTimeFileString() {
+        Calendar currentDate = Calendar.getInstance();
+        return DATE_FORMATTER.format(currentDate.getTime());
     }
 }
