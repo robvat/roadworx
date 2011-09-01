@@ -114,8 +114,6 @@ public class TrafficLight extends Node implements TrafficLightInterface
     {
         int count = 0;
 
-        double arrivalTime;
-
         double greenTime = 0.0;
 
         for (Lane l : lanes)
@@ -123,15 +121,7 @@ public class TrafficLight extends Node implements TrafficLightInterface
             if (!l.hasCars())
                 continue;
 
-            if (l.getFirstCar().isInQueue())
-                arrivalTime = 0.0;
-            else
-                arrivalTime = l.getFirstCar().getDistanceToLaneEnd() / l.getFirstCar().getVelocity();
-
-            if (arrivalTime > IGNORE_TRAFFIC_TIME)
-                continue;
-
-            greenTime = arrivalTime + (l.getQueueLength() * GREEN_TIME_PER_CAR);
+            greenTime = Math.max(greenTime, l.getQueueLength() * GREEN_TIME_PER_CAR);
         }
 
         return greenTime;
