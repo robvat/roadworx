@@ -434,6 +434,14 @@ public class Car
 
                     currentLane.removeCar(this);
 
+                    //force all references to become null
+                    carStatistics = null;
+                    listeners.clear();
+                    previousNode = null;
+                    currentLane = null;
+                    currentNode = null;
+                    nextLane = null;
+                    
                 } else {
                     putInQueue(true);
                     queueTime += timestep;

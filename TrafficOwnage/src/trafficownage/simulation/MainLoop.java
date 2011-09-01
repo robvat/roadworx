@@ -49,7 +49,7 @@ public class MainLoop implements NodeListener, CarListener {
 
     public MainLoop() {
         initialized = false;
-        speedMultiplier = 1;
+        speedMultiplier = 256;
     }
 
     private static double[] scale(double[] array, double scale) {
@@ -61,7 +61,8 @@ public class MainLoop implements NodeListener, CarListener {
 
     public void init() {
 
-        simulatedTime = (double) TimeUnit.HOURS.toSeconds(7);
+        overallSimulatedTime = (double) TimeUnit.HOURS.toSeconds(7);
+        currentDaySimulatedTime = overallSimulatedTime % DAY;
 
         double[] highwayVelocities = new double[] {80};
         double[] mainRoadVelocities = new double[] {50};
@@ -113,10 +114,14 @@ public class MainLoop implements NodeListener, CarListener {
         
         //                          NAME                                    BENCHMARKED     STARTNODE   ENDNODE     SPAWNINTERVAL(s)    DRIVING
         //                          string                                  boolean         int(area)   int(area)   double(in sec.)     boolean
-        trafficManager.addMapping(  "Most congested road",                  true,           0,          2,          8.0,                true);
-        trafficManager.addMapping(  "A little less congested road",         true,           2,          0,          16.0,                true);
-        trafficManager.addMapping(  "Even less congested road",             true,           3,          1,          32.0,               true);
-        trafficManager.addMapping(  "Almost not congested road",            true,           1,          3,          64.0,               true);
+        trafficManager.addMapping(  "Most congested road",                  false,          0,          2,          8.0,                true);
+        trafficManager.addMapping(  "Llittle less congested road",          false,          2,          0,          16.0,               true);
+        trafficManager.addMapping(  "Even less congested road",             false,          3,          1,          32.0,               true);
+        trafficManager.addMapping(  "Almost not congested road",            false,          1,          3,          64.0,               true);
+        trafficManager.addMapping(  "Most congested road benchmark",        true,           0,          2,          120.0,              true);
+        trafficManager.addMapping(  "Little less congested road benchmark", true,           2,          0,          120.0,              true);
+        trafficManager.addMapping(  "Even less congested road benchmark",   true,           3,          1,          120.0,              true);
+        trafficManager.addMapping(  "Almost not congested road benchmark",  true,           1,          3,          120.0,              true);
 
 //        trafficManager.addMapping("Random evening traffic", false,
 //                (double) (TimeUnit.HOURS.toSeconds(18)),
@@ -295,7 +300,7 @@ public class MainLoop implements NodeListener, CarListener {
 
             int checked = 0;
             
-            while (exportMoments[i] <= simulatedTime && checked != exportMoments.length) {
+            while (exportMoments[i] <= overallSimulatedTime && checked != exportMoments.length) {
                 i = (i + 1) % exportMoments.length;
                 checked++;
             }            
@@ -340,10 +345,12 @@ public class MainLoop implements NodeListener, CarListener {
     public void setRealtime(boolean realtime) {
         this.realtime = realtime;
     }
-    private double simulatedTime;
 
-    public double getSimulatedTime() {
-        return simulatedTime;
+    private double overallSimulatedTime;
+    private double currentDaySimulatedTime;
+
+    public double getSimulationDayTime() {
+        return currentDaySimulatedTime;
     }
 
     public void pause() {
@@ -403,7 +410,7 @@ public class MainLoop implements NodeListener, CarListener {
         
         long measureSpeedRealStart = System.currentTimeMillis();
         double measureSpeedSimInterval = (double)MEASURE_SPEED_INTERVAL / 1000;
-        double measureSpeedSimStart = simulatedTime;
+        double measureSpeedSimStart = overallSimulatedTime;
 
         while (!stop) {
 
@@ -422,13 +429,16 @@ public class MainLoop implements NodeListener, CarListener {
 
             carsUpdated = 0;
 
-            simulatedTime += sStep;
+            overallSimulatedTime += sStep;
+            currentDaySimulatedTime += sStep;
             
-            if (simulatedTime >= DAY) {
-                simulatedTime = 0.0;
+            if (overallSimulatedTime >= ((double)currentDay * DAY)) {
+
+                currentDaySimulatedTime = overallSimulatedTime % DAY;
                 co2Emission = 0.0;
                 trafficManager.resetBenchmarks();
                 currentDay++;
+
                 System.out.println();
                 System.out.println("Welcome to day " + currentDay + ".");
                 System.out.println();
@@ -436,7 +446,7 @@ public class MainLoop implements NodeListener, CarListener {
 
             synchronized (syncObject) {
 
-                trafficManager.update(simulatedTime, sStep);
+                trafficManager.update(overallSimulatedTime, currentDaySimulatedTime, sStep);
 
                 for (Node n : nodes) {
                     n.update(sStep);
@@ -449,9 +459,11 @@ public class MainLoop implements NodeListener, CarListener {
 
                 
                 if (nextExportMoment != null) {
-                    diff = simulatedTime - nextExportMoment;
+                    diff = currentDaySimulatedTime - nextExportMoment;
                         if (diff >= 0.0 & diff < (sStep * 2.0)) {
-
+                            
+                        System.out.println();
+                        
                         System.out.println("Export at " + StringFormatter.getTimeString(nextExportMoment));
 
                         System.out.println("Overall CO2 emission of today: " + (int)co2Emission);
@@ -474,10 +486,11 @@ public class MainLoop implements NodeListener, CarListener {
             
             if ((end - measureSpeedRealStart) >= MEASURE_SPEED_INTERVAL) {
                 measureSpeedRealStart = end;
-                System.out.println("Speed: " + StringFormatter.getTwoDecimalDoubleString((simulatedTime - measureSpeedSimStart) / measureSpeedSimInterval) + "x");
 
+                System.out.println("Speed: " + StringFormatter.getTwoDecimalDoubleString((currentDaySimulatedTime - measureSpeedSimStart) / measureSpeedSimInterval) + "x");
                 System.out.println("Average Car Speed: " + getAverageVelocity());
-                measureSpeedSimStart = simulatedTime;
+
+                measureSpeedSimStart = currentDaySimulatedTime;
             }
 
             span = end - start;            
