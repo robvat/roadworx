@@ -145,7 +145,7 @@ public abstract class Node
                     lanes.add(incomingLanes.get(i));
                 }
                 
-                System.out.println(Arrays.deepToString(currentLaneDeque.toArray(new Integer[0])));
+                //System.out.println(Arrays.deepToString(currentLaneDeque.toArray(new Integer[0])));
                 simultaneousLaneSets.add(lanes);
             }
         }
@@ -231,11 +231,11 @@ public abstract class Node
             for (Integer[] couple1 : couples) {            
                 for (Integer[] couple2 : couples) {
                     INTERSECTION_ARRAY[nodeSize][couple1[0]][couple1[1]][couple2[0]][couple2[1]] = getIntersectionType(couple1[0], couple1[1], couple2[0], couple2[1]);
-                    System.out.println(
-                            "Route 1: " + couple1[0] + " to " + couple1[1] + ", " + 
-                            "Route 2: " + couple2[0] + " to " + couple2[1] + 
-                            ". Intersection type: " + getIntersectionTypeString(getIntersectionType(couple1[0], couple1[1], couple2[0], couple2[1]))
-                            );
+//                    System.out.println(
+//                            "Route 1: " + couple1[0] + " to " + couple1[1] + ", " +
+//                            "Route 2: " + couple2[0] + " to " + couple2[1] +
+//                            ". Intersection type: " + getIntersectionTypeString(getIntersectionType(couple1[0], couple1[1], couple2[0], couple2[1]))
+//                            );
                     
                 }
             }
