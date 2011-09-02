@@ -17,10 +17,8 @@ import java.util.List;
  */
 public class TrafficLight extends Node implements TrafficLightInterface
 {
-    public static final double GREEN_TIME_PER_CAR = 1.0;
     public static final double IGNORE_TRAFFIC_TIME = 5.0;
-    public static final double MIN_GREEN_TIME = 3.0;
-    public static final double MAX_GREEN_TIME = 60.0;
+    public static final double GREEN_TIME = 60.0;
     public static final double MAX_RECEIVE_DISTANCE = 100.0;
     
     private double greenTime;
@@ -63,7 +61,7 @@ public class TrafficLight extends Node implements TrafficLightInterface
         laneSets = (LinkedList<List<Lane>>)getLaneSets().clone();
 
         List<Lane> lanes = laneSets.pop();
-        setGreen(lanes, MIN_GREEN_TIME);
+        setGreen(lanes, GREEN_TIME);
     }
 
     public List<Lane> getGreenLanes()
@@ -112,21 +110,20 @@ public class TrafficLight extends Node implements TrafficLightInterface
     }
 
 
-    public double getDesiredGreenTime(List<Lane> lanes)
+    public int getHighestLaneCount(List<Lane> lanes)
     {
-        int count = 0;
 
-        double greenTime = 0.0;
+        int laneCount = 0;
 
         for (Lane l : lanes)
         {
             if (!l.hasCars())
                 continue;
 
-            greenTime = Math.max(greenTime, (double)l.getQueueCount() * GREEN_TIME_PER_CAR);
+            laneCount = Math.max(laneCount, l.getQueueCount());
         }
 
-        return greenTime;
+        return laneCount;
     }
 
     private boolean isCarOnTime(Car car)
@@ -141,30 +138,27 @@ public class TrafficLight extends Node implements TrafficLightInterface
     private Comparator<List<Lane>> laneSetComparator = new Comparator<List<Lane>>() {
 
         public int compare(List<Lane> o1, List<Lane> o2) {
-            return (int)Math.signum(getDesiredGreenTime(o2) - getDesiredGreenTime(o1));
+            return (int)Math.signum(getHighestLaneCount(o2) - getHighestLaneCount(o1));
         }
 
     };
 
     private void checkForNewTraffic(boolean mustChange)
     {
-        double desiredGreenTime = 0.0;
+        int higestLaneCount = 0;
 
         Collections.sort(laneSets, laneSetComparator);
 
         List<Lane> greenLanes = null;
 
-        while (!laneSets.isEmpty() && desiredGreenTime == 0.0) {
+        while (!laneSets.isEmpty() && higestLaneCount == 0) {
             greenLanes = laneSets.poll();
-            desiredGreenTime = getDesiredGreenTime(greenLanes);
+            higestLaneCount = getHighestLaneCount(greenLanes);
         }
 
-        if (greenLanes != null && (desiredGreenTime >= GREEN_TIME_PER_CAR || mustChange)) {
-            desiredGreenTime = Math.min(MAX_GREEN_TIME, Math.max(MIN_GREEN_TIME, desiredGreenTime));
-
-            //System.out.println("Green time: " + desiredGreenTime);
-            setGreen(greenLanes, desiredGreenTime);
-        }
+        if (greenLanes != null && (higestLaneCount > 0 || mustChange))
+            setGreen(greenLanes, GREEN_TIME);
+        
 
         if (laneSets.isEmpty())
             laneSets.addAll(getLaneSets());

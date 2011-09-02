@@ -343,10 +343,9 @@ public class MainLoop implements NodeListener, CarListener {
         
         System.out.println("===SETTINGS===");
         System.out.println("DYNAMIC TRAFFIC LIGHTS");        
-        System.out.println("-Green time per car: " + TrafficLight.GREEN_TIME_PER_CAR);        
-        System.out.println("-First car arrival ignorance time: " + TrafficLight.IGNORE_TRAFFIC_TIME);    
-        System.out.println("-Maximum green time: " + TrafficLight.MAX_GREEN_TIME);    
-        System.out.println("-Minimum green time: " + TrafficLight.MIN_GREEN_TIME);  
+        System.out.println("-Green time: " + TrafficLight.GREEN_TIME);        
+        System.out.println("-First car ignorance time: " + TrafficLight.IGNORE_TRAFFIC_TIME);
+        System.out.println("-Traffic light receive distance: " + TrafficLight.MAX_RECEIVE_DISTANCE);
         System.out.println();
         System.out.println("===VELOCITIES===");
         System.out.println("-Highways: " + Arrays.toString(highwayVelocities));
