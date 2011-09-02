@@ -127,7 +127,7 @@ public class MainLoop implements NodeListener, CarListener {
         //the file name is based on the date and time.
         //Example folder: C:\Users\Jonathan\TrafficOwnage\
         //comment this to see the output in NetBeans.
-        enableFileOutput();
+        //enableFileOutput();
 
         
         double[] highwayVelocities = new double[] {80};
@@ -189,9 +189,9 @@ public class MainLoop implements NodeListener, CarListener {
         
         //                          NAME                                    BENCHMARKED     STARTAREA   ENDAREA     SPAWNINTERVAL(s)    DRIVING
         //                          string                                  boolean         int(area)   int(area)   double(in sec.)     boolean
-        trafficManager.addMapping(  "Congested road #1",                    true,           0,          4,          8.0,                true);
+        trafficManager.addMapping(  "Congested road #1",                    true,           0,          4,          6.0,                true);
         trafficManager.addMapping(  "Peaceful road #1",                     true,           1,          4,          50.0,               true);
-        trafficManager.addMapping(  "Congested road #2",                    true,           2,          4,          8.0,                true);
+        trafficManager.addMapping(  "Congested road #2",                    true,           2,          4,          6.0,                true);
         trafficManager.addMapping(  "Peaceful road #2",                     true,           3,          4,          50.0,               true);
 
 //        trafficManager.addMapping("Random evening traffic", false,
