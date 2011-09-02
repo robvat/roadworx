@@ -179,10 +179,20 @@ public class MainLoop implements NodeListener, CarListener {
         
         //                          NAME                                    BENCHMARKED     STARTAREA   ENDAREA     SPAWNINTERVAL(s)    DRIVING
         //                          string                                  boolean         int(area)   int(area)   double(in sec.)     boolean
-        trafficManager.addMapping(  "Most congested road",                  true,           0,          4,          7.0,                true);
-        trafficManager.addMapping(  "Llittle less congested road",          true,           1,          4,          16.0,               true);
-        trafficManager.addMapping(  "Even less congested road",             true,           2,          4,          30.0,               true);
-        trafficManager.addMapping(  "Almost not congested road",            true,           3,          4,          60.0,               true);
+
+
+//        trafficManager.addMapping(  "Most congested road",                  true,           0,          4,          7.0,                true);
+//        trafficManager.addMapping(  "Llittle less congested road",          true,           1,          4,          16.0,               true);
+//        trafficManager.addMapping(  "Even less congested road",             true,           2,          4,          30.0,               true);
+//        trafficManager.addMapping(  "Almost not congested road",            true,           3,          4,          60.0,               true);
+        
+        
+        //                          NAME                                    BENCHMARKED     STARTAREA   ENDAREA     SPAWNINTERVAL(s)    DRIVING
+        //                          string                                  boolean         int(area)   int(area)   double(in sec.)     boolean
+        trafficManager.addMapping(  "Congested road #1",                    true,           0,          4,          8.0,                true);
+        trafficManager.addMapping(  "Peaceful road #1",                     true,           1,          4,          50.0,               true);
+        trafficManager.addMapping(  "Congested road #2",                    true,           2,          4,          8.0,                true);
+        trafficManager.addMapping(  "Peaceful road #2",                     true,           3,          4,          50.0,               true);
 
 //        trafficManager.addMapping("Random evening traffic", false,
 //                (double) (TimeUnit.HOURS.toSeconds(18)),
