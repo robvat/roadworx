@@ -17,8 +17,10 @@ import java.util.List;
  */
 public class TrafficLight extends Node implements TrafficLightInterface
 {
-    public static final double IGNORE_TRAFFIC_TIME = 5.0;
-    public static final double GREEN_TIME = 60.0;
+    public static final double IGNORE_TRAFFIC_TIME = 7.5;
+    public static final double GREEN_TIME = 40.0; //20,40,60,80,100,120
+    public static final double MIN_GREEN_TIME = 5.0;
+
     public static final double MAX_RECEIVE_DISTANCE = 100.0;
     
     private double greenTime;
@@ -128,10 +130,34 @@ public class TrafficLight extends Node implements TrafficLightInterface
 
     private boolean isCarOnTime(Car car)
     {
-        if (car.getDistanceToLaneEnd() >= MAX_RECEIVE_DISTANCE)
+//        if (car.getDistanceToLaneEnd() >= MAX_RECEIVE_DISTANCE)
+//            return false;
+//        else
+//            return (car.getDistanceToLaneEnd() / car.getVelocity()) < (greenTime - timePassed);
+
+        if (car.getDistanceToLaneEnd() >= MAX_RECEIVE_DISTANCE) {
             return false;
-        else
-            return (car.getDistanceToLaneEnd() / car.getVelocity()) < (greenTime - timePassed);
+        } else {
+            double s = car.getDistanceToLaneEnd();
+            double a = car.getAcceleration();
+            double v0 = car.getVelocity();
+            double arrivalTime =
+                        s
+                    /
+                            (
+                                .5
+                        *
+                                (
+                                    v0
+                                +
+                                    Math.sqrt(
+                                        (2 * s * a) + (v0 * v0)
+                                    )
+                                )
+                            );
+
+            return arrivalTime < (greenTime - timePassed);
+        }
     }
 
 
@@ -203,7 +229,7 @@ public class TrafficLight extends Node implements TrafficLightInterface
             }
         }
 
-        if (timePassed >= greenTime || (!greenWaveActive && greenRoadsEmpty))
+        if (timePassed >= greenTime || (timePassed >= MIN_GREEN_TIME && !greenWaveActive && greenRoadsEmpty))
         {
             //if we are past due, we have to force the change of traffic light
             checkForNewTraffic(timePassed >= greenTime);
