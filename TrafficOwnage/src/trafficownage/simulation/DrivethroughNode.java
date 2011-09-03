@@ -20,7 +20,7 @@ public class DrivethroughNode extends Node {
     @Override
     boolean drivethrough(Car incoming) {
         Lane lane = getLaneMapping(incoming.getLane());
-
+        
         if (lane == null || (lane != null && lane.getLastCar() != null && lane.getLastCar().getBack() < incoming.getLength()))
             return false;
         else
@@ -29,7 +29,13 @@ public class DrivethroughNode extends Node {
 
     @Override
     void acceptCar(Car incoming) {
-        this.getLaneMapping(incoming.getLane()).addCar(incoming);
+        
+        if (incoming.getNextLane() == null || !incoming.getNextLane().acceptsCarAdd(incoming))
+        {
+            System.err.println("Car did not check correctly if it could join a lane.");
+        }
+        
+        incoming.getNextLane().addCar(incoming);
     }
 
     @Override

@@ -325,7 +325,7 @@ public class Car
     private Lane nextLane;
     public void determineNextLane() { // moet weer private worden -> debugging
         nextLane = null;
-
+        
         List<Lane> lanes = currentNode.getRoadSegment(route.getNextNode()).getSourceLanes(currentNode);
 
         Lane mapped = currentNode.getLaneMapping(currentLane);
@@ -372,8 +372,9 @@ public class Car
         inQueue = false; //every time we look if this is still the case. Normally, this is turned off.
 
         //find out where, so which lane, we are intending to join
-        if (!route.isEndOfRoute() && (nextLane == null || !nextLane.acceptsCarAdd(this)))
-            determineNextLane();
+        if (!route.isEndOfRoute() && (nextLane == null || !nextLane.acceptsCarAdd(this))) {
+                determineNextLane();
+        }
         
 
         Car nextCar = getCarInFront();
@@ -427,21 +428,7 @@ public class Car
             {
                 if (route.isEndOfRoute()) {
                     //System.out.println("Car arrived at its destination.");
-
-                    if (!listeners.isEmpty())
-                        for (CarListener listener : listeners)
-                            listener.reachedDestination(this, currentLane.getEndNode());
-
-                    currentLane.removeCar(this);
-
-                    //force all references to become null
-                    carStatistics = null;
-                    listeners.clear();
-                    previousNode = null;
-                    currentLane = null;
-                    currentNode = null;
-                    nextLane = null;
-                    
+                    removeMe();                   
                 } else {
                     putInQueue(true);
                     queueTime += timestep;
@@ -451,7 +438,11 @@ public class Car
 
         if (position > position_threshold)
         {
-            currentNode.acceptCar(this);
+            if (route.isEndOfRoute())
+                removeMe();
+            else
+                currentNode.acceptCar(this);
+            
         } else if (nextCar != null && position > position_threshold) {
             System.err.println("The car in front of this car should not be there.");
         }
@@ -461,6 +452,22 @@ public class Car
         for (CarListener listener : listeners)
             listener.positionChanged(this);
 
+    }
+    
+    private void removeMe() {
+        if (!listeners.isEmpty())
+            for (CarListener listener : listeners)
+                listener.reachedDestination(this, currentLane.getEndNode());
+
+        currentLane.removeCar(this);
+
+        //force all references to become null
+        carStatistics = null;
+        listeners.clear();
+        previousNode = null;
+        currentLane = null;
+        currentNode = null;
+        nextLane = null;  
     }
 
     private final static double DISTANCE_THRESHOLD = 0.0;

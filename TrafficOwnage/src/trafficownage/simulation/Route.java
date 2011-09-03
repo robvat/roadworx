@@ -20,7 +20,7 @@ public class Route {
 
     private double optimalTravelTime;
 
-    private List<Node> nodeList;
+    public List<Node> nodeList;
 
     public Route(double optimalTravelTime, List<Node> nodeList) {
 
