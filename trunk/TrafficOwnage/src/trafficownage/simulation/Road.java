@@ -64,7 +64,6 @@ public class Road {
                 segment.setNextSegment(startSegment);
                 segment.setPreviousSegment(endSegment);
                 startSegment = segment;
-                endSegment = segment;
             } else {
                 endSegment.setNextSegment(segment);
                 segment.setPreviousSegment(endSegment);

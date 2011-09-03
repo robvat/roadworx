@@ -17,8 +17,8 @@ import java.util.List;
  */
 public class TrafficLight extends Node implements TrafficLightInterface
 {
-    public static final double IGNORE_TRAFFIC_TIME = 3.0;
-    public static final double GREEN_TIME = 40.0; //20,40,60,80,100,120
+    public static final double IGNORE_TRAFFIC_TIME = 10.0;
+    public static final double GREEN_TIME = 60.0; //20,40,60,80,100,120
     public static final double MIN_GREEN_TIME = 5.0;
 
     public static final double MAX_RECEIVE_DISTANCE = 100.0;
@@ -80,6 +80,7 @@ public class TrafficLight extends Node implements TrafficLightInterface
         {
             return false;
         }
+        
 
         return (!needsLights || greenLanes.contains(incoming.getLane())) && l.acceptsCarAdd(incoming);
 
@@ -88,13 +89,17 @@ public class TrafficLight extends Node implements TrafficLightInterface
     @Override
     void acceptCar(Car incoming)
     {
+        Lane l = incoming.getNextLane();
 
-        if (incoming.getNextLane() == null || !incoming.getNextLane().acceptsCarAdd(incoming))
+        if (l == null || !l.acceptsCarAdd(incoming))
         {
             System.err.println("Car did not check correctly if it could join a lane.");
         }
-
-        incoming.getNextLane().addCar(incoming);
+        
+        if (!incoming.getCurrentLane().getAllowedDirections().contains(l.getEndNode()))
+            System.err.println("Car is turning from the wrong lane. Should not happen.");
+        
+        l.addCar(incoming);
     }
 
     /**
