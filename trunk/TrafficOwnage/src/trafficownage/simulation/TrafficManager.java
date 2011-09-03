@@ -294,10 +294,11 @@ public class TrafficManager {
         public void export() {
             double n = arrivals;
 
+            System.out.println();
             System.out.println("Results from " + this.getName() + ".");
             System.out.println("-Cars arrived: " + n + ".");
             System.out.println("-Average index value: " + StringFormatter.getTwoDecimalDoubleString(benchmarkIndexCalculator.getAverage()) + ". variance: " + StringFormatter.getTwoDecimalDoubleString(benchmarkIndexCalculator.getVariance()));
-            System.out.println("-Average queue time: " + StringFormatter.getTimeString(queueTimeCalculator.getAverage()) + ". variance: " + StringFormatter.getTimeString(queueTimeCalculator.getVariance()));
+            //System.out.println("-Average queue time: " + StringFormatter.getTimeString(queueTimeCalculator.getAverage()) + ". variance: " + StringFormatter.getTimeString(queueTimeCalculator.getVariance()));
             System.out.println("-Average velocity: " + StringFormatter.getTwoDecimalDoubleString(averageVelocityCalculator.getAverage() * 3.6) + "kph. variance: " + StringFormatter.getTwoDecimalDoubleString(averageVelocityCalculator.getVariance() * 3.6) + "kph.");
         }
 

@@ -121,13 +121,13 @@ public class MainLoop implements NodeListener, CarListener {
 //        currentDaySimulatedTime = overallSimulatedTime % DAY;
 
         //commenting the setEndTime line will make the application loop eternally
-        setEndTime((double) TimeUnit.HOURS.toSeconds(12) + (double) TimeUnit.MINUTES.toSeconds(5));
+        setEndTime((double) TimeUnit.HOURS.toSeconds(3) + (double) TimeUnit.MINUTES.toSeconds(5));
         
         //Sends console output to text files in a TrafficOwnage folder in your profile folder.
         //the file name is based on the date and time.
         //Example folder: C:\Users\Jonathan\TrafficOwnage\
         //comment this to see the output in NetBeans.
-        //enableFileOutput();
+        enableFileOutput();
 
         
         double[] highwayVelocities = new double[] {80};
@@ -151,7 +151,7 @@ public class MainLoop implements NodeListener, CarListener {
 
         SingleNodeGenerator gen = new SingleNodeGenerator();
 
-        gen.generate(SingleNodeGenerator.NODE_DYNAMIC_TRAFFICLIGHT, new double[] {5000.0,5000.0,5000.0,5000.0},new int[][] {{0,2},{1,3}},50.0 / 3.6,1);
+        gen.generate(SingleNodeGenerator.NODE_DYNAMIC_TRAFFICLIGHT, new double[] {500.0,500.0,500.0,500.0},new int[][] {{0,2},{1,3}},50.0 / 3.6,1);
 
         nodes = gen.getNodes();
         roads = gen.getRoads();
@@ -189,9 +189,9 @@ public class MainLoop implements NodeListener, CarListener {
         
         //                          NAME                                    BENCHMARKED     STARTAREA   ENDAREA     SPAWNINTERVAL(s)    DRIVING
         //                          string                                  boolean         int(area)   int(area)   double(in sec.)     boolean
-        trafficManager.addMapping(  "Congested road #1",                    true,           0,          4,          6.0,                true);
+        trafficManager.addMapping(  "Congested road #1",                    true,           0,          4,          5.0,                true);
         trafficManager.addMapping(  "Peaceful road #1",                     true,           1,          4,          50.0,               true);
-        trafficManager.addMapping(  "Congested road #2",                    true,           2,          4,          6.0,                true);
+        trafficManager.addMapping(  "Congested road #2",                    true,           2,          4,          5.0,                true);
         trafficManager.addMapping(  "Peaceful road #2",                     true,           3,          4,          50.0,               true);
 
 //        trafficManager.addMapping("Random evening traffic", false,

@@ -53,6 +53,7 @@ public class NormalJunction extends Node {
                 && 
                     priorityRoad == incoming.getLane().getRoadSegment().getRoad() 
                 );
+
         boolean otherCarPriority;
         
         boolean laneIntersect;

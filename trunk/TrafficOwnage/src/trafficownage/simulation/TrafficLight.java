@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class TrafficLight extends Node implements TrafficLightInterface
 {
-    public static final double IGNORE_TRAFFIC_TIME = 7.5;
+    public static final double IGNORE_TRAFFIC_TIME = 3.0;
     public static final double GREEN_TIME = 40.0; //20,40,60,80,100,120
     public static final double MIN_GREEN_TIME = 5.0;
 
