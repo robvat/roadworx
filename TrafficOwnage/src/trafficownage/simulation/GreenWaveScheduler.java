@@ -32,6 +32,7 @@ public class GreenWaveScheduler
     public void init(List<Road> roads)
     {
         nodeLists = new ArrayList<List<Node>>();
+
         for (Road r : roads)
         {
             nodeLists.add(r.getNodes());
@@ -44,7 +45,9 @@ public class GreenWaveScheduler
         secondWayGreenWaves = new ArrayList<GreenWave>();
 
         firstWayRoads.add(nodeLists.get(0));
-        for (int i =1; i <nodeLists.size(); i++){
+
+        for (int i = 1; i < nodeLists.size(); i++) {
+
             if (hasIntersection(firstWayRoads.get(0), nodeLists.get(i)))
                 secondWayRoads.add(nodeLists.get(i));
             else
@@ -83,8 +86,8 @@ public class GreenWaveScheduler
             greenWaves.add(gv);
         }
 
-        for (int i=0; i<secondWayRoads.size();i++){
-            timeSecondWayWaves.add((i*secondWayGreenWaves.get(i).getGreenTime()) + GreenWave.OVERLAP_TIME);
+        for (int i = 0; i < secondWayRoads.size(); i++){
+            timeSecondWayWaves.add((i * secondWayGreenWaves.get(i).getGreenTime()) + GreenWave.OVERLAP_TIME);
         }
     }
 
@@ -100,7 +103,7 @@ public class GreenWaveScheduler
 
     public void update(double timeStep){
         counter += timeStep;
-        if (counter >= timeSecondWayWaves.get(nextWave)){
+        if (counter >= timeSecondWayWaves.get(nextWave)) {
             secondWayGreenWaves.get(nextWave).startWave(reverse);
             nextWave++;
         }
@@ -111,13 +114,13 @@ public class GreenWaveScheduler
         ArrayList<List<Node>> firstHalf = new ArrayList<List<Node>>();
         ArrayList<List<Node>> secondHalf = new ArrayList<List<Node>>();
         
-        if (original.size()>2){
-            for (int i=0; i<(original.size()/2);i++){
+        if (original.size() > 2){
+            for (int i = 0; i < (original.size() / 2); i++){
                 firstHalf.add(original.get(i));
             }
             firstHalf = sort(firstHalf);
 
-            for (int i=(original.size()/2)+1;i<original.size();i++){
+            for (int i=(original.size() / 2) + 1; i < original.size(); i++){
                 secondHalf.add(original.get(i));
             }
             secondHalf = sort(secondHalf);
@@ -136,9 +139,9 @@ public class GreenWaveScheduler
                 return original;
         }
         else if (original.size() == 2){
-            if (sort(original.get(0),original.get(1)) ==1)
+            if (sort(original.get(0),original.get(1)) == 1)
                 return original;
-            else if (sort(original.get(0),original.get(1))==-1){
+            else if (sort(original.get(0),original.get(1)) == -1){
                 copy.set(0, original.get(1));
                 copy.set(1, original.get(0));
                 return copy;
@@ -206,20 +209,20 @@ public class GreenWaveScheduler
 
         //this method initializes the green wave, which means it starts the counter of a green wave
         //@param the boolean stands for if you start the green wave from the begin or the end(reverse = true).
-        public void startWave(Boolean Reverse)
+        public void startWave(Boolean reverse)
         {
-            reverse = Reverse;
+            this.reverse = reverse;
             counter = 0;
             nextNode = 1; //since the node 0 in the trafficlightlist is a dynamic light, and is used for determining green time
             if (!reverse){
                 Road waveRoad = trafficLightList.get(0).getRoadSegment(trafficLightList.get(1)).getRoad();
                 greenTime = 10;//greenTime = trafficLightList.get(0).getDesiredGreenTime(waveRoad);
-                TrafficLight x = trafficLightList.get(trafficLightList.size()-1);
+                TrafficLight x = trafficLightList.get(trafficLightList.size() - 1);
                 List<Lane> greenLanes = endNode.getRoadSegment((Node) x).getDestinationLanes(x);
                 x.setGreen(greenLanes, greenTime);
             }
             else{
-                Road waveRoad = trafficLightList.get(trafficLightList.size()-1).getRoadSegment(trafficLightList.get(trafficLightList.size()-2)).getRoad();
+                Road waveRoad = trafficLightList.get(trafficLightList.size() - 1).getRoadSegment(trafficLightList.get(trafficLightList.size() - 2)).getRoad();
                 greenTime = 10;//greenTime = trafficLightList.get(trafficLightList.size()-1).getDesiredGreenTime(waveRoad);
                 TrafficLight x = trafficLightList.get(0);
                 List<Lane> greenLanes = startNode.getRoadSegment((Node) x).getDestinationLanes(x);
@@ -236,8 +239,8 @@ public class GreenWaveScheduler
                 TrafficLight x = trafficLightList.get(nextNode);
                 List<Lane> greenLanes = trafficLightList.get(nextNode - 1).getRoadSegment((Node) x).getDestinationLanes(x);
                 x.setGreen(greenLanes, greenTime);
-                x = trafficLightList.get((trafficLightList.size()-1) - nextNode);
-                greenLanes = trafficLightList.get(((trafficLightList.size()-1)-nextNode) +1).getRoadSegment((Node) x).getDestinationLanes(x);
+                x = trafficLightList.get((trafficLightList.size() - 1) - nextNode);
+                greenLanes = trafficLightList.get(((trafficLightList.size() - 1) - nextNode) + 1).getRoadSegment((Node) x).getDestinationLanes(x);
                 x.setGreen(greenLanes, greenTime);
                 nextNode++;
             }            
