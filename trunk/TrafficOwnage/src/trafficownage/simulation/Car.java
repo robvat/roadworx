@@ -407,8 +407,11 @@ public class Car
 
         int method = -1;
         double p_before = position;
-        
-        if (!this.laneChanging(nextCar, distanceToNextCar)) {
+//        if (!route.isEndOfRoute() && !this.getCurrentLane().getAllowedDirections().contains(getNextLane().getEndNode()))
+//            System.err.println("yeshyesh");
+
+        boolean swatch = this.laneChanging(nextCar, distanceToNextCar);
+        if (!swatch) {
 
             if (nextCar != null)
             {
@@ -645,7 +648,12 @@ public class Car
 
             int newId, direction = 0;
 
-            for (Lane l : currentNode.getIncomingLanes()) {
+            /*
+             * Now lets check all the lanes next to this car
+             * Does any of them go to the right direction ?
+             * IF one does then go INTO THAT DIRECTION!
+             */
+            for (Lane l : currentLane.getRoadSegment().getDestinationLanes(currentNode)) {
                 if (l.getAllowedDirections().contains(this.getNextNode())) {
                     newId = l.getLaneId();
                     direction = Integer.signum(newId - currentId);
