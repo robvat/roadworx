@@ -15,6 +15,7 @@ import java.util.List;
  */
 public class NormalJunction extends Node {
 
+    private static final double BRAKE_DISTANCE = 3.05;
 
     public NormalJunction(Point2D.Double location){
         super(location);
@@ -22,7 +23,9 @@ public class NormalJunction extends Node {
 
     @Override
     public boolean drivethrough(Car incoming) { 
-        
+        if (incoming.getDistanceToLaneEnd() > BRAKE_DISTANCE){
+            return false;
+        }
         double arrivalTime;
         
         //this car is destined for this node, no need to check further
@@ -143,8 +146,8 @@ public class NormalJunction extends Node {
     //this constant is important!!! it is multiplied with the speed of the other cars
     //from a waiting cars perspective. The outcome is the number of seconds the car will
     //take into account as overlap in arrival times.    
-    private static final double OVERLAP_CONSTANT = 0.1;
-    private static final double MIN_OVERLAP = 1.0;
+    private static final double OVERLAP_CONSTANT = 500.0;
+    private static final double MIN_OVERLAP = 500.0;
     private static final double VELOCITY_THRESHOLD = 2.0;
 
     
