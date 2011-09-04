@@ -411,6 +411,8 @@ public class Car
 //            System.err.println("yeshyesh");
 
         boolean swatch = this.laneChanging(nextCar, distanceToNextCar);
+
+
         if (!swatch) {
 
             if (nextCar != null)
@@ -444,7 +446,11 @@ public class Car
             if (route.isEndOfRoute())
                 removeMe();
             else
+            {
+                if (!route.isEndOfRoute() && !this.getCurrentLane().getAllowedDirections().contains(getNextLane().getEndNode()))
+                    System.err.println("KUTJEBEF");
                 currentNode.acceptCar(this);
+            }
             
         } else if (nextCar != null && position > position_threshold) {
             System.err.println("The car in front of this car should not be there.");
@@ -547,11 +553,11 @@ public class Car
         {
             //we assume that position is distance from previous node; so lane length - position = distance to next node
             //if the turn is less than 10s away
-            if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 10.0)
+            if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 20.0)
             {
                 importance[0] = ESSENTIAL;
                 done = false;
-            } else if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 50.0)
+            } else if ((this.getLane().getLength() - this.getPosition()) / this.getVelocity() < 100.0)
             {
                 //if the turn is between 10s and 50s away -> desirable
                 importance[0] = DESIRABLE;
@@ -683,8 +689,8 @@ public class Car
         Car carInFront = laneChangeParameters.getObject2();
         Car carBehind = laneChangeParameters.getObject3();
 
-        if (!laneChangeParameters.getObject1())
-            return false;
+        boolean fits = laneChangeParameters.getObject1();
+        // No immidiate collision when moving
 
         if (carInFront == null && carBehind == null)
         {
@@ -693,10 +699,12 @@ public class Car
             return changeLane(desiredLane, carInFront, carBehind);
         } else if (carBehind == null)
         {
-            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront() -2.0) / (this.getVelocity() - carInFront.getVelocity());    //2 meters for safety
+            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront()) / (this.getVelocity() - carInFront.getVelocity());  
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
-            if (timeUntilCrashWithCarF < this.getDriverType().getDesiredTimeHeadway())
+            if(importance[0] == ESSENTIAL && fits) //quickfix, its possible so lets do it
+                return changeLane(desiredLane, carInFront, carBehind);
+            if ((timeUntilCrashWithCarF > 0) && (timeUntilCrashWithCarF < this.getDriverType().getDesiredTimeHeadway()))
             {
                 return false;
             }
@@ -709,6 +717,7 @@ public class Car
                 return false;
             } else if (!laneChangeParameters.getObject1() && importance[0] == ESSENTIAL) //TODO: slow down yourself
             {
+                // Problem with adding into a lane without room (and with only cars infront of you)
                 return false;
             } else if (!((this.getVelocity() - carInFront.getVelocity()) < decceleratedVelocity))
             {
@@ -716,14 +725,23 @@ public class Car
             } else
             {
                 //change lane :D
-                return changeLane(desiredLane, carInFront, carBehind);
+                if(fits)
+                {
+                    return changeLane(desiredLane, carInFront, carBehind);
+                }
+                else
+                {
+                    return false;
+                }
             }
         } else if (carInFront == null)
         {
-            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront() -2.0) / (carBehind.getVelocity() - this.getVelocity());    //2m for safety
+            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront()) / (carBehind.getVelocity() - this.getVelocity()); 
             double decceleratedVelocity2 = timeUntilCrashWithMe * carBehind.getDriverType().getMaxComfortableDeceleration();
 
-            if (timeUntilCrashWithMe < carBehind.getDriverType().getDesiredTimeHeadway())
+            if(importance[0] == ESSENTIAL && fits) //quickfix, its possible so lets do it
+                return changeLane(desiredLane, carInFront, carBehind);
+            if ((timeUntilCrashWithMe > 0) && (timeUntilCrashWithMe < carBehind.getDriverType().getDesiredTimeHeadway()))
             {
                 return false;
             }
@@ -743,22 +761,29 @@ public class Car
             } else
             {
                 //change lane :D
-                return changeLane(desiredLane, carInFront, carBehind);
+                if(fits)
+                {
+                    return changeLane(desiredLane, carInFront, carBehind);
+                }
+                else
+                {
+                    return false;
+                }
             }
         } else
         {
-            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront() -2.0) / (this.getVelocity() - carInFront.getVelocity());    //2m for safety
+            double timeUntilCrashWithCarF = (carInFront.getBack() - this.getFront()) / (this.getVelocity() - carInFront.getVelocity());    //2m for safety
             double decceleratedVelocity = timeUntilCrashWithCarF * this.getDriverType().getMaxComfortableDeceleration();
 
-            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront() -2.0) / (carBehind.getVelocity() - this.getVelocity());    //2m for safety
+            double timeUntilCrashWithMe = (this.getBack() - carBehind.getFront()) / (carBehind.getVelocity() - this.getVelocity());    //2m for safety
             double decceleratedVelocity2 = timeUntilCrashWithMe * carBehind.getDriverType().getMaxComfortableDeceleration();
 
             //check that they aren't overlapping you
-            if (timeUntilCrashWithCarF < this.getDriverType().getDesiredTimeHeadway())
+            if ((timeUntilCrashWithCarF > 0) && (timeUntilCrashWithCarF < this.getDriverType().getDesiredTimeHeadway()))
             {
                 return false;
             }
-            if (timeUntilCrashWithMe < carBehind.getDriverType().getDesiredTimeHeadway())
+            if ((timeUntilCrashWithMe > 0) && (timeUntilCrashWithMe < carBehind.getDriverType().getDesiredTimeHeadway()))
             {
                 return false;
             }
@@ -778,6 +803,8 @@ public class Car
                     || carBehind.getFront() > this.getBack() && importance[0] == ESSENTIAL)
             {
                 return sendCourtesyRequest(carBehind);
+                // still some faults in this code but it is never reached anywayz
+                // fault1 : He would drive past the gap!
             } else if (!((this.getVelocity() - carInFront.getVelocity()) < decceleratedVelocity)
                     || !((carBehind.getVelocity() - this.getVelocity()) < decceleratedVelocity2))
             {
@@ -786,7 +813,14 @@ public class Car
             } else
             {
                 //change lane :D
-                return changeLane(desiredLane, carInFront, carBehind);
+                if(fits)
+                {
+                    return changeLane(desiredLane, carInFront, carBehind);
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
     }
