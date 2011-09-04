@@ -17,11 +17,17 @@ import java.util.List;
  */
 public class TrafficLight extends Node implements TrafficLightInterface
 {
+    private static int LANESCOREMETHOD_DISTANCE_FRACTION = 0;
+    private static int LANESCOREMETHOD_ARRIVAL_TIME = 1;
+    
+    public static int LANESCOREMETHOD = LANESCOREMETHOD_DISTANCE_FRACTION;
+    
     public static final double IGNORE_TRAFFIC_TIME = 10.0;
     public static final double GREEN_TIME = 60.0; //20,40,60,80,100,120
     public static final double MIN_GREEN_TIME = 5.0;
 
-    public static final double MAX_RECEIVE_DISTANCE = 100.0;
+    public static final double MAX_TRAFFICLIGHT_RECEIVE_DISTANCE = 100.0;
+    public static final double MAX_CAR_RECEIVE_DISTANCE = 100.0;
     
     private double greenTime;
     private double timePassed;
@@ -116,23 +122,67 @@ public class TrafficLight extends Node implements TrafficLightInterface
         timePassed = 0.0;
     }
 
-
-    public int getHighestLaneCount(List<Lane> lanes)
-    {
-
-        int laneCount = 0;
+    
+    
+    public double getLaneSetScore(List<Lane> lanes)
+    {        
+        double laneSetScore = 0.0;
 
         for (Lane l : lanes)
         {
             if (!l.hasCars())
                 continue;
 
-            laneCount = Math.max(laneCount, l.getQueueCount());
+            double score = 0.0;
+            
+            if (LANESCOREMETHOD == LANESCOREMETHOD_DISTANCE_FRACTION) {
+                
+                if (l.getFirstCar().getDistanceToLaneEnd() < MAX_TRAFFICLIGHT_RECEIVE_DISTANCE) {
+                    Car car = l.getFirstCar();
+
+                    score = 1.0 / car.getDistanceToLaneEnd();
+
+                    while (car.getCarBehind() != null && car.getBack() - car.getCarBehind().getFront() < MAX_CAR_RECEIVE_DISTANCE) {
+                        car = car.getCarBehind();
+
+                        score += (1.0 / car.getDistanceToLaneEnd());
+                    }
+                }
+                
+            } else if (LANESCOREMETHOD == LANESCOREMETHOD_ARRIVAL_TIME) {
+                
+                if (l.getFirstCar().getDistanceToLaneEnd() < MAX_TRAFFICLIGHT_RECEIVE_DISTANCE) {                    
+                    score = 1.0 / determineArrivalTime(l.getFirstCar());
+                }
+                
+            }
+            
+            laneSetScore += score;
         }
 
-        return laneCount;
+        return laneSetScore;
     }
 
+    private double determineArrivalTime(Car car) {
+        double s = car.getDistanceToLaneEnd();
+        double a = car.getAcceleration();
+        double v0 = car.getVelocity();
+        return
+                    s
+                /
+                        (
+                            .5
+                    *
+                            (
+                                v0
+                            +
+                                Math.sqrt(
+                                    (2 * s * a) + (v0 * v0)
+                                )
+                            )
+                        );            
+    }
+    
     private boolean isCarOnTime(Car car)
     {
 //        if (car.getDistanceToLaneEnd() >= MAX_RECEIVE_DISTANCE)
@@ -140,28 +190,10 @@ public class TrafficLight extends Node implements TrafficLightInterface
 //        else
 //            return (car.getDistanceToLaneEnd() / car.getVelocity()) < (greenTime - timePassed);
 
-        if (car.getDistanceToLaneEnd() >= MAX_RECEIVE_DISTANCE) {
+        if (car.getDistanceToLaneEnd() >= MAX_TRAFFICLIGHT_RECEIVE_DISTANCE) {
             return false;
         } else {
-            double s = car.getDistanceToLaneEnd();
-            double a = car.getAcceleration();
-            double v0 = car.getVelocity();
-            double arrivalTime =
-                        s
-                    /
-                            (
-                                .5
-                        *
-                                (
-                                    v0
-                                +
-                                    Math.sqrt(
-                                        (2 * s * a) + (v0 * v0)
-                                    )
-                                )
-                            );
-
-            return arrivalTime < (greenTime - timePassed);
+            return determineArrivalTime(car) < (greenTime - timePassed);
         }
     }
 
@@ -169,26 +201,41 @@ public class TrafficLight extends Node implements TrafficLightInterface
     private Comparator<List<Lane>> laneSetComparator = new Comparator<List<Lane>>() {
 
         public int compare(List<Lane> o1, List<Lane> o2) {
-            return (int)Math.signum(getHighestLaneCount(o2) - getHighestLaneCount(o1));
+            return (int)Math.signum(getLaneSetScore(o2) - getLaneSetScore(o1));
         }
 
     };
 
     private void checkForNewTraffic(boolean mustChange)
     {
-        int higestLaneCount = 0;
+        double laneSetScore;
+        double highestLaneSetScore = 0;
+        List<Lane> highestLaneSet = null;
 
         Collections.sort(laneSets, laneSetComparator);
 
-        List<Lane> greenLanes = null;
-
-        while (!laneSets.isEmpty() && higestLaneCount == 0) {
-            greenLanes = laneSets.poll();
-            higestLaneCount = getHighestLaneCount(greenLanes);
+        
+        for (List<Lane> laneSet : laneSets) {
+            laneSetScore = getLaneSetScore(laneSet);
+            
+            if (highestLaneSet == null || highestLaneSetScore < laneSetScore) {
+                highestLaneSetScore = laneSetScore;
+                highestLaneSet = laneSet;
+            }
         }
+        
+        if (highestLaneSet == null)
+            highestLaneSet = laneSets.poll();
+        else
+            laneSets.remove(highestLaneSet);
 
-        if (greenLanes != null && (higestLaneCount > 0 || mustChange))
-            setGreen(greenLanes, GREEN_TIME);
+//        while (!laneSets.isEmpty() && highestLaneScore == 0) {
+//            greenLanes = laneSets.poll();
+//            highestLaneScore = getHighestLaneScore(greenLanes);
+//        }
+//
+        if (highestLaneSet != null && (highestLaneSetScore > 0.0 || mustChange))
+            setGreen(highestLaneSet, GREEN_TIME);
         
 
         if (laneSets.isEmpty())
