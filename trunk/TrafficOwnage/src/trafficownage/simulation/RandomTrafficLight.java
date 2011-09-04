@@ -23,7 +23,9 @@ public class RandomTrafficLight extends Node implements TrafficLightInterface
      * this is the max it will go */
     public double maxTime;
     private boolean randomInterval;
-    
+    private boolean overlap;
+
+    private static final List<Lane> emptyList = new ArrayList<Lane>();
     private double trafficLightInterval;
     private HashMap<RoadSegment, Boolean> trafficLights;
     private List<RoadSegment> roadSegments;
@@ -53,7 +55,8 @@ public class RandomTrafficLight extends Node implements TrafficLightInterface
         randomizer = new Random();
         currentLight = 0;
         timePassed = 0.0;
-        maxTime = 8.0;
+        overlap = false;
+        maxTime = 60.0;
 
        if(trafficLightInterval == RandomTrafficLight.RANDOMINTERVAL)
        {
@@ -113,6 +116,9 @@ public class RandomTrafficLight extends Node implements TrafficLightInterface
      */
     public List<Lane> getGreenLanes()
     {
+        if (overlap){
+            return emptyList;
+        }
         return roadSegments.get(currentLight).getDestinationLanes(this);
     }
 
@@ -123,20 +129,25 @@ public class RandomTrafficLight extends Node implements TrafficLightInterface
 
         timePassed += timestep;
 
-        if (timePassed > trafficLightInterval) //it's that time again!
+        if (timePassed > trafficLightInterval && !overlap) //it's that time again!
         {
-            currentLight = randomizer.nextInt(roadSegments.size());
-
             for (int i = 0; i < roadSegments.size(); i++)
             {
-                trafficLights.put(roadSegments.get(i), i == currentLight);
+                trafficLights.put(roadSegments.get(i),false);
             }
+            overlap = true;
+        }
 
+        if (timePassed > trafficLightInterval + 3.0){
+            currentLight = randomizer.nextInt(roadSegments.size());
 
+              trafficLights.put(roadSegments.get(currentLight), true);
+            
             if(randomInterval)
                 trafficLightInterval = (randomizer.nextDouble() * maxTime);
 
             timePassed = 0.0;
+            overlap = false;
         }
     }
 }
