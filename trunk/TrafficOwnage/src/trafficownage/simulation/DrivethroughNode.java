@@ -19,7 +19,7 @@ public class DrivethroughNode extends Node {
 
     @Override
     boolean drivethrough(Car incoming) {
-        Lane lane = getLaneMapping(incoming.getLane());
+        Lane lane = incoming.getNextLane();
         
         if (lane == null || (lane != null && lane.getLastCar() != null && lane.getLastCar().getBack() < incoming.getLength()))
             return false;

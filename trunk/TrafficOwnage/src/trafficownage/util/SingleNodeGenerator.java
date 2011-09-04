@@ -185,7 +185,7 @@ public class SingleNodeGenerator {
 
     /**
      * Self explanatory
-     * @return a hasmap of areas
+     * @return a hashmap of areas
      */
     public HashMap<Integer,List<Node>> getAreas() {
         return areas;
@@ -200,7 +200,7 @@ public class SingleNodeGenerator {
     }
 
     /**
-     * Selft explanatory
+     * Self explanatory
      * @return a list of roads
      */
 
