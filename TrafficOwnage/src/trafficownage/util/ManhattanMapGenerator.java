@@ -202,7 +202,7 @@ public class ManhattanMapGenerator {
         
         for (int i = 0; i < lanesPerSide; i++) {
             rs.addLeftStartLane(i, false);
-            rs.addLeftEndLane(lanesPerSide + i, false);
+            rs.addLeftEndLane(/*lanesPerSide + */i, false);
         }  
 
         return rs;
@@ -221,20 +221,20 @@ public class ManhattanMapGenerator {
                 if (i == 0) {
                     List<Node> nodes = new ArrayList<Node>();                    
                     nodes.add(grid[x1][y2+1]);
-                    nodes.add(grid[x1-1][y2]);
+                    nodes.add(grid[x2-1][y2]);
                     rs.addLeftStartLane(i, nodes, false);
                 } else if (i == lanesPerSide - 1) {
                     List<Node> nodes = new ArrayList<Node>();                    
                     nodes.add(grid[x1][y2+1]);
-                    nodes.add(grid[x1+1][y2]);
+                    nodes.add(grid[x2+1][y2]);
                     rs.addLeftStartLane(i, nodes, false);
                 } else {
                     List<Node> nodes = new ArrayList<Node>();                    
-                    nodes.add(grid[x1][y2+1]);
+                    nodes.add(grid[x2][y2+1]);
                     rs.addLeftStartLane(i, nodes, false);
                 }
                 
-                rs.addLeftEndLane(lanesPerSide + i, false);
+                rs.addLeftEndLane(/*lanesPerSide + */i, false);
             }
             
         } else if (mainRoadIntersectionType == APPROACHING_MAINROAD_HORIZONTAL) {            
@@ -243,21 +243,21 @@ public class ManhattanMapGenerator {
                 
                 if (i == 0) {
                     List<Node> nodes = new ArrayList<Node>();                    
-                    nodes.add(grid[x2+1][y1]);
-                    nodes.add(grid[x2][y1+1]);
+                    nodes.add(grid[x2+1][y2]);
+                    nodes.add(grid[x2][y2+1]);
                     rs.addLeftStartLane(i, nodes, false);
                 } else if (i == lanesPerSide - 1) {
                     List<Node> nodes = new ArrayList<Node>();                    
-                    nodes.add(grid[x2+1][y1]);
-                    nodes.add(grid[x2][y1-1]);
+                    nodes.add(grid[x2+1][y2]);
+                    nodes.add(grid[x2][y2-1]);
                     rs.addLeftStartLane(i, nodes, false);
                 } else {
                     List<Node> nodes = new ArrayList<Node>();                    
-                    nodes.add(grid[x2+1][y1]);
+                    nodes.add(grid[x2+1][y2]);
                     rs.addLeftStartLane(i, nodes, false);
                 }
                 
-                rs.addLeftEndLane(lanesPerSide + i, false);
+                rs.addLeftEndLane(/*lanesPerSide + */i, false);
             }
             
         } else if (mainRoadIntersectionType == LEAVING_MAINROAD_VERTICAL) {
@@ -268,20 +268,19 @@ public class ManhattanMapGenerator {
                     List<Node> nodes = new ArrayList<Node>();                    
                     nodes.add(grid[x1][y1-1]);
                     nodes.add(grid[x1+1][y1]);
-                    rs.addLeftEndLane(lanesPerSide + i, nodes, false);
+                    rs.addLeftEndLane(/*lanesPerSide + */i, nodes, false);
                 } else if (i == lanesPerSide - 1) {
                     List<Node> nodes = new ArrayList<Node>();                    
                     nodes.add(grid[x1][y1-1]);
                     nodes.add(grid[x1-1][y1]);
-                    rs.addLeftEndLane(lanesPerSide + i, nodes, false);
+                    rs.addLeftEndLane(/*lanesPerSide + */i, nodes, false);
                 } else {
                     List<Node> nodes = new ArrayList<Node>();                    
                     nodes.add(grid[x1][y1-1]);
-                    rs.addLeftEndLane(lanesPerSide + i, nodes, false);
+                    rs.addLeftEndLane(/*lanesPerSide + */i, nodes, false);
                 }
                 
                 rs.addLeftStartLane(i, false);
-//                rs.addLeftEndLane(lanesPerSide + i, nodes, false);
             }
             
         } else if (mainRoadIntersectionType == LEAVING_MAINROAD_HORIZONTAL) {         
@@ -292,16 +291,16 @@ public class ManhattanMapGenerator {
                     List<Node> nodes = new ArrayList<Node>();                    
                     nodes.add(grid[x1-1][y1]);
                     nodes.add(grid[x1][y1-1]);
-                    rs.addLeftEndLane(lanesPerSide + i, nodes, false);
+                    rs.addLeftEndLane(/*lanesPerSide + */i, nodes, false);
                 } else if (i == lanesPerSide - 1) {
                     List<Node> nodes = new ArrayList<Node>();                    
                     nodes.add(grid[x1-1][y1]);
                     nodes.add(grid[x1][y1+1]);
-                    rs.addLeftEndLane(lanesPerSide + i, nodes, false);
+                    rs.addLeftEndLane(/*lanesPerSide + */i, nodes, false);
                 } else {
                     List<Node> nodes = new ArrayList<Node>();                    
                     nodes.add(grid[x1-1][y1]);
-                    rs.addLeftEndLane(lanesPerSide + i, nodes, false);
+                    rs.addLeftEndLane(/*lanesPerSide + */i, nodes, false);
                 }
                 
                 rs.addLeftStartLane(i, false);
@@ -309,7 +308,7 @@ public class ManhattanMapGenerator {
         } else {
             for (int i = 0; i < lanesPerSide; i++) {
                 rs.addLeftStartLane(i, false);
-                rs.addLeftEndLane(lanesPerSide + i, false);
+                rs.addLeftEndLane(/*lanesPerSide + */i, false);
             }   
         }
 
@@ -435,7 +434,7 @@ public class ManhattanMapGenerator {
 
                 if (approachingMainRoadIntersection)
                     intersectionType = APPROACHING_MAINROAD_VERTICAL;
-                if (leavingMainRoadIntersection)
+                else if (leavingMainRoadIntersection)
                     intersectionType = LEAVING_MAINROAD_VERTICAL;
                 else
                     intersectionType = NO_MAINROAD_INTERSECTION;
@@ -489,12 +488,12 @@ public class ManhattanMapGenerator {
                 n1 = grid[x][y];
                 n2 = grid[x+1][y];
                 
-                approachingMainRoadIntersection = isMainRoadIntersection(x,y+1);
+                approachingMainRoadIntersection = isMainRoadIntersection(x+1,y);
                 leavingMainRoadIntersection = isMainRoadIntersection(x,y);
                 
                 if (approachingMainRoadIntersection)
                     intersectionType = APPROACHING_MAINROAD_HORIZONTAL;
-                if (leavingMainRoadIntersection)
+                else if (leavingMainRoadIntersection)
                     intersectionType = LEAVING_MAINROAD_HORIZONTAL;
                 else
                     intersectionType = NO_MAINROAD_INTERSECTION;

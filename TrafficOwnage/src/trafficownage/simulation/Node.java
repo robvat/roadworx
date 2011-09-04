@@ -37,7 +37,6 @@ public abstract class Node
     private static int[][][][][] INTERSECTION_ARRAY;
 
     private List<Lane> incomingLanes;
-    private HashMap<Lane,Lane> laneMap;
 
     private NodeListener listener;
 
@@ -65,8 +64,6 @@ public abstract class Node
 
         spawnCars = new ArrayList<Car>();
 
-        laneMap = new HashMap<Lane, Lane>();
-
         nodeType = 0;
     }
 
@@ -87,7 +84,7 @@ public abstract class Node
 
         determineIncomingLanes();
 
-        determineLaneMapping();
+        determineAllowedDirections();
         
         determineDrivePermissions();
         
@@ -149,6 +146,36 @@ public abstract class Node
                 simultaneousLaneSets.add(lanes);
             }
         }
+        
+        boolean remove = false;
+        
+        List<Lane> lanes1 = null;
+        for (int i = 0; i < simultaneousLaneSets.size(); i++) {
+            lanes1 = simultaneousLaneSets.get(i);
+            
+            remove = false;
+            
+            for (List<Lane> lanes2 : simultaneousLaneSets) {
+                if (lanes1 != lanes2 && isSubsetOf(lanes2, lanes1)) {
+                    remove = true;
+                    break;
+                }
+            }
+            
+            if (remove)
+                simultaneousLaneSets.remove(i);
+            else
+                i++;
+        }        
+    }
+    
+    private boolean isSubsetOf(List<Lane> parent, List<Lane> child) {
+        for (Lane childLane : child) 
+            if (!parent.contains(childLane))
+                return false;
+        
+        return true;
+        
     }
     
     private boolean intersects(Integer newLaneIndex, ArrayDeque<Integer> otherLaneIndices) {
@@ -171,13 +198,35 @@ public abstract class Node
         List<Node> nodes1 = startLane1.getAllowedDirections();
         List<Node> nodes2 = startLane2.getAllowedDirections();
         
+        boolean sameSource = startLane1.getStartNode() == startLane2.getStartNode();
+        boolean sameDestination;
+                
+        //for all nodes we are allowed to drive to from startLane1
         for (Node node1 : nodes1) {
-            for (Lane endLane1 : node1.getRoadSegment(this).getSourceLanes(this)) {
+            
+            if (node1.getRoadSegment(this) == null) {
+                System.err.println("Cant find neighbour: " + this.toString() + "," + node1.toString());
+                continue;
+            }
+            
+            //for all lanes we can access from node1
+            for (Lane endLane1 : node1.getRoadSegment(this).getSourceLanes(this)) {  
+                
+                //for all nodes we are allowed to drive to from startLane2
                 for (Node node2 : nodes2) {
+                    
+                    if (node2.getRoadSegment(this) == null) {
+                        System.err.println("Cant find neighbour: " + this.toString() + "," + node2.toString());
+                        continue;
+                    }
+                    //for all lanes we can access from node2
                     for (Lane endLane2 : node2.getRoadSegment(this).getSourceLanes(this)) {
-                        if (this.intersects(startLane1, endLane1, startLane2, endLane2)) {
+                        
+                        sameDestination = endLane1.getEndNode() == endLane2.getEndNode();
+                        if (!(sameSource && sameDestination) && this.intersects(startLane1, endLane1, startLane2, endLane2)) {
                             return true;
                         }
+                        
                     }
                 }
             }
@@ -256,8 +305,8 @@ public abstract class Node
             return true;
         else if (intersects == INTERSECTION_SAME_DESTINATION) {
             //TODO: Here we need to check which lane is more right or left
-            int rightDistance1 = rightDistance(endLane1, startLane1);
-            int rightDistance2 = rightDistance(endLane1, startLane2);
+            int rightDistance1 = rightDistance(neighbourNodes.indexOf(endLane1.getEndNode()), neighbourNodes.indexOf(startLane1.getStartNode()));
+            int rightDistance2 = rightDistance(neighbourNodes.indexOf(endLane1.getEndNode()), neighbourNodes.indexOf(startLane2.getStartNode()));
             
             //if the first route is closer to the right of the destination,
             //it intersects if its lane is more right than the lane of the second route
@@ -275,7 +324,26 @@ public abstract class Node
                 return false;
         } else if (intersects == INTERSECTION_SAME_SOURCE) {
             //TODO: check this too
-            return true;
+            int rightDistance1 = rightDistance(neighbourNodes.indexOf(startLane1.getStartNode()), neighbourNodes.indexOf(endLane1.getEndNode()));
+            int rightDistance2 = rightDistance(neighbourNodes.indexOf(startLane1.getStartNode()), neighbourNodes.indexOf(endLane2.getEndNode()));
+            
+            if (startLane1.getLaneId() < startLane2.getLaneId()) {
+                //in this case, startLane1 is RIGHT of startLane2.
+                //so, endLane1 has to be closer to the right than endLane2
+                if (rightDistance1 < rightDistance2) 
+                    return false;
+                else 
+                    return true;
+                
+            } else {
+                //in this case, startLane2 is RIGHT of startLane1.
+                //so, endLane2 has to be closer to the right than endLane1
+                if (rightDistance2 < rightDistance1) 
+                    return false;
+                else 
+                    return true;
+                
+            }
         } else {
             //in case of doubt/exception: interssection
             return true;
@@ -378,36 +446,8 @@ public abstract class Node
         return (b > a1 && b < a2);
     }
 
-    private void determineLaneMapping() {
+    private void determineAllowedDirections() {
 
-        if (getNeighbourNodes().size() == 2) {
-            RoadSegment segment1 = getRoadSegment(getNeighbourNodes().get(0));
-            RoadSegment segment2 = getRoadSegment(getNeighbourNodes().get(1));
-
-            mapLanes(segment1,segment2);
-        } else {
-            RoadSegment segment1;
-            RoadSegment segment2;
-
-            for (Node n1 : getNeighbourNodes()) {
-
-                segment1 = getRoadSegment(n1);
-
-                for (Node n2 : getNeighbourNodes()) {
-
-                    if (n1 == n2)
-                        continue;
-
-                    segment2 = getRoadSegment(n2);
-
-                    if (segment1.getNextSegment() == segment2 || segment1.getPreviousSegment() == segment2) {
-                        mapLanes(segment1,segment2);
-                    }
-                }
-
-            }            
-        }
-        
         for (Node n : getSourceNodes()) {
             RoadSegment rs = getRoadSegment(n);
             for (Lane l : rs.getDestinationLanes(this)) {
@@ -434,25 +474,6 @@ public abstract class Node
         spawnCars.add(car);
     }
 
-    private void mapLanes(RoadSegment rs1, RoadSegment rs2) {
-
-        List<Lane> lanes1,lanes2;
-
-        lanes1 = rs1.getDestinationLanes(this);
-        lanes2 = rs2.getSourceLanes(this);
-
-        for (Lane l1 : lanes1)
-            for (Lane l2 : lanes2)
-                if (l1.getLaneId() == l2.getLaneId())
-                    laneMap.put(l1, l2);
-
-        lanes1 = rs2.getDestinationLanes(this);
-        lanes2 = rs1.getSourceLanes(this);
-        for (Lane l1 : lanes1)
-            for (Lane l2 : lanes2)
-                if (l1.getLaneId() == l2.getLaneId())
-                    laneMap.put(l1, l2);
-    }
 
     private void determineIncomingLanes() {
         RoadSegment r;
@@ -466,15 +487,31 @@ public abstract class Node
         }
     }
 
-    public void mapLane(Lane incoming, Lane outgoing) {
-        laneMap.put(incoming, outgoing);
-    }
-
-    public Lane getLaneMapping(Lane incoming) {
-        if (laneMap.containsKey(incoming))
-            return laneMap.get(incoming);
-        else
-            return null;
+    public Lane getLaneMapping(Lane incoming, Node outgoing) {
+        int id = incoming.getLaneId();
+        
+        
+        
+        RoadSegment rs = getRoadSegment(outgoing);
+        
+        List<Lane> outLanes = rs.getSourceLanes(this);
+        
+        Lane lowest = null;
+        
+        for (Lane lane : outLanes) {
+            if (lowest == null || lane.getLaneId() < lowest.getLaneId())
+                lowest = lane;
+            
+            if (lane.getLaneId() == id)
+                return lane;
+        }
+        
+        return lowest;
+        
+//        if (laneMap.containsKey(incoming))
+//            return laneMap.get(incoming);
+//        else
+//            return null;
     }
 
     public List<Lane> getIncomingLanes() {

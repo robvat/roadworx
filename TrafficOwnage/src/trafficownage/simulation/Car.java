@@ -328,7 +328,7 @@ public class Car
         
         List<Lane> lanes = currentNode.getRoadSegment(route.getNextNode()).getSourceLanes(currentNode);
 
-        Lane mapped = currentNode.getLaneMapping(currentLane);
+        Lane mapped = currentNode.getLaneMapping(currentLane, route.getNextNode());
 
         if (mapped != null && lanes.contains(mapped) && mapped.acceptsCarAdd(this)) {
             nextLane = mapped;
