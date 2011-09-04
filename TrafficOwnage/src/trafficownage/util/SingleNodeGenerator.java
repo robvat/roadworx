@@ -30,6 +30,7 @@ public class SingleNodeGenerator {
     public static final int NODE_DYNAMIC_TRAFFICLIGHT = 1;
     public static final int NODE_RANDOM_TRAFFICLIGHT = 2;
     public static final int NODE_ROUNDABOUT = 3;
+    public static final int NODE_FIXED_TRAFFICLIGHT = 4;
 
     private ArrayList<Node> nodes;
     private List<Road> roads;
@@ -74,6 +75,9 @@ public class SingleNodeGenerator {
             case NODE_ROUNDABOUT:
                 // Radius = 10 meters
                 middleNode = new Roundabout(new Point2D.Double(0.0,0.0), 10.0);
+                break;
+            case NODE_FIXED_TRAFFICLIGHT:
+                middleNode = new FixedTrafficLight(new Point2D.Double(0.0,0.0));
                 break;
         }
 

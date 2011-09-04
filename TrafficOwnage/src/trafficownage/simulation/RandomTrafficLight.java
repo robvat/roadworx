@@ -137,15 +137,12 @@ public class RandomTrafficLight extends Node implements TrafficLightInterface
             }
             overlap = true;
         }
-
-        if (timePassed > trafficLightInterval + 3.0){
+        else if(timePassed > trafficLightInterval + 3.0)
+        {
             currentLight = randomizer.nextInt(roadSegments.size());
-
-              trafficLights.put(roadSegments.get(currentLight), true);
-            
+            trafficLights.put(roadSegments.get(currentLight), true);
             if(randomInterval)
-                trafficLightInterval = (randomizer.nextDouble() * maxTime);
-
+            trafficLightInterval = (randomizer.nextDouble() * maxTime);
             timePassed = 0.0;
             overlap = false;
         }
