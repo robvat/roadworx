@@ -23,14 +23,6 @@ public class SingleNodeGenerator {
 
     }
 
-    /**
-     * These static ints represent the type of node placed in the middle of the system
-     */
-    public static final int NODE_NORMAL_JUNCTION = 0;
-    public static final int NODE_DYNAMIC_TRAFFICLIGHT = 1;
-    public static final int NODE_RANDOM_TRAFFICLIGHT = 2;
-    public static final int NODE_ROUNDABOUT = 3;
-    public static final int NODE_FIXED_TRAFFICLIGHT = 4;
 
     private ArrayList<Node> nodes;
     private List<Road> roads;
@@ -61,22 +53,22 @@ public class SingleNodeGenerator {
         //change the node types here
         switch (nodeType)
         {
-            case NODE_NORMAL_JUNCTION:
+            case Node.NODE_NORMAL_JUNCTION:
                 //TODO: Warning, not fully functional!
                 middleNode = new NormalJunction(new Point2D.Double(0.0,0.0));
                 break;
-            case NODE_DYNAMIC_TRAFFICLIGHT:
+            case Node.NODE_DYNAMIC_TRAFFICLIGHT:
                 middleNode = new TrafficLight(new Point2D.Double(0.0,0.0));
                 break;
-            case NODE_RANDOM_TRAFFICLIGHT:
+            case Node.NODE_RANDOM_TRAFFICLIGHT:
                 // Time between light switches also random!
                 middleNode = new RandomTrafficLight(new Point2D.Double(0.0,0.0), RandomTrafficLight.RANDOMINTERVAL);
                 break;
-            case NODE_ROUNDABOUT:
+            case Node.NODE_ROUNDABOUT:
                 // Radius = 10 meters
                 middleNode = new Roundabout(new Point2D.Double(0.0,0.0), 10.0);
                 break;
-            case NODE_FIXED_TRAFFICLIGHT:
+            case Node.NODE_FIXED_TRAFFICLIGHT:
                 middleNode = new FixedTrafficLight(new Point2D.Double(0.0,0.0));
                 break;
         }
@@ -147,8 +139,8 @@ public class SingleNodeGenerator {
             Road r = new Road("Road " + Integer.toString(roads.size()));
 
             //construct the road segments
-            RoadSegment rs1 = new RoadSegment(r,new double[] {maxSpeed}, nodes.get(startRoadSegment), middleNode);
-            RoadSegment rs2 = new RoadSegment(r,new double[] {maxSpeed}, middleNode, nodes.get(endRoadSegment));
+            RoadSegment rs1 = new RoadSegment(r, maxSpeed, nodes.get(startRoadSegment), middleNode);
+            RoadSegment rs2 = new RoadSegment(r, maxSpeed, middleNode, nodes.get(endRoadSegment));
 
             //populate the road segments with lanes
             populateRoadSegment(rs1,laneCount);
@@ -169,7 +161,7 @@ public class SingleNodeGenerator {
                 Road r = new Road("Road " + Integer.toString(roads.size()));
 
                 //construct the road segment
-                RoadSegment rs = new RoadSegment(r,new double[] {maxSpeed}, nodes.get(i), middleNode);
+                RoadSegment rs = new RoadSegment(r, maxSpeed, nodes.get(i), middleNode);
 
                 //populate the road segments with lanes
                 populateRoadSegment(rs,laneCount);

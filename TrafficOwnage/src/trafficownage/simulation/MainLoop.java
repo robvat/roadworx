@@ -83,9 +83,9 @@ public class MainLoop implements NodeListener, CarListener {
     }
 
     public void enableFileOutput() {
-        String separator = System.getProperty("path.separator");
+        String separator = System.getProperty("file.separator");
         
-        String directoryString = System.getenv("USERPROFILE") + separator + "TrafficOwnage";
+        String directoryString = System.getProperty("user.home") + separator + "TrafficOwnage";
         String resultFileString = directoryString + separator + StringFormatter.getDateTimeFileString() + "_results.txt";
         String errorFileString = directoryString + separator + StringFormatter.getDateTimeFileString() + "_errors.txt";
 
@@ -120,12 +120,12 @@ public class MainLoop implements NodeListener, CarListener {
 
     public void init() {
 
-        setStartTime((double) TimeUnit.HOURS.toSeconds(0));
+        setStartTime((double) TimeUnit.HOURS.toSeconds(6) + (double) TimeUnit.MINUTES.toSeconds(55));
 //        overallSimulatedTime = (double) TimeUnit.HOURS.toSeconds(6) + (double) TimeUnit.MINUTES.toSeconds(55);
 //        currentDaySimulatedTime = overallSimulatedTime % DAY;
 
         //commenting the setEndTime line will make the application loop eternally
-        setEndTime((double) TimeUnit.HOURS.toSeconds(3) + (double) TimeUnit.MINUTES.toSeconds(5));
+        setEndTime((double) TimeUnit.HOURS.toSeconds(12) + (double) TimeUnit.MINUTES.toSeconds(5));
         
         //Sends console output to text files in a TrafficOwnage folder in your profile folder.
         //the file name is based on the date and time.
@@ -134,23 +134,25 @@ public class MainLoop implements NodeListener, CarListener {
         //enableFileOutput();
 
         
-        double[] highwayVelocities = new double[] {80};
-        double[] mainRoadVelocities = new double[] {50};
-        double[] smallRoadVelocities = new double[] {30};
+        double highwayVelocity = 80;
+        double mainRoadVelocity = 50;
+        double smallRoadVelocity = 30;
         
         double kphMsRatio = 1.0 / 3.6;
 
         ManhattanMapGenerator gen = new ManhattanMapGenerator();
-        gen.generate(40,
-                40,
+        gen.generate(20,
+                30,
                 100.0,
-                new Integer[] {6,20,34},
-                new Integer[] {6,20,34},
-                new Integer[] {12,28},
-                new Integer[] {12,28},
-                scale(highwayVelocities, kphMsRatio), //highway velocities
-                scale(mainRoadVelocities, kphMsRatio), //main road velocities
-                scale(smallRoadVelocities, kphMsRatio) //small road velocities
+                Node.NODE_NORMAL_JUNCTION,
+                Node.NODE_DYNAMIC_TRAFFICLIGHT,
+                new Integer[] {3,10,17},
+                new Integer[] {},
+                new Integer[] {},
+                new Integer[] {10,20},
+                highwayVelocity * kphMsRatio, //highway velocities
+                mainRoadVelocity * kphMsRatio, //main road velocities
+                smallRoadVelocity * kphMsRatio //small road velocities
         );
 
 //        SingleNodeGenerator gen = new SingleNodeGenerator();
@@ -160,21 +162,37 @@ public class MainLoop implements NodeListener, CarListener {
         nodes = gen.getNodes();
         roads = gen.getRoads();
 
+        int northernResidentialArea = gen.requestArea(new Rectangle[] {
+            new Rectangle(0,21,2,9),
+            new Rectangle(4,21,5,9),
+            new Rectangle(11,21,5,9),
+            new Rectangle(18,21,2,9)
+        });
+        
+        int southernResidentialArea = gen.requestArea(new Rectangle[] {
+            new Rectangle(0,0,2,9),
+            new Rectangle(4,0,5,9),
+            new Rectangle(11,0,5,9),
+            new Rectangle(18,0,2,9)            
+        });
+        
         int residentialAreas = gen.requestArea(new Rectangle[] {
-            new Rectangle(0,0,11,11),
-            new Rectangle(13,0,14,11),
-            new Rectangle(29,0,11,11),
+            new Rectangle(0,0,2,9),
+            new Rectangle(4,0,5,9),
+            new Rectangle(11,0,5,9),
+            new Rectangle(18,0,2,9),
 
-            new Rectangle(0,13,11,14),
-            new Rectangle(29,13,11,14),
-
-            new Rectangle(0,29,11,11),
-            new Rectangle(13,29,14,11),
-            new Rectangle(29,29,11,11)
+            new Rectangle(0,21,2,9),
+            new Rectangle(4,21,5,9),
+            new Rectangle(11,21,5,9),
+            new Rectangle(18,21,2,9),
         });
 
         int innerCity = gen.requestArea(new Rectangle[] {
-            new Rectangle(13,13,14,14)
+            new Rectangle(0,11,2,8),
+            new Rectangle(4,11,5,8),
+            new Rectangle(11,11,5,8),
+            new Rectangle(18,11,2,8),
         });
 
 
@@ -202,102 +220,68 @@ public class MainLoop implements NodeListener, CarListener {
 //        trafficManager.addMapping(  "Congested road #2",                    true,           2,          4,          5.0,                true);
 //        trafficManager.addMapping(  "Peaceful road #2",                     true,           3,          4,          50.0,               true);
 
-        trafficManager.addMapping("Random evening traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(18)),
-                (double) (TimeUnit.HOURS.toSeconds(20)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                .5,
-                false);
 
-        trafficManager.addMapping("Random evening traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(20)),
-                (double) (TimeUnit.HOURS.toSeconds(21)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                1.0,
-                false);
-        trafficManager.addMapping("Random evening traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(21)),
-                (double) (TimeUnit.HOURS.toSeconds(23)) + (TimeUnit.MINUTES.toSeconds(59)) + (TimeUnit.SECONDS.toSeconds(59)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                1.5,
-                false);
+//        trafficManager.addMapping("Random noon traffic", true,
+//                (double) (TimeUnit.HOURS.toSeconds(9)),
+//                (double) (TimeUnit.HOURS.toSeconds(15)),
+//                ManhattanMapGenerator.ALL_NODES,
+//                ManhattanMapGenerator.ALL_NODES,
+//                .1,
+//                false);
 
-        trafficManager.addMapping("Random early morning traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(0)),
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                1.5,
-                false);
-
-        trafficManager.addMapping("Random noon traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(9)),
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                .5,
-                false);
-
-        trafficManager.addMapping("Random morning rush hour traffic", false,
+        trafficManager.addMapping("Random northern residential morning rush hour traffic", true,
                 (double) (TimeUnit.HOURS.toSeconds(6)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                .75,
+                northernResidentialArea,
+                northernResidentialArea,
+                5.0,
+                false);
+        
+        trafficManager.addMapping("Random southern residential morning rush hour traffic", true,
+                (double) (TimeUnit.HOURS.toSeconds(6)),
+                (double) (TimeUnit.HOURS.toSeconds(9)),
+                southernResidentialArea,
+                southernResidentialArea,
+                5.0,
+                false);
+        
+        trafficManager.addMapping("Random commercial rush hour traffic", true,
+                (double) (TimeUnit.HOURS.toSeconds(6)),
+                (double) (TimeUnit.HOURS.toSeconds(9)),
+                innerCity,
+                innerCity,
+                5.0,
                 false);
 
-        trafficManager.addMapping("Random evening rush hour traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                (double) (TimeUnit.HOURS.toSeconds(18)),
-                ManhattanMapGenerator.ALL_NODES,
-                ManhattanMapGenerator.ALL_NODES,
-                .75,
-                false);
 
-        trafficManager.addMapping("Residential commuters", false,
+        trafficManager.addMapping("Residential commuters", true,
+                (double) (TimeUnit.HOURS.toSeconds(6)),
+                (double) (TimeUnit.HOURS.toSeconds(9)),
+                residentialAreas,
+                ManhattanMapGenerator.SPAWN_NODES,
+                2000,
+                true);
+        
+        trafficManager.addMapping("Commuters", true,
                 (double) (TimeUnit.HOURS.toSeconds(6)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 innerCity,
-                8000,
+                2000,
                 true);
 
-        trafficManager.addMapping("Residential commuters", false,
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                (double) (TimeUnit.HOURS.toSeconds(18)),
-                innerCity,
-                ManhattanMapGenerator.SPAWN_NODES,
-                8000,
-                true);
 
-        trafficManager.addMapping("Residential to commercial traffic", false,
+        trafficManager.addMapping("Residential to commercial traffic", true,
                 (double) (TimeUnit.HOURS.toSeconds(6)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 residentialAreas,
                 innerCity,
-                4000,
-                false);
-        trafficManager.addMapping("Residential to commercial traffic", false,
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                (double) (TimeUnit.HOURS.toSeconds(18)),
-                innerCity,
-                residentialAreas,
-                4000,
-                false);
-
-        trafficManager.addMapping("Commuters passing through city", false,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
-                ManhattanMapGenerator.SPAWN_NODES,
-                ManhattanMapGenerator.SPAWN_NODES,
                 5000,
-                true);
-        trafficManager.addMapping("Commuters passing through city", false,
-                (double) (TimeUnit.HOURS.toSeconds(15)),
-                (double) (TimeUnit.HOURS.toSeconds(18)),
+                false);
+
+        trafficManager.addMapping("Commuters passing through city", true,
+                (double) (TimeUnit.HOURS.toSeconds(6)),
+                (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
                 5000,
@@ -354,15 +338,16 @@ public class MainLoop implements NodeListener, CarListener {
         }
         
         System.out.println("===SETTINGS===");
+        System.out.println("GREEN WAVE"); 
+        System.out.println("-Enabled: " + GreenWaveScheduler.ENABLED);
+        System.out.println("-Queue threshold: " + GreenWaveScheduler.QUEUE_THRESHOLD + ".");
+        System.out.println("-Greentime overlap: " + GreenWaveScheduler.GREENTIME_OVERLAP + "s.");
+        System.out.println("-Greenwave cooldown time: " + GreenWaveScheduler.GREENWAVE_COOLDOWN_TIME + "s.");
+        System.out.println();
         System.out.println("DYNAMIC TRAFFIC LIGHTS");        
         System.out.println("-Green time: " + TrafficLight.GREEN_TIME);        
         System.out.println("-First car ignorance time: " + TrafficLight.IGNORE_TRAFFIC_TIME);
-        System.out.println("-Traffic light receive distance: " + TrafficLight.MAX_RECEIVE_DISTANCE);
-        System.out.println();
-        System.out.println("===VELOCITIES===");
-        System.out.println("-Highways: " + Arrays.toString(highwayVelocities));
-        System.out.println("-Main roads: " + Arrays.toString(mainRoadVelocities));
-        System.out.println("-Small roads: " + Arrays.toString(smallRoadVelocities));
+        System.out.println("-Traffic light receive distance: " + TrafficLight.MAX_TRAFFICLIGHT_RECEIVE_DISTANCE);
         System.out.println();
 
         initialized = true;

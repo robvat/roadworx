@@ -102,8 +102,8 @@ public class TrafficLight extends Node implements TrafficLightInterface
             System.err.println("Car did not check correctly if it could join a lane.");
         }
         
-        if (!incoming.getCurrentLane().getAllowedDirections().contains(l.getEndNode()))
-            System.err.println("Car is turning from the wrong lane. Should not happen.");
+//        if (!incoming.getCurrentLane().getAllowedDirections().contains(l.getEndNode()))
+//            System.err.println("Car is turning from the wrong lane. Should not happen.");
         
         l.addCar(incoming);
     }
@@ -163,7 +163,7 @@ public class TrafficLight extends Node implements TrafficLightInterface
         return laneSetScore;
     }
 
-    private double determineArrivalTime(Car car) {
+    public double determineArrivalTime(Car car) {
         double s = car.getDistanceToLaneEnd();
         double a = car.getAcceleration();
         double v0 = car.getVelocity();
@@ -205,6 +205,14 @@ public class TrafficLight extends Node implements TrafficLightInterface
         }
 
     };
+    
+    public boolean canEnableLaneSetsSimultaneously(List<Lane> laneSet1, List<Lane> laneSet2) {
+        for (List<Lane> laneSet : laneSets) 
+            if (laneSet.containsAll(laneSet1) && laneSet.containsAll(laneSet2))
+                return true;
+        
+        return false;        
+    }
 
     private void checkForNewTraffic(boolean mustChange)
     {
@@ -294,9 +302,14 @@ public class TrafficLight extends Node implements TrafficLightInterface
      * method to start/use the green wave and then after the set time it is done
      * (you need to set the time & lanes directly after!)
      */
-    public void activateGreenWave()
+    public void activateGreenWave(double greenTime, List<Lane> laneSet)
     {
-        greenWaveActive = true;
+        this.greenWaveActive = true;
+        
+        this.greenLanes = laneSet;
+        
+        this.timePassed = 0.0;
+        this.greenTime = greenTime;
     }
 
     /**
