@@ -23,24 +23,18 @@ public class RoadSegment {
 
     private RoadSegment nextSegment, previousSegment;
 
-    private SpeedLimitUpdater speedLimitUpdater;
-
     private double avgCO2EmissionPerKilometer;
 
     private Road parent;
 
-    private double maxVelocity[];
-    private int maxVelocityIndex;
+    private double maxVelocity;
     private double length;
 
-    public RoadSegment(Road parent, double[] maxVelocity, Node startNode, Node endNode) {
+    public RoadSegment(Road parent, double maxVelocity, Node startNode, Node endNode) {
         this.startNode = startNode;
         this.endNode = endNode;
 
         this.maxVelocity = maxVelocity;
-        this.maxVelocityIndex = 0;
-
-        this.speedLimitUpdater = new EmissionBasedSpeedLimitUpdater(this);
 
         this.startLanes = new LinkedList<Lane>();
         this.endLanes = new LinkedList<Lane>();
@@ -57,30 +51,7 @@ public class RoadSegment {
     }
 
     public double getMaxVelocity() {
-        return maxVelocity[maxVelocityIndex];
-    }
-
-    public double getLoweredSpeedLimitRatio() {
-        return (maxVelocity.length > 1) ? (double)maxVelocityIndex / (double)(maxVelocity.length - 1) : 0.0;
-    }
-
-    public void lowerSpeedLimit() {
-        if (maxVelocityIndex < maxVelocity.length - 1)
-            maxVelocityIndex++;
-
-        updateSpeedLimits();
-    }
-    public void raiseSpeedLimit() {
-        if (maxVelocityIndex > 0)
-            maxVelocityIndex--;
-
-        updateSpeedLimits();
-    }
-
-    private void updateSpeedLimits() {
-        for (Lane l : allLanes) {
-            l.setMaxVelocity(maxVelocity[maxVelocityIndex]);
-        }
+        return maxVelocity;
     }
 
     public Road getRoad() {
@@ -132,7 +103,7 @@ public class RoadSegment {
     }
 
     private void addLeftLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections, boolean ending) {
-        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity[maxVelocityIndex]);
+        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity);
 
         if (laneList.size() > 0) {
             newLane.setRightNeighbour(laneList.getLast());
@@ -180,7 +151,7 @@ public class RoadSegment {
     }
 
     private void addRightLane(LinkedList<Lane> laneList, int laneId, Node startNode, Node endNode, List<Node> allowedDirections) {
-        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity[maxVelocityIndex]);
+        Lane newLane = new Lane(laneId, this, startNode, endNode, allowedDirections, maxVelocity);
 
         if (laneList.size() > 0) {
             newLane.setLeftNeighbour(laneList.getFirst());
@@ -217,7 +188,6 @@ public class RoadSegment {
     }
 
     public void init() {
-        speedLimitUpdater.init(maxVelocity);
     }
 
     /**
@@ -267,8 +237,7 @@ public class RoadSegment {
         }
     }
 
-    public void updateSpeedLimits(double timestep) {  
-        speedLimitUpdater.update(timestep);
+    public void updateSpeedLimits(double timestep) {
     }
 
 

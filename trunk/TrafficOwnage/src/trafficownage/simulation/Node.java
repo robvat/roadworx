@@ -21,6 +21,16 @@ import java.util.List;
  */
 public abstract class Node
 {
+    /**
+     * These static ints represent the type of node placed in the middle of the system
+     */
+    public static final int NODE_NORMAL_JUNCTION = 0;
+    public static final int NODE_DYNAMIC_TRAFFICLIGHT = 1;
+    public static final int NODE_RANDOM_TRAFFICLIGHT = 2;
+    public static final int NODE_ROUNDABOUT = 3;
+    public static final int NODE_FIXED_TRAFFICLIGHT = 4;
+ 
+    
     private Point2D.Double location;
     private List<RoadSegment> roads;
     private Road priorityRoad = null;

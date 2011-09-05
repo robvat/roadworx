@@ -22,7 +22,8 @@ public class NormalJunction extends Node {
     }
 
     @Override
-    public boolean drivethrough(Car incoming) { 
+    public boolean drivethrough(Car incoming) {
+        
         if (incoming.getDistanceToLaneEnd() > BRAKE_DISTANCE){
             return false;
         }
@@ -64,8 +65,11 @@ public class NormalJunction extends Node {
         //loop through all other cars
         for (Car car : cars) {
             
+            if (car.getCurrentLane() == null || car.getCurrentLane().getEndNode() != this)
+                continue; 
+            
             //if its the same car, don't check
-            if (car == incoming)
+            if (car == incoming || car.getNextLane() == null)
                 continue;
             
             //is the other car currently on the priority road?
@@ -154,6 +158,8 @@ public class NormalJunction extends Node {
     private List<Car> cars;
     @Override
     public void update(double timestep) {
+        super.update(timestep);
+        
         cars.clear();
         
         for (Lane l : getIncomingLanes()) {

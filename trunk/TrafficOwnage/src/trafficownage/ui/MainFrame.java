@@ -128,13 +128,10 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         simSpeedLabel = new javax.swing.JLabel();
         currentViewModeLabel = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
-        fileMenu = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
         drawingMenu = new javax.swing.JMenu();
         drawingEnabledCheckbox = new javax.swing.JCheckBoxMenuItem();
         drawCarsRadioButton = new javax.swing.JRadioButtonMenuItem();
         drawDensityRadioButton = new javax.swing.JRadioButtonMenuItem();
-        drawSpeedLimitsRadioButton = new javax.swing.JRadioButtonMenuItem();
         drawEmissionRadioButton = new javax.swing.JRadioButtonMenuItem();
         resultsMenu = new javax.swing.JMenu();
 
@@ -328,18 +325,6 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
                 .addContainerGap())
         );
 
-        fileMenu.setText("File");
-        fileMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fileMenuActionPerformed(evt);
-            }
-        });
-
-        jMenuItem1.setText("jMenuItem1");
-        fileMenu.add(jMenuItem1);
-
-        jMenuBar1.add(fileMenu);
-
         drawingMenu.setText("Drawing");
 
         drawingEnabledCheckbox.setSelected(true);
@@ -369,15 +354,6 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
             }
         });
         drawingMenu.add(drawDensityRadioButton);
-
-        drawModeButtonGroup.add(drawSpeedLimitsRadioButton);
-        drawSpeedLimitsRadioButton.setText("Speed limits");
-        drawSpeedLimitsRadioButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                drawSpeedLimitsRadioButtonActionPerformed(evt);
-            }
-        });
-        drawingMenu.add(drawSpeedLimitsRadioButton);
 
         drawModeButtonGroup.add(drawEmissionRadioButton);
         drawEmissionRadioButton.setText("CO2 emission");
@@ -432,9 +408,6 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
                 case MapComponent.DRAW_DENSITY:
                     currentViewModeLabel.setText("Traffic density view");
                     break;
-                case MapComponent.DRAW_SPEEDLIMITS:
-                    currentViewModeLabel.setText("Speedlimit view");
-                    break;
                 case MapComponent.DRAW_EMISSION:
                     currentViewModeLabel.setText("CO2 emission view");
                     break;
@@ -473,11 +446,6 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
         updateInfo();
     }//GEN-LAST:event_decreaseSimSpeedButtonActionPerformed
 
-    private void fileMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuActionPerformed
-
-        m.start();
-    }//GEN-LAST:event_fileMenuActionPerformed
-
     private void drawDensityRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawDensityRadioButtonActionPerformed
         mapComponent2.setDrawMode(MapComponent.DRAW_DENSITY);
 
@@ -495,12 +463,6 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
 
         updateInfo();
     }//GEN-LAST:event_drawingEnabledCheckboxActionPerformed
-
-    private void drawSpeedLimitsRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawSpeedLimitsRadioButtonActionPerformed
-        mapComponent2.setDrawMode(MapComponent.DRAW_SPEEDLIMITS);
-
-        updateInfo();
-    }//GEN-LAST:event_drawSpeedLimitsRadioButtonActionPerformed
 
     private void drawEmissionRadioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawEmissionRadioButtonActionPerformed
         mapComponent2.setDrawMode(MapComponent.DRAW_EMISSION);
@@ -533,14 +495,11 @@ public class MainFrame extends javax.swing.JFrame implements MainLoopListener {
     private javax.swing.JRadioButtonMenuItem drawDensityRadioButton;
     private javax.swing.JRadioButtonMenuItem drawEmissionRadioButton;
     private javax.swing.ButtonGroup drawModeButtonGroup;
-    private javax.swing.JRadioButtonMenuItem drawSpeedLimitsRadioButton;
     private javax.swing.JCheckBoxMenuItem drawingEnabledCheckbox;
     private javax.swing.JMenu drawingMenu;
-    private javax.swing.JMenu fileMenu;
     private javax.swing.JButton increaseSimSpeedButton;
     private javax.swing.JList jList1;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;

@@ -289,8 +289,7 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
 
     public final static int DRAW_CARS = 0;
     public final static int DRAW_DENSITY = 1;
-    public final static int DRAW_SPEEDLIMITS = 2;
-    public final static int DRAW_EMISSION = 3;
+    public final static int DRAW_EMISSION = 2;
 
     private int drawLaneContent(Graphics2D gr, double length, List<Lane> lanes, int i) {
 
@@ -367,10 +366,6 @@ public class MapComponent extends JComponent implements MouseWheelListener, Mous
             } else if (drawMode == DRAW_DENSITY) {
                 double ratio = l.getCombinedCarLength() / l.getLength();
                 gr.setColor(getColor(Math.pow(ratio,0.3)));
-                gr.draw(line);
-            } else if (drawMode == DRAW_SPEEDLIMITS) {
-                double ratio = l.getRoadSegment().getLoweredSpeedLimitRatio();
-                gr.setColor(getColor(ratio));
                 gr.draw(line);
             } else if (drawMode == DRAW_EMISSION) {
                 double ratio = (l.getRoadSegment().getAverageCo2EmissionPerKilometer() / 15000.0);

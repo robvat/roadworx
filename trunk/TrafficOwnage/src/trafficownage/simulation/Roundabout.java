@@ -112,6 +112,8 @@ public class Roundabout extends Node
      */
     public void update(double timestep)
     {
+        super.update(timestep);
+        
         double newTime;
         for(int i = 0; i < cars.size(); i++)
         {
