@@ -120,7 +120,7 @@ public class MainLoop implements NodeListener, CarListener {
 
     public void init() {
 
-        setStartTime((double) TimeUnit.HOURS.toSeconds(6) + (double) TimeUnit.MINUTES.toSeconds(55));
+        setStartTime((double) TimeUnit.HOURS.toSeconds(5) + (double) TimeUnit.MINUTES.toSeconds(55));
 //        overallSimulatedTime = (double) TimeUnit.HOURS.toSeconds(6) + (double) TimeUnit.MINUTES.toSeconds(55);
 //        currentDaySimulatedTime = overallSimulatedTime % DAY;
 
@@ -228,63 +228,95 @@ public class MainLoop implements NodeListener, CarListener {
 //                ManhattanMapGenerator.ALL_NODES,
 //                .1,
 //                false);
-
-        trafficManager.addMapping("Random northern residential morning rush hour traffic", true,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
+        
+        trafficManager.addMapping("ALL DAY - Random northern residential traffic", true,
+                (double) (TimeUnit.HOURS.toSeconds(0)),
+                (double) (TimeUnit.HOURS.toSeconds(23) + TimeUnit.HOURS.toSeconds(59)),
                 northernResidentialArea,
                 northernResidentialArea,
                 5.0,
                 false);
         
-        trafficManager.addMapping("Random southern residential morning rush hour traffic", true,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
+        trafficManager.addMapping("ALL DAY - Random southern residential traffic", true,
+                (double) (TimeUnit.HOURS.toSeconds(0)),
+                (double) (TimeUnit.HOURS.toSeconds(23) + TimeUnit.HOURS.toSeconds(59)),
                 southernResidentialArea,
                 southernResidentialArea,
                 5.0,
                 false);
         
-        trafficManager.addMapping("Random commercial rush hour traffic", true,
-                (double) (TimeUnit.HOURS.toSeconds(6)),
-                (double) (TimeUnit.HOURS.toSeconds(9)),
+        trafficManager.addMapping("ALL DAY - Random commercial morning traffic", true,
+                (double) (TimeUnit.HOURS.toSeconds(0)),
+                (double) (TimeUnit.HOURS.toSeconds(23) + TimeUnit.HOURS.toSeconds(59)),
                 innerCity,
                 innerCity,
                 5.0,
                 false);
 
-
-        trafficManager.addMapping("Residential commuters", true,
+        
+        
+        trafficManager.addMapping("RUSH HOUR - Residential morning commuters", true,
                 (double) (TimeUnit.HOURS.toSeconds(6)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 residentialAreas,
                 ManhattanMapGenerator.SPAWN_NODES,
                 2000,
+                true);        
+        trafficManager.addMapping("POST RUSH HOUR - Residential morning post commuters", true,
+                (double) (TimeUnit.HOURS.toSeconds(9)),
+                (double) (TimeUnit.HOURS.toSeconds(12)),
+                residentialAreas,
+                ManhattanMapGenerator.SPAWN_NODES,
+                1000,
                 true);
         
-        trafficManager.addMapping("Commuters", true,
+        
+        
+        trafficManager.addMapping("RUSH HOUR - Commuters", true,
                 (double) (TimeUnit.HOURS.toSeconds(6)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 innerCity,
                 2000,
+                true);        
+        trafficManager.addMapping("POST RUSH HOUR - Commuters", true,
+                (double) (TimeUnit.HOURS.toSeconds(9)),
+                (double) (TimeUnit.HOURS.toSeconds(12)),
+                ManhattanMapGenerator.SPAWN_NODES,
+                innerCity,
+                1000,
                 true);
 
 
-        trafficManager.addMapping("Residential to commercial traffic", true,
+        trafficManager.addMapping("RUSH HOUR - Residential to commercial traffic", true,
                 (double) (TimeUnit.HOURS.toSeconds(6)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 residentialAreas,
                 innerCity,
                 5000,
                 false);
+        trafficManager.addMapping("POST RUSH HOUR - Residential to commercial traffic", true,
+                (double) (TimeUnit.HOURS.toSeconds(9)),
+                (double) (TimeUnit.HOURS.toSeconds(12)),
+                residentialAreas,
+                innerCity,
+                2500,
+                false);
 
-        trafficManager.addMapping("Commuters passing through city", true,
+        
+        trafficManager.addMapping("RUSH HOUR - Commuters passing through city", true,
                 (double) (TimeUnit.HOURS.toSeconds(6)),
                 (double) (TimeUnit.HOURS.toSeconds(9)),
                 ManhattanMapGenerator.SPAWN_NODES,
                 ManhattanMapGenerator.SPAWN_NODES,
                 5000,
+                true);
+        trafficManager.addMapping("POST RUSH HOUR - Commuters passing through city", true,
+                (double) (TimeUnit.HOURS.toSeconds(9)),
+                (double) (TimeUnit.HOURS.toSeconds(12)),
+                ManhattanMapGenerator.SPAWN_NODES,
+                ManhattanMapGenerator.SPAWN_NODES,
+                2500,
                 true);
 
         setExportMoments(new double[] {
